@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.acount.AcountMapper">
+
+<sql id="acountInfo">
+	SELECT
+		acount.goodsno, 		acount.goodsnm,		acount.goodsnmKR,			acount.goodsnmCN,
+		acount.orddt,	 		acount.ea,	 
+		acount.price,			acount.addopt, 		acount.deliveryPrice,		acount.addDeliveryPrice,
+		acount.fees,			acount.coupon,		acount.accountFlag,			acount.sellerCd,
+		acount.accountDate,		acount.ordno,		seller.sellernm
+	FROM gd_account_info acount
+	JOIN gd_seller seller on acount.sellerCd = seller.sellerCd
+	WHERE 1=1
+			<if test="sflag != null and sflag != '' ">
+				AND acount.accountFlag = #{sflag}
+			</if> 
+			<if test="sellernm != null and sellernm != '' ">
+				<![CDATA[and seller.sellernm like concat('%',#{sellernm},'%')]]>
+			</if>
+			<if test="search != null and skey == 'ordno' ">
+				AND acount.ordno like concat('%' ,#{search}, '%')
+			</if>
+			<if test="search != null and skey == 'goodsnm' ">
+				AND CONCAT(acount.goodsnm, acount.goodsnmKR, acount.goodsnmCN) like concat('%' ,#{search}, '%')
+			</if>
+			<if test="s_ord0 != null and s_ord0 !='' and s_ord1 != null and s_ord1 !='' ">
+				and acount.orddt between date_format(#{s_ord0},'%Y-%m-%d 00:00:00') and date_format(#{s_ord1},'%Y-%m-%d 23:59:59')
+			</if>
+</sql>
+
+	<select id="getAcountInfo" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.acount.AcountVO">
+		<include refid="acountInfo" />
+		limit #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 정산 검색  -->
+	<select id="getAcountListCount" resultType="int">
+		SELECT COUNT(goodsno)
+		FROM(
+			<include refid="acountInfo" />
+		) cnt
+	</select>
+	
+	<select id="getAcountListData" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.acount.AcountVO">
+		<include refid="acountInfo" />
+	</select>
+	
+	
+	<select id="getAcountListTotalCount" resultType="int">
+		SELECT count(goodsno) 
+		FROM gd_account_info 	
+	</select>
+	
+	<update id="updateFlag" >
+		UPDATE
+			gd_account_info
+		SET
+			accountFlag =#{acountFlag},
+			accountDate = now()
+			WHERE goodsno = #{goodsno} AND ordno = #{ordno}
+	</update>
+	
+</mapper>

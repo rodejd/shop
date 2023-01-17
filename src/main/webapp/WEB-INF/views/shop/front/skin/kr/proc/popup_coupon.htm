@@ -1,0 +1,86 @@
+﻿{*** 할인쿠폰적용하기 | proc/popup_coupon.php ***}
+<script src="../common.js"></script>
+<link rel="styleSheet" href="../style.css">
+
+<script language=javascript>
+<!--
+function calcuCoupon(obj)
+{
+	var chk = document.getElementsByName(obj.name);
+	var apply_coupon = opener.document.getElementById('apply_coupon');
+
+	var coupon_price = 0; var coupon_emoney = 0; var sno='';
+	var dc = 0; var abi = 0;
+	apply_coupon.innerHTML = '';
+	for(i=0;i<chk.length;i++){
+		if(chk[i].checked){
+			dc = chk[i].getAttribute('dc');
+			abi = chk[i].getAttribute('abi');
+
+			sno = chk[i].getAttribute('sno');
+			if(abi == 0)coupon_price += parseInt(dc);
+			else coupon_emoney += parseInt(dc);
+
+			apply_coupon.innerHTML += "<input type='hidden' name='apply_coupon[]' value='"+ sno +"'>";
+		}
+	}
+
+	document.getElementById('coupon_price').innerHTML = comma(coupon_price);
+	document.getElementById('coupon_emoney').innerHTML = comma(coupon_emoney);
+
+	if((coupon_price || coupon_emoney) && '2' == '{ _cfgCoupon.range }')opener.document.getElementById('memberdc').innerHTML = 0;
+
+	opener.document.frmOrder.coupon.value = comma(coupon_price);
+	opener.document.frmOrder.coupon_emoney.value = comma(coupon_emoney);
+	opener.chk_emoney(opener.document.frmOrder.emoney);
+	opener.getDelivery();
+	opener.calcu_settle();
+}
+-->
+</script>
+
+<body bgcolor="#000000" style="padding:10px;">
+
+<table height=100% width=100% cellpadding=0 cellspacing=0 border=0 bgcolor="#FFFFFF">
+<tr>
+	<td style="background:#000000; border-bottom:2px solid #DDDDDD"><img src="../img/common/popup_title_coupon.gif"></td>
+</tr>
+<tr>
+	<td  align=center valign=top>
+	<div style="height:15; font-size:0pt"></div>
+	<div style="float:right;padding-right:15px;"><b>쿠폰 할인액 : <span id=coupon_price>0</span>원</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>쿠폰 적립액 : <span id=coupon_emoney>0</span>원</b></div>
+	<table width=95% border=2 bordercolor=#D6D6D6 frame="hsides" rules="rows" style="border-collapse:collapse;" cellpadding=4 id=tb>
+	<col width=30 align=center><col width=100><col width=100 align=center><col width=110 align=center><col width=110 align=center><col width=50 align=center><col width=100 align=center>
+	<tr bgcolor=#F0F0F0 height=23 class=input_txt>
+		<th>선택</th>
+		<th>쿠폰</th>
+		<th>적용상품</th>
+		<th>적용기간</th>
+		<th>발급일</th>
+		<th>기능</th>
+		<th>할인/적립</th>
+	</tr>
+	<!--{ @ (_loop) }-->
+	<tr height=40>
+		<td><input type={ ? _cfgCoupon.double }checkbox{ : }radio{ / } name='coupon[]' onclick="calcuCoupon(this)" value='{.couponcd}' dc="{.apr}" sno='{.sno}' abi='{.ability}'></td>
+		<td><div style="text-overflow:ellipsis;overflow:hidden;width:100px" nowrap>{.coupon}</div></td>
+		<td><div style="text-overflow:ellipsis;overflow:hidden;width:100px" nowrap>{ ? .goodsnm }{ .goodsnm }{ : } - { / }</div>	</td>
+		<td>{? .priodtype == 1 } 발급 후 { .sdate }{ : }{=substr(.sdate,0,10)}<br>~{=substr(.edate,0,10)} { / }</td>
+		<td>{=substr(.regdt,0,10)}</td>
+		<td>{_r_couponAbility[.ability]}</td>
+		<td>{=number_format(.price)}{ ? substr(.price,-1)!='%' }원{:}%<br>({=number_format(.apr)}원){/}</td>
+	</tr>
+	<!--{ / }-->
+	</table>
+
+	<div style="padding:10px" align=center><a href="javascript:window.close()"><img src="../img/common/btn_confirm_red.gif"></a></div>
+	</td>
+</tr>
+
+
+<tr>
+	<td valign=bottom align=right style="padding:0 14 6 0;"><A HREF="javascript:this.close()" onFocus="blur()"><img src="../img/common/popup_close.gif"></A></td>
+</tr>
+</table>
+</body>
+</html>

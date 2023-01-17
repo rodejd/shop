@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.member.dao.SellerMemberMapper">
+
+	<select id="getSellerOrderMemberList" resultType="com.wepinit.wepinit_shop.xmall.seller.member.vo.SellerOrderMemeberVO">
+	select 
+ 		t.name ,
+ 		t.m_id ,
+ 		t.nickname ,
+ 		t.sex ,
+ 		t.birth_year ,
+ 		t.birth ,
+ 		t.email ,
+ 		t.job ,
+ 		t.mobile ,
+ 		( select count(*) rowCount from gd_order a 
+ 		, gd_member b 
+ 		, gd_order_item c 
+ 		, gd_goods d 
+ 		where 1=1 and 
+ 		a.m_no = b.m_no and 
+ 		a.ordno = c.ordno and 
+ 		a.step = 4 and 
+ 		c.goodsno = d.goodsno and 
+		d.sellerCd = #{sellerCd} ) as ordercount
+	from gd_member t 
+		where t.m_no  in (
+   				select distinct b.m_no
+  				from gd_order a,
+  				gd_member b ,
+  				gd_order_item c ,
+  				gd_goods d
+ 			 		where 1=1
+   					and a.m_no = b.m_no
+   					and a.ordno = c.ordno
+  					and a.step = 4
+   					and c.goodsno = d.goodsno
+   					and d.sellerCd = #{sellerCd}
+ 				)  	
+		<if test="schType != null and schType == 'name' and schType != ''">
+			and t.name like concat('%',#{schText},'%')
+		</if>
+		<if test="schType != null and schType == 'nickname' and schType != ''">
+			and t.nickname like concat('%',#{schText},'%')
+		</if>
+		<if test="schType != null and schType == 'mid' and schType != ''">
+			and t.m_id  like concat('%',#{schText},'%')
+		</if>
+		
+		<if test="schType != null and schType == 'all' and schType != ''">
+		   and ( t.name like concat('%',#{schText},'%') or
+		         t.nickname like concat('%',#{schText},'%') or
+		         t.m_id like concat('%',#{schText},'%') )
+		</if>
+	LIMIT ${pageStart}, ${pageSize}
+	</select>
+	
+	<select id="getSellerOrderMemberCount" resultType="int">
+	SELECT COUNT(*) rowCount
+ 	from gd_member t 
+		where t.m_no  in (
+   				select distinct b.m_no
+  				from gd_order a,
+  				gd_member b ,
+  				gd_order_item c ,
+  				gd_goods d
+ 			 		where 1=1
+   					and a.m_no = b.m_no
+   					and a.ordno = c.ordno
+  					and a.step = 4
+   					and c.goodsno = d.goodsno
+   					and d.sellerCd = #{sellerCd}
+ 				)  	
+ 		<if test="schType != null and schType == 'name' and schType != ''">
+			and t.name like concat('%',#{schText},'%')
+		</if>
+		<if test="schType != null and schType == 'nickname' and schType != ''">
+			and t.nickname like concat('%',#{schText},'%')
+		</if>
+		<if test="schType != null and schType == 'mid' and schType != ''">
+			and t.m_id  like concat('%',#{schText},'%')
+		</if>
+		
+		<if test="schType != null and schType == 'all' and schType != ''">
+		   and ( t.name like concat('%',#{schText},'%') or
+		         t.nickname like concat('%',#{schText},'%') or
+		         t.m_id like concat('%',#{schText},'%') )
+		</if>
+	</select>
+	
+	
+</mapper>

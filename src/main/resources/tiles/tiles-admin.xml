@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+        "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+    <!--
+    - admin 단 path : /shop/admin/*
+    - 우선순위 높은 템플릿부터 적용하기 위해 우선순위 순서대로 매핑 룰 작성
+    -->
+
+    <!-- ==================== Layout Definition ==================== -->
+    <!-- 1. 통합관리자 default layout -->
+    <definition name="adm_default_layout" template="/WEB-INF/views/shop/template/admin/default_template.jsp">
+        <put-attribute name="title" value="WEPINIT 통합관리자" />
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <!-- 2. popup default layout(body 영역만 존재) -->
+    <definition name="adm_popup_default_layout" template="/WEB-INF/views/shop/template/admin/popup_default_template.jsp">
+        <put-attribute name="body" value="" />
+    </definition>
+
+
+    <!-- ==================== Layout Mapping Rule ==================== -->
+    <!-- 1. popup content -->
+    <!--
+    <definition name="/shop/admin/*/popup.*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/popup.{2}.jsp" />
+    </definition>
+    <definition name="/shop/admin/*/*/popup.*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/{2}/popup.{3}.jsp" />
+    </definition>
+    <definition name="/shop/admin/*/popup_*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/popup_{2}.jsp" />
+    </definition>
+    <definition name="/shop/admin/*/*/popup_*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/{2}/popup_{3}.jsp" />
+    </definition>
+    -->
+    <definition name="/shop/admin/**/popup.*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/popup.{2}.jsp" />
+    </definition>
+    <definition name="/shop/admin/**/popup_*" extends="adm_popup_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/popup_{2}.jsp" />
+    </definition>
+
+    <!-- 2. default layout -->
+    <!--	<definition name="/shop/admin/*/*" extends="adm_default_layout">    -->
+    <!--    	<put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/{2}.jsp" />  -->
+    <!--    </definition>-->
+
+    <!--	<definition name="/shop/admin/*/*/*" extends="adm_default_layout">    -->
+    <!--    	<put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}/{2}/{3}.jsp" />  -->
+    <!--    </definition>-->
+    <definition name="/shop/admin/**" extends="adm_default_layout">
+        <put-attribute name="body" value="/WEB-INF/views/shop/admin/{1}.jsp" />
+    </definition>
+
+</tiles-definitions>

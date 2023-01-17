@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.boutique.FrontBoutiqueMapper">
+	
+	<!-- 부티크 카운트 -->
+	<select id="getFrontBoutiqueCount" resultType="int">
+		/* getFrontBoutiqueCount */
+		SELECT COUNT(sno)
+		  FROM gd_boutique
+		 WHERE used = 'Y'
+		   AND skin = #{skin}
+	</select>
+	
+	<!-- 부티크 목록 -->
+	<select id="getFrontBoutiqueList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBoutique">
+		/* getFrontBoutiqueList */
+		SELECT *
+		  FROM gd_boutique
+		 WHERE used = 'Y'
+		   AND skin = #{skin}
+		ORDER BY sort, sno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+</mapper>
+

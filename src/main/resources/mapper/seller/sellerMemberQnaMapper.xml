@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.board.dao.SellerMemberQnaMapper">
+
+
+	<!-- 1:1문의관리 게시판 총 갯수 -->
+	<select id="getMemberQnaTotalCount" resultType="int">
+		SELECT count(*) FROM gd_member_qna as a  
+			LEFT OUTER JOIN gd_member as b ON a.m_no = b.m_no  
+		WHERE 1=1 and a.sellerCd =#{sellerCd}
+	</select>
+	
+	<!-- 1:1문의관리 게시판 갯수 -->
+	<select id="getMemberQnaCount" resultType="int" >
+		SELECT	count(*) FROM gd_member_qna as a 
+		 LEFT OUTER JOIN gd_member as b ON a.m_no = b.m_no
+		 WHERE 1=1 and a.sellerCd =#{sellerCd}
+		<!-- 조건문 -->
+		<if test="skey == 'all'  and sword !=null and sword != '' ">
+			AND concat(a.subject,a.contents, ifnull('m_id','')) like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='subject'">
+			AND a.subject like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='contents'">
+			AND a.contents like concat('%',#{sword},'%')
+		</if><if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='m_id'">
+			AND b.m_id like concat('%',#{sword},'%')
+		</if>
+		<if test="sregdt_0 != null and sregdt_1 != null  and sregdt_0 != '' and sregdt_1 != '' ">
+			AND a.regdt between date_format(#{sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="sitemcd != 'all'  and sitemcd != null and sitemcd != '' ">
+			AND a.itemcd=#{sitemcd}
+		</if>
+	</select>
+	
+	<!-- 1:1문의관리 게시판 목록 반환 -->
+	<select id="getMemberQnaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberqna" >
+		SELECT * 
+			,(SELECT count(*) FROM gd_order
+			WHERE ordno = a.ordno) as ordcnt
+			, (SELECT count(*)-1 FROM gd_member_qna
+			WHERE a.sno = parent and sellerCd=#{sellerCd}) as recnt
+			FROM gd_member_qna as a 
+			LEFT OUTER JOIN gd_member as b 		ON a.m_no = b.m_no 
+		WHERE 1=1 and  a.sellerCd =#{sellerCd}
+		<!-- 조건문 -->
+		<if test="skey == 'all'  and sword !=null and sword != '' ">
+			AND concat(a.subject,a.contents, ifnull('m_id','')) like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='subject'">
+			AND a.subject like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='contents'">
+			AND a.contents like concat('%',#{sword},'%')
+		</if><if test="skey != 'all'  and skey != null and sword != null and sword != '' and skey=='m_id'">
+			AND a.m_id like concat('%',#{sword},'%')
+		</if>
+		<if test="sregdt_0 != null and sregdt_1 != null  and sregdt_0 != '' and sregdt_1 != '' ">
+			AND a.regdt between date_format(#{sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="sitemcd != 'all'  and sitemcd != null and sitemcd != '' ">
+			AND a.itemcd=#{sitemcd}
+		</if>
+		<!-- 정렬 -->
+		<if test="sort == 'ask desc'  || sort == null || sort == '' " >
+			ORDER BY a.parent desc, ( case when a.parent=a.sno then 0 else 1 end ) asc
+		</if>
+		<if test="sort =='regdt desc' ||  sort=='regdt asc' ">
+			ORDER BY a.${sort}
+		</if>
+		<if test="sort != 'ask desc'  and sort != 'regdt desc' and sort != 'regdt asc'  and sort != null  and sort != '' ">
+			ORDER BY a.${sort}
+		</if>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 1:1문의관리 글 반환 -->
+	<select id="getMemberQnaInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT * FROM gd_member_qna
+		WHERE sno=#{sno} LIMIT 1
+	</select>
+	
+	<!-- 1:1문의관리 답글 ID 반환 -->
+	<select id="getMemberQnaID" resultType="java.lang.String">
+		SELECT m_id FROM gd_member 
+		WHERE m_no=#{mno}
+	</select>
+	
+	<!-- 1:1문의관리 관리자 정보 반환 -->
+	<select id="getMemberInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT id as m_id,sellerNm as name FROM gd_seller
+		WHERE sellerCd = #{sellerCd}
+	</select>
+	
+	<!-- 1:1문의관리 원글 정보 반환 -->
+	<select id="getMemberQnaParentInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT itemcd,ordno,email,mailling,mobile,sms FROM gd_member_qna
+		WHERE sno=#{parent} LIMIT 1
+	</select>
+	
+	<!-- 1:1문의관리 글 삭제 -->
+	<delete id="deleteMemberQna">
+		DELETE FROM gd_member_qna 
+		WHERE sno= #{sno} 
+	</delete>
+	
+	<!-- 1:1문의관리 글 수정 -->
+	<update id="updateMemberQna">
+		UPDATE gd_member_qna
+		SET  
+			subject=#{subject}, 
+			contents=#{contents}, 
+			email=#{email},
+			name=#{name}
+		WHERE sno=#{sno}
+	</update>
+	
+	<!-- 1:1문의관리 답글 등록 -->
+	<insert id="insertMemberQnaReply">
+		INSERT INTO gd_member_qna(subject,contents,parent,m_no,regdt,ip,name,sellerCd)
+		VALUES ( #{subject}, #{contents}, #{sno}, #{mno}, SYSDATE(), #{ip},#{name},#{sellerCd})
+	</insert>
+
+
+	<!-- 상품후기관리 총 건수 -->
+	<select id="getGoodsQnaTotalCount" resultType="int">
+		SELECT count(*) FROM gd_goods_qna a 
+			JOIN gd_goods b on a.goodsno=b.goodsno
+		WHERE  b.sellerCd=#{sellerCd}
+	
+	</select>
+	
+	<!-- 상품후기관리 상품번호 반환 -->
+	<select id="getGoodsQnaGoodsNo" resultType="java.lang.String">
+		SELECT goodsno FROM gd_goods
+		WHERE CONCAT(goodsnm, goodsnmKR, goodsnmCN) LIKE concat('%',#{sword},'%') and sellerCd=#{sellerCd}
+	</select>
+	
+	<!-- 상품후기관리 원글(부모글) 반환 -->
+	<select id="getGoodsQnaGoodsParent" resultType="java.lang.String">
+		SELECT DISTINCT parent
+		FROM gd_goods_qna a
+		LEFT JOIN gd_member b ON a.m_no=b.m_no 
+		LEFT JOIN gd_goods c ON a.goodsno=c.goodsno
+		<if test="subtable != '' ">
+				${subtable}
+		</if>
+		WHERE 1=1 AND c.sellerCd=#{sellerCd}
+		<if test="schcate != '' ">
+			AND ${schcate}
+		</if>
+		<if test="sregdt_0 != '' and sregdt_0 != null and sregdt_1 != '' and sregdt_1 != null">
+			AND a.regdt between date_format(#{sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		 <if test="skey != null and skey != '' and sword != null and sword != '' and skey =='all' ">
+			AND ( concat(a.contents, ifnull(b.m_id, ''), ifnull(a.name, ''), a.subject ) like concat('%',#{sword},'%'))
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='all'  and  schword != null ">
+			AND ${schword}
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='goodnm' ">
+			AND ${schword}
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='mid' ">
+			AND concat( ifnull(b.m_id, ''), ifnull(a.name, '') ) like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='contents' ">
+			AND a.contents like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='subject' ">
+			AND a.subject like concat('%',#{sword},'%')
+		</if>
+	</select>
+	
+	<!-- 상품후기관리 검색 총 건수 -->
+	<select id="getGoodsQnaGoodsSearchCount" resultType="int">
+		SELECT count(*) 
+		  FROM gd_goods_qna a
+		  LEFT JOIN gd_member b ON a.m_no = b.m_no
+		  LEFT JOIN gd_goods c ON a.goodsno = c.goodsno
+		 WHERE c.sellerCd = #{sellerCd}
+		<if test="schparent != '' and schparent != null ">
+		  AND ${schparent}
+		</if>
+	</select>
+	
+	<!-- 상품후기관리 리스트 반환 -->
+	<select id="getGoodsQnaGoodsSearchList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		SELECT DISTINCT a.sno
+			 , a.parent
+			 , a.goodsno
+			 , a.subject
+			 , a.contents
+			 , a.regdt
+			 , a.name
+			 , a.m_no
+			 , b.m_id
+			 , b.name as mname
+			 , b.mobile
+			 , (SELECT c.goodsnm FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnm
+			 , (SELECT c.goodsnmKR FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnmKR
+			 , (SELECT c.goodsnmCN FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnmCN
+			 , (SELECT c.img_s FROM gd_goods c WHERE a.goodsno = c.goodsno) AS imgs
+			 , (SELECT COUNT(*) - 1 FROM gd_goods_qna WHERE a.sno = parent) recnt
+		FROM gd_goods_qna a
+		LEFT JOIN gd_member b ON a.m_no = b.m_no
+		LEFT JOIN gd_goods c ON a.goodsno = c.goodsno
+		WHERE 1=1 AND c.sellerCd = #{sellerCd}
+		<if test="schword != '' and schword != null ">
+			AND ${schword}
+		</if>
+<!-- 		<if test="vo.sregdt_0 != '' and vo.sregdt_0 != null and vo.sregdt_1 != '' and vo.sregdt_1 != null">
+			AND a.regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>	 -->
+		<if test="schparent != null and schparent != '' ">
+			AND ${schparent}
+		</if>
+		
+		<!-- 정렬 -->
+		<if test="sort == null || sort == '' || sort == 'ask desc' ">
+			ORDER BY a.parent desc, ( case when a.parent=a.sno then 0 else 1 end ) asc, a.regdt desc
+		</if>
+		<if test="sort != null and sort != '' and sort != 'ask desc' ">
+			ORDER BY ${sort}
+		</if>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 상품후기관리 단건 조회 -->
+	<select id="getGoodsQnaInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		SELECT a.sno, a.goodsno, a.parent, a.subject, a.contents, a.m_no, a.regdt, a.ip, a.name, a.password, d.m_id, d.mobile, d.phone 
+				,(SELECT c.goodsnm FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnm
+				,(SELECT c.goodsnmKR FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnmKR
+				,(SELECT c.goodsnmCN FROM gd_goods c WHERE a.goodsno = c.goodsno) AS goodsnmCN
+				,(SELECT c.img_s FROM gd_goods c WHERE a.goodsno = c.goodsno) AS imgs
+				,(SELECT b.price FROM gd_goods_option b WHERE a.goodsno = b.goodsno) AS price
+		FROM gd_goods_qna a
+		LEFT JOIN gd_member as d on a.m_no = d.m_no
+		WHERE sno = #{sno}
+		LIMIT 1
+	</select>
+	<!-- 상품후기관리 단건 삭제 -->
+	<delete id="deleteGoodsQna">
+		DELETE FROM gd_goods_qna
+		WHERE sno= #{sno}
+	</delete>
+	
+	<!-- 상품후기관리 수정 -->
+	<update id="updateGoodsQna">
+		UPDATE gd_goods_qna SET subject = #{subject}, contents = #{contents}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 상품후기관리 답글 등록 -->
+	<insert id="insertGoodsQnaReply">
+		INSERT INTO gd_goods_qna
+				(goodsno,
+				 parent,
+				 subject,
+				 contents,
+				 m_no,
+				 regdt,
+				 ip ,
+				 name) 
+		VALUES
+				(#{goodsno},
+				 #{sno}, 
+				 #{subject}, 
+				 #{contents}, 
+				 #{mno}, 
+				 sysdate(), 
+				 #{ip} ,
+				 #{name} )
+	</insert>
+	
+	<!-- 상품평관리 총 건수 -->
+	<select id="getGoodsReviewTotalCount" resultType="int">
+		SELECT count(*) FROM gd_goods_review a
+			join gd_goods b 
+			on a.goodsno = b.goodsno
+		WHERE  b.sellerCd=#{sellerCd}
+	</select>
+	
+	<!-- 상품평관리 상품명으로 상품번호 반환 -->
+	<select id="getGoodsReviewGoodsNo" resultType="string">
+		SELECT goodsno from gd_goods
+		WHERE sellerCd=#{sellerCd} and CONCAT(goodsnm, goodsnmKR, goodsnmCN) like concat('%',#{sword},'%')
+	</select>
+	
+	<!-- 상품평관리 원글(부모글) 반환 -->
+	<select id="getGoodsReviewGoodsParent" resultType="string">
+		SELECT DISTINCT parent
+		FROM gd_goods_review a
+			LEFT JOIN gd_member b ON a.m_no=b.m_no
+		<if test="subtable != '' ">
+			${subtable}
+		</if>
+			left outer join gd_goods d on a.goodsno = d.goodsno
+			left outer join gd_seller e on d.sellerCd = e.sellerCd WHERE 1=1
+			AND e.sellerCd = #{sellerCd}
+		<if test="schcate != '' ">
+			AND ${schcate}
+		</if>
+		<if test="sregdt_0 != '' and sregdt_0 != null and sregdt_1 != '' and sregdt_1 != null">
+			AND a.regdt between date_format(#{sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		 <if test="skey != null and skey != '' and sword != null and sword != '' and skey =='all' ">
+			AND ( concat(contents, ifnull(b.m_id, ''), ifnull(a.name, '') ) like concat('%',#{sword},'%') or ${schword})
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='goodnm' ">
+			AND ${schword}
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='mid' ">
+			AND concat( ifnull(b.m_id, ''), ifnull(a.name, '') ) like concat('%',#{sword},'%')
+		</if>
+		<if test="skey != null and skey != '' and sword != null and sword != '' and skey =='contents' ">
+			AND ${skey} like concat('%',#{sword},'%')
+		</if>
+		<if test='null != schSellerNm and "" != schSellerNm'>
+			and e.sellerNm like concat('%', #{schSellerNm}, '%')
+		</if>
+	</select>
+	
+	<!-- 상품평관리 검색 건수 -->
+ 	<select id="getGoodsReviewSearchCount" resultType="int">
+		SELECT count(*) FROM gd_goods_review a
+		join gd_goods b on  a.goodsno = b.goodsno
+		WHERE 1=1 
+			AND b.sellerCd = #{sellerCd}
+		<if test="schparent != null and schparent != '' ">
+			AND ${schparent}
+		</if>
+	</select>
+		
+	<!-- 상품평관리 리스트 반환 -->
+ 	<select id="getGoodsReviewSearchList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberGoodsrevwGoods">
+ 		SELECT DISTINCT 
+ 			a.sno, a.parent, a.goodsno, a.subject, a.contents
+ 			, a.point, a.regdt, a.name, b.m_no, a.emoney
+ 			, b.m_id, b.phone, b.mobile, b.name AS mname, c.goodsnm, c.goodsnmKR, c.goodsnmCN
+ 			, d.sellerNm
+			,( SELECT c.img_s FROM gd_goods c WHERE a.goodsno = c.goodsno) AS imgs
+			,(SELECT count(*) FROM gd_goods_review d 
+				LEFT OUTER JOIN gd_goods AS e ON d.goodsno = e.goodsno
+				WHERE a.sno != a.parent AND parent=a.parent) AS replcnt
+		FROM gd_goods_review a
+			LEFT JOIN gd_member b ON a.m_no=b.m_no
+			left outer join gd_goods c on a.goodsno = c.goodsno
+			left outer join gd_seller d on c.sellerCd = d.sellerCd
+		WHERE 1=1 AND d.sellerCd = #{sellerCd}
+		<if test="schword != '' and schword != null ">
+			AND ${schword}
+		</if>
+		<if test="sregdt_0 != '' and sregdt_0 != null and sregdt_1 != '' and sregdt_1 != null">
+			AND a.regdt between date_format(#{sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>	
+		<if test="schparent != null and schparent != '' ">
+			AND ${schparent}
+		</if>
+		ORDER BY a.regdt DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 상품평관리 글 조회 -->
+	<select id="getGoodsReviewInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsReview">
+		SELECT *, 
+			IF(sno=parent AND m_no > 0, 'Y','N') AS apply, 
+			IF(sno=parent AND m_no > 0 AND emoney=0, 'Y','N') AS apply2
+		FROM gd_goods_review 
+		WHERE sno=#{sno}
+		LIMIT 1
+	</select>
+	
+	<!-- 상품평관리 상품정보 조회 -->
+	<select id="getGoodsReviewGoodsInfo" resultType="map">
+		SELECT b.goodsnm,b.goodsnmKR,b.goodsnmCN,b.img_s,c.price
+		FROM gd_goods AS b
+		LEFT JOIN gd_goods_option AS c ON b.goodsno=c.goodsno AND c.parent = 0
+		WHERE b.goodsno = #{goodsno}
+	</select>
+	
+	<!-- 상품평관리 권한 -->
+	<select id="getGoodsReviewAuthMember" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT m_no,m_id,name
+		FROM gd_member
+		WHERE m_id!='godomall' AND k_level=100
+		ORDER BY m_id
+	</select>
+	
+	<!-- 상품평관리 회원정보 조회 -->
+	<select id="getGoodsReviewMemberInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT m_id,name,mobile
+		FROM gd_member 
+		WHERE m_no=#{mno}
+	</select>
+	
+	<!-- 상품평관리 회원 후기 단건 삭제 -->
+	<delete id="deleteGoodsReview">
+		DELETE FROM gd_goods_review
+		WHERE sno= #{sno}
+	</delete>
+	
+	<!-- 상품평관리 회원 후기 수정 -->
+	<update id="updateGoodsReview">
+		UPDATE gd_goods_review 
+		SET subject = #{subject}, contents = #{contents}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 상품평관리 답글 등록 -->
+	<insert id="insertGoodsReviewReply">
+		INSERT INTO gd_goods_review(goodsno, parent, subject, contents, m_no, regdt, ip) 
+		VALUES (#{goodsno}, #{sno}, #{subject}, #{contents}, #{mno}, SYSDATE(), #{ip})
+	</insert>
+</mapper>

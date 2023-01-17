@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.main.FrontMainMapper">
+
+		
+	<!-- 유효한 팝업목록 조회 -->
+	<select id="getPopupUsableList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.main.FrontMainVO"   resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPopUp">
+		<![CDATA[
+			/* getPopupUsableList */
+			SELECT 
+					sno,sub,filename,popuse,popspotw,popspoth,popsizew,popsizeh,
+					date_format(popsdt,'%Y-%m-%d/%H:%i') as popsdt,
+					date_format(popedt,'%Y-%m-%d/%H:%i') as popedt,
+					date_format(popsdate,'%Y-%m-%d/%H:%i') as popsdate,
+					date_format(popedate,'%Y-%m-%d/%H:%i') as popedate,
+					poptype,
+					poppik
+			FROM gd_popup
+			WHERE 1=1
+			AND popuse='Y'
+			 AND poptype = #{poptype}
+			AND 
+				((poppik = 'term' and ((popsdt < date_format(now(),'%Y-%m-%d/%H:%i') and date_format(now(),'%Y-%m-%d/%H:%i') < popedt) or popedt = date_format('0000-00-00/00:00', '%Y-%m-%d/%H:%i')))
+				or (poppik = 'time' and (((date_format(popsdate,'%Y-%m-%d') < date_format(now(),'%Y-%m-%d') and date_format(now(),'%Y-%m-%d') < date_format(popedate,'%Y-%m-%d'))
+									and (date_format(popsdate,'%H:%i') < date_format(now(),'%H:%i') and date_format(now(),'%H:%i') < date_format(popedate,'%H:%i'))) 
+									or popedate = date_format('0000-00-00/00:00', '%Y-%m-%d/%H:%i'))) 
+				)
+			ORDER BY sno DESC		
+		]]>
+	</select>
+	
+	<!-- 배너 조회 -->
+	<select id="getFrontMainBannerList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBanner">
+		<![CDATA[
+			/* getFrontMainBannerList */
+			SELECT *
+			FROM gd_banner 
+			WHERE used = 'Y'
+			  AND skin = #{skin}
+			GROUP BY loccd, sort
+		]]>
+	</select>
+	
+</mapper>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.promotion.PromotionMapper">
+	
+	<sql id="getPromotionIncludeWhere">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			<if test="schUseYn == '0'">
+				AND SYSDATE() BETWEEN sdt AND edt AND use_yn = 'Y'
+			</if>
+			<if test="schUseYn == '1'">
+				<![CDATA[ AND SYSDATE() < sdt ]]>
+			</if>
+			<if test="schUseYn == '2'">
+				AND (SYSDATE() > edt OR use_yn = 'N')
+			</if>
+			<if test="schSkin != null and schSkin != ''">
+				AND skin = #{schSkin}
+			</if>
+			<if test="schWord != null and schWord != ''">
+				AND title LIKE CONCAT('%', #{sword}, '%')
+			</if> 
+			<if test="schSdt != null and schSdt != ''">
+				AND sdt >= DATE_FORMAT(#{schSdt}, '%Y-%m-%d 00:00:00')
+			</if>
+			<if test="schEdt != null and schEdt != ''">
+				<![CDATA[ AND edt <= DATE_FORMAT(#{schEdt}, '%Y-%m-%d 23:59:59') ]]>
+			</if>
+		</trim>
+	</sql>
+	
+	<!-- 기획전 카운트 -->
+	<select id="selectPromotionCount" resultType="int">
+		SELECT count(*) 
+		  FROM gd_promotion 
+		<include refid="getPromotionIncludeWhere" />
+	</select>
+	
+	<!-- 기획전 리스트 -->
+	<select id="selectPromotionList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotion">
+		SELECT pmno
+			 , skin
+			 , loccd
+			 , title
+			 , DATE_FORMAT(sdt, '%Y%m%d') sdt
+			 , DATE_FORMAT(sdt, '%H:%i:%S') stm
+			 , DATE_FORMAT(edt, '%Y%m%d') edt
+			 , DATE_FORMAT(edt, '%H:%i:%S') etm
+			 , pc_img
+			 , mobile_img
+			 , copy1
+			 , copy2
+			 , use_yn
+			 , regid
+			 , regdt
+			 , modid
+			 , moddt
+			 , CASE WHEN SYSDATE() BETWEEN sdt AND edt AND use_yn = 'Y' THEN '전시중' WHEN SYSDATE() <![CDATA[ < ]]> sdt THEN '전시대기' ELSE '전시중지' END AS status
+			 , (SELECT COUNT(*) FROM gd_promotion_goods WHERE pmno = gd_promotion.pmno) goods_cnt
+		  FROM gd_promotion 
+		<include refid="getPromotionIncludeWhere" />
+		 ORDER BY pmno DESC 
+		 LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 기획전 상세조회 -->
+	<select id="selectPromotion" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotion">
+		SELECT pmno
+			 , skin
+			 , loccd
+			 , title
+			 , DATE_FORMAT(sdt, '%Y%m%d') sdt
+			 , DATE_FORMAT(sdt, '%H:%i:%S') stm
+			 , DATE_FORMAT(edt, '%Y%m%d') edt
+			 , DATE_FORMAT(edt, '%H:%i:%S') etm
+			 , pc_img
+			 , mobile_img
+			 , copy1
+			 , copy2
+			 , use_yn
+			 , regid
+			 , regdt
+			 , modid
+			 , moddt
+			 , CASE WHEN SYSDATE() BETWEEN sdt AND edt AND use_yn = 'Y' THEN '전시중' WHEN SYSDATE() <![CDATA[ < ]]> sdt THEN '전시대기' ELSE '전시중지' END AS status
+			 , (SELECT COUNT(*) FROM gd_promotion_goods WHERE pmno = gd_promotion.pmno) goods_cnt
+		  FROM gd_promotion 
+		  WHERE pmno = #{pmno}
+	</select>
+	
+	<!-- 기획전등록 -->
+	<insert id="insertPromotion">
+		INSERT
+		  INTO gd_promotion
+			 ( skin
+			 , loccd
+			 , title
+			 , sdt
+			 , edt
+			 , copy1
+			 , copy2
+			 , use_yn
+			 , regid
+			 , regdt
+			 )
+		VALUES
+			 ( #{skin}
+			 , #{loccd}
+			 , #{title}
+			 , CONCAT(DATE_FORMAT(#{sdt}, '%Y-%m-%d'), ' ', #{stm})
+			 , CONCAT(DATE_FORMAT(#{edt}, '%Y-%m-%d'), ' ', #{etm})
+			 , #{copy1}
+			 , #{copy2}
+			 , #{useYn}
+			 , #{regid}
+			 , NOW()
+			 )
+		<selectKey resultType="int" keyProperty="pmno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>	
+
+	<!-- 기획전 수정 -->
+	<update id="updatePromotion">
+		UPDATE gd_promotion
+		   SET skin       = #{skin}
+		     , loccd      = #{loccd}
+		     , title      = #{title}
+		     , sdt        = CONCAT(DATE_FORMAT(#{sdt}, '%Y-%m-%d'), ' ', #{stm})
+		     , edt        = CONCAT(DATE_FORMAT(#{edt}, '%Y-%m-%d'), ' ', #{etm})
+		     , copy1      = #{copy1}
+		     , copy2      = #{copy2}
+		     , use_yn     = #{useYn}
+		     , modid      = #{modid}
+		     , moddt      = NOW()
+		 WHERE pmno = #{pmno}
+	</update>
+	
+	<!-- 기획전 이미지수정 -->
+	<update id="updatePromotionByImage">
+		UPDATE gd_promotion 
+		   SET pc_img = #{pcImg}
+		     , mobile_img = #{mobileImg}
+		WHERE pmno = #{pmno}
+	</update>
+	
+	<!-- 기획전 사용여부 수정 -->
+	<update id="updatePromotionByUseYn">
+		UPDATE gd_promotion 
+		   SET use_yn = #{useYn}
+		WHERE pmno = #{pmno}
+	</update>
+	
+	<!-- 기획전 삭제 -->
+	<delete id="deletePromotion">
+		DELETE
+		  FROM gd_promotion
+		 WHERE pmno = #{pmno}
+	</delete>
+	
+	<!-- 기획전 상품 카운트 -->
+	<select id="selectPromotionGoodsCount" resultType="int">
+		SELECT COUNT(r.goodsno)
+		FROM (
+			SELECT DISTINCT a.goodsno
+			  FROM gd_goods a
+			  INNER JOIN gd_promotion_goods i ON i.goodscd = a.goodscd
+			  LEFT JOIN gd_promotion_grp j ON j.grno = i.grno
+			  LEFT JOIN gd_goods_option b ON a.goodsno = b.goodsno AND parent = 0
+			  LEFT OUTER JOIN gd_goods_link c ON a.goodsno = c.goodsno
+			  LEFT OUTER JOIN gd_seller e ON a.sellerCd = e.sellerCd
+			  LEFT OUTER JOIN gd_seller_goods f ON a.goodsno = f.goodsno
+			  LEFT JOIN gd_goods_brand h ON a.brandno = h.sno
+			 WHERE i.pmno = #{pmno}
+			<if test="grno != null and grno != ''">
+				AND i.grno = #{grno}
+			</if>
+		) r
+	</select>
+	
+	<!-- 기획전 상품 리스트 -->
+	<select id="selectPromotionGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotionGoods">
+		SELECT DISTINCT a.goodsno
+			 , a.goodscd
+			 , a.sellerCd
+			 , CONCAT (
+				 	CASE 
+						WHEN length(g.category) >= 3 
+						THEN (select catnm from gd_category where category = substring(g.category, 1, 3))
+						ELSE ''
+					END
+				  , CASE
+						WHEN length(g.category) >= 6
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 6)))
+						ELSE ''
+					END
+				  , CASE
+						WHEN length(g.category) >= 9
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 9)))
+						ELSE ''
+					END
+				  , CASE 
+						WHEN length(g.category) >= 12
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 12)))
+						ELSE '' 
+				END ) categoryNm
+	  		 , h.brandnm
+			 , a.seasonNm
+			 , a.euYn
+			 , a.goodsnm
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , b.stock
+			 , b.consumer
+			 , b.price
+			 , b.priceRate
+			 , b.margin
+			 , a.lowestPriceYn
+			 , a.lowest2PriceYn
+			 , a.open
+			 , a.manage_yn
+			 , a.use_emoney AS useemoney
+			 , e.sellerNm
+			 , a.approvalStatus
+			 , f.approvalStatus AS reqAprlStat
+			 , f.approvalReqCd AS reqAprlCd
+			 , f.reqsno
+			 , a.hot_yn
+			 , a.vip_yn
+			 , i.pgno
+			 , i.grno
+			 , i.sort
+			 , j.grnm
+		  FROM gd_goods a
+		  INNER JOIN gd_promotion_goods i ON i.goodscd = a.goodscd
+		  LEFT JOIN gd_promotion_grp j ON j.grno = i.grno
+		  LEFT JOIN gd_goods_option b ON a.goodsno = b.goodsno AND parent = 0
+		  LEFT OUTER JOIN gd_goods_link c ON a.goodsno = c.goodsno
+		  LEFT OUTER JOIN gd_seller e ON a.sellerCd = e.sellerCd
+		  LEFT OUTER JOIN gd_seller_goods f ON a.goodsno = f.goodsno
+		  LEFT JOIN gd_category g ON c.category = g.category
+		  LEFT JOIN gd_goods_brand h ON a.brandno = h.sno
+		 WHERE i.pmno = #{pmno}
+		<if test="grno != null and grno != ''">
+			AND i.grno = #{grno}
+		</if>
+		<if test='odby != null and odby !=""'>
+			ORDER BY ${odby} 
+		</if>
+		<if test='odby == null or odby ==""'>
+			ORDER BY j.sort ASC, i.sort ASC, i.pgno ASC
+		</if>
+	</select>
+	
+	<!-- 기획전 상품 카운트 -->
+	<select id="selectGoodsCount" resultType="int">
+		SELECT COUNT(goodsno)
+		  FROM gd_goods
+		 WHERE goodscd = #{goodscd}
+	</select>
+	
+	<!-- 기획전 상품 등록 -->
+	<insert id="insertPromotionGoods">
+		INSERT
+		  INTO gd_promotion_goods
+			 ( pmno
+			 , grno
+			 , goodscd
+			 , sort
+			 )
+		VALUES
+			 ( #{pmno}
+			 , #{grno}
+			 , #{goodscd}
+			 , #{sort}
+			 )
+		<selectKey resultType="int" keyProperty="pgno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 기획전 구분 리스트 -->
+	<select id="selectPromotionGrpList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotionGrp">
+		SELECT grno
+			 , pmno
+			 , grnm
+			 , sort
+			 , use_yn
+		  FROM gd_promotion_grp 
+		 WHERE pmno = #{pmno}
+		 ORDER BY sort
+	</select>
+	
+	<!-- 기획전 구분 등록 -->
+	<insert id="insertPromotionGrp">
+		INSERT
+		  INTO gd_promotion_grp
+			 ( pmno
+			 , grnm
+			 , sort
+			 , use_yn
+			 )
+		VALUES
+			 ( #{pmno}
+			 , #{grnm}
+			 , #{sort}
+			 , #{useYn}
+			 )
+		<selectKey resultType="int" keyProperty="grno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>	
+
+	<!-- 기획전 구분 수정 -->
+	<update id="updatePromotionGrp">
+		UPDATE gd_promotion_grp
+		   SET pmno		= #{pmno}
+		     , grnm		= #{grnm}
+		     , sort		= #{sort}
+		     , use_yn	= #{useYn}
+		 WHERE grno = #{grno}
+	</update>
+	
+	<!-- 기획전 구분 삭제 -->
+	<delete id="deletePromotionGrp">
+		DELETE
+		  FROM gd_promotion_grp
+		 WHERE grno = #{grno}
+	</delete>
+
+	<!-- 기획전 상품 구분 초기화 -->
+	<update id="updatePromotionGoodsGrnoInit">
+		UPDATE gd_promotion_goods
+		   SET grno = 0
+		 WHERE grno = #{grno}
+	</update>
+	
+	<!-- 기획전 상품 구분 이동 -->
+	<update id="updatePromotionGoodsGrnoMove" >
+		UPDATE gd_promotion_goods
+		   SET grno = #{grno}
+		 WHERE pgno IN (${pgno})
+	</update>
+	
+	<!-- 기획전 상품 삭제 -->
+	<delete id="deletePromotionGoods">
+		DELETE
+		  FROM gd_promotion_goods
+		 WHERE pgno IN (${pgno})
+	</delete>
+
+	<!-- 기획전 상품 순서 변경 -->
+	<delete id="updatePromotionGoodsSort">
+		UPDATE gd_promotion_goods
+		   SET sort = #{sort}
+		 WHERE pgno = ${pgno}
+	</delete>
+	
+	<!-- 기획전 상품 검색 -->
+	<select id="selectPromotionGoodsSrch" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotionGoods">
+		SELECT DISTINCT a.goodsno
+			 , a.goodscd
+			 , a.sellerCd
+			 , CONCAT (
+				 	CASE 
+						WHEN length(g.category) >= 3 
+						THEN (select catnm from gd_category where category = substring(g.category, 1, 3))
+						ELSE ''
+					END
+				  , CASE
+						WHEN length(g.category) >= 6
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 6)))
+						ELSE ''
+					END
+				  , CASE
+						WHEN length(g.category) >= 9
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 9)))
+						ELSE ''
+					END
+				  , CASE 
+						WHEN length(g.category) >= 12
+						THEN CONCAT (' > ', (select catnm from gd_category where category = substring(g.category, 1, 12)))
+						ELSE '' 
+				END ) categoryNm
+	  		 , h.brandnm
+			 , a.seasonNm
+			 , a.euYn
+			 , a.goodsnm
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , b.stock
+			 , b.consumer
+			 , b.price
+			 , b.priceRate
+			 , b.margin
+			 , a.lowestPriceYn
+			 , a.lowest2PriceYn
+			 , a.open
+			 , a.manage_yn
+			 , a.use_emoney AS useemoney
+			 , e.sellerNm
+			 , a.approvalStatus
+			 , f.approvalStatus AS reqAprlStat
+			 , f.approvalReqCd AS reqAprlCd
+			 , f.reqsno
+			 , a.hot_yn
+			 , a.vip_yn
+		  FROM gd_goods a
+		  LEFT JOIN gd_goods_option b ON a.goodsno = b.goodsno AND parent = 0
+		  LEFT OUTER JOIN gd_goods_link c ON a.goodsno = c.goodsno
+		  LEFT OUTER JOIN gd_seller e ON a.sellerCd = e.sellerCd
+		  LEFT OUTER JOIN gd_seller_goods f ON a.goodsno = f.goodsno
+		  LEFT JOIN gd_category g ON c.category = g.category
+		  LEFT JOIN gd_goods_brand h ON a.brandno = h.sno
+		 WHERE 1 = 1
+		<if test="schCate != null and schCate !=''">
+			AND g.category LIKE CONCAT(#{schCate}, '%')
+		</if>
+		<if test="schSellerNm != null and schSellerNm !=''">
+			AND e.sellerNm LIKE CONCAT('%', #{schSellerNm}, '%')
+		</if>
+		<if test="schBrand != null and schBrand !=''">
+			AND a.brandno = #{schBrand}
+		</if>
+		<if test='schSoldOut == "Y"'>
+			<![CDATA[AND a.stock > 0]]>
+		</if>
+		<if test='schSoldOut == "N"'>
+			<![CDATA[AND a.stock < 1]]>
+		</if>
+		<if test="schOpen != null and schOpen !=''">
+		    AND a.open = #{schOpen}
+		</if>
+		<if test="schSeasonNm != null and schSeasonNm !=''">
+			AND a.seasonNm LIKE CONCAT('%', #{schSeasonNm}, '%')
+		</if>
+		<if test="schEuYn != null and schEuYn !=''">
+			AND a.euYn = #{schEuYn}
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'goodsnm'">
+			AND CONCAT(a.goodsnm, a.goodsnmKR, a.goodsnmCN) LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'goodsnmKR'">
+			AND a.goodsnmKR LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'goodsnmCN'">
+			AND a.goodsnmCN LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'simnCd'">
+			AND a.simnCd LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'binCd'">
+			AND a.binCd LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'goodscd'">
+			AND a.goodscd LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+		<if test="schWord != null and schWord !='' and schKey == 'goodsno'">
+			AND a.goodsno LIKE CONCAT('%', #{schWord}, '%')
+		</if>
+	</select>	
+</mapper>
+

@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.CategoryMapper">
+
+	<!-- 상품 카테고리 목록 -->
+	<select id="getGoodsCategoryList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		SELECT * FROM gd_category
+		WHERE 1=1
+		<if test="category != null">
+			AND category = #{category}
+		</if>
+
+		<!-- $( and )andHidden $( and )category_like $( and )category_lendth $( 
+			ORDER BY )order_by -->
+	</select>
+	
+	<!-- 상품 엑셀리스트 -->
+	<select id="getGoodsCategoryExcelList" resultType="hashMap">
+		SELECT  a.sno
+				, a.category
+				, CASE
+						WHEN LENGTH(b.catnm) = 0
+						THEN null
+						WHEN LENGTH(a.category) = 3
+						THEN b.catnm
+						WHEN LENGTH(a.category) = 6
+						THEN concat(b.catnm, '>', c.catnm)
+						WHEN LENGTH(a.category) = 9
+						THEN concat(b.catnm, '>', c.catnm, '>', d.catnm)
+						WHEN LENGTH(a.category) = 12
+						THEN concat(b.catnm, '>', c.catnm, '>', d.catnm, '>', e.catnm)
+						ELSE NULL
+					END categoryDepthNm
+				, CASE
+						WHEN LENGTH(b.catnmKR) = 0
+						THEN null
+						WHEN LENGTH(a.category) = 3
+						THEN b.catnmKR
+						WHEN LENGTH(a.category) = 6
+						THEN concat(b.catnmKR, '>', c.catnmKR)
+						WHEN LENGTH(a.category) = 9
+						THEN concat(b.catnmKR, '>', c.catnmKR, '>', d.catnmKR)
+						WHEN LENGTH(a.category) = 12
+						THEN concat(b.catnmKR, '>', c.catnmKR, '>', d.catnmKR, '>', e.catnmKR)
+						ELSE NULL
+					END categoryDepthKRNm
+				, CASE
+						WHEN LENGTH(b.catnmCN) = 0
+						THEN null
+						WHEN LENGTH(a.category) = 3
+						THEN b.catnmCN
+						WHEN LENGTH(a.category) = 6
+						THEN concat(b.catnmCN, '>', c.catnmCN)
+						WHEN LENGTH(a.category) = 9
+						THEN concat(b.catnmCN, '>', c.catnmCN, '>', d.catnmCN)
+						WHEN LENGTH(a.category) = 12
+						THEN concat(b.catnmCN, '>', c.catnmCN, '>', d.catnmCN, '>', e.catnmCN)
+						ELSE NULL
+					END categoryDepthCNNm
+				, a.catMemo
+				, a.hidden
+				, CASE
+						WHEN a.hidden = 0 
+						THEN '사용'
+						WHEN a.hidden = 1
+						THEN '미사용'
+						ELSE NULL
+					END hiddenNm
+				, a.cnt
+			 FROM
+			 	(SELECT gc.sno
+					  , LEFT(gc.category, 3) cat1
+					  , LEFT(gc.category, 6) cat2
+					  , LEFT(gc.category, 9) cat3
+					  , LEFT(gc.category, 12) cat4
+					  , count(distinct ggl.goodsno) cnt
+					  , gc.category
+					  , gc.catMemo
+					  , gc.hidden
+				   FROM gd_category gc
+				   LEFT JOIN gd_goods_link ggl ON ggl.category LIKE CONCAT( gc.category, '%')
+				  GROUP BY gc.sno
+				)a
+			 LEFT JOIN gd_category b ON a.cat1 = b.category
+			 LEFT JOIN gd_category c ON a.cat2 = c.category
+			 LEFT JOIN gd_category d ON a.cat3 = d.category
+			 LEFT JOIN gd_category e ON a.cat4 = e.category
+			ORDER BY a.category
+	</select>
+
+	<!-- 상품연결 카테고리 개수 -->
+	<select id="getGoodsLinkCount" resultType="int">
+		SELECT count(distinct goodsno) FROM gd_goods_link
+		WHERE 1=1
+		<if test="category != null and category != '' ">
+			AND category like concat(#{category},'%')
+		</if>
+	</select>
+
+	<!-- 상품출력 메인페이지 상품진열 -->
+	<select id="getGoodsDisplayList" resultType="map">
+		SELECT DISTINCT a.mode,a.goodsno,b.goodsnm,b.goodsnmKR,b.goodsnmCN,b.img_s as imgs,c.price
+		FROM
+		gd_goods_display a, gd_goods b, gd_goods_option c
+		WHERE
+		a.goodsno=b.goodsno AND a.goodsno=c.goodsno AND c.parent = 0
+		<if test="category != null and category != '' ">
+			AND mode = #{category}
+		</if>
+		ORDER BY sort
+	</select>
+
+	<!-- 상품 카테고리/브랜드 depth별 정보 -->
+	<select id="getGoodsCategoryBrandInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmCategoryBrandInfo">
+		SELECT * FROM xm_category_brand_info
+		WHERE 1=1
+		AND brand_no = 0
+			<![CDATA[
+			AND category <> ''
+			]]>
+		<if test=" category != null ">
+			AND category = #{category}
+		</if>
+		<!-- $( and )andBrandNo $( and )andCategory $( and )andEtc -->
+	</select>
+
+	<!-- 카테고리 관리 > 카테고리 조회 -->
+	<select id="getCategoryList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		/* goods_category_LIST */
+		SELECT
+		*
+		FROM gd_category
+		WHERE 1=1
+		<if test="category != null and category != '' ">
+			AND category like concat(#{category}, '%')
+		</if>
+		<if test="catelength != null">
+			AND length(category) = #{catelength}+3
+		</if>
+		ORDER BY category
+	</select>
+
+	<!-- 상품 카테고리 등록 MAX값 반환 -->
+	<select id="getGoodsCategoryMax" resultType="map">
+		SELECT max(category) as maxcategory, max(length(category)) as maxlength
+		FROM gd_category
+		WHERE 1=1
+		<if test=" category != null and category != '' ">
+			AND category like concat(#{category},'%')
+		</if>
+		<if test=" catelength != null ">
+			AND length(category) = #{catelength}+3
+		</if>
+	</select>
+	
+	<!-- 상품 카테고리 등록 -->
+	<insert id="insertGoodsCategory">
+		INSERT INTO gd_category(
+		 	catnm, catnmKR, catnmCN, category, sort, hidden, k_level, useimg, bold_flag, catMemo
+		) VALUES (
+			#{sub}, #{subKR}, #{subCN}, #{category}, unix_timestamp(), 0, #{kLevel}, #{useimg}, #{boldFlag}, #{subMemo}
+		)
+	</insert>
+	
+	<!-- 상품 카테고리 수정 -->
+	<update id="updateGoodsCategory">
+		UPDATE gd_category SET
+			catnm			= #{catnm}
+			, catnmKR		= #{catnmKR}
+			, catnmCN		= #{catnmCN}
+			, hidden		= #{hidden}
+			, k_level		= #{kLevel}
+			, useimg		= #{useimg}
+			, bold_flag    = #{boldFlag}
+			, catMemo      = #{catMemo}
+		WHERE category = #{category}
+	</update>
+	
+	<!-- 상품 카테고리/브랜드 정보 등록 -->
+	<insert id="insertGoodsCategoryBrandInfo">
+		INSERT INTO xm_category_brand_info (
+			category, brand_no,  rtpl, rpage_num, 
+			<if test="rcols != '' ">
+				rcols, 
+			</if>
+			body, page_num, 
+			<if test="cols != '' ">
+				cols,
+			</if>
+			tpl
+		)VALUES(
+			#{category}, #{brandno}, #{rtpl}, #{rpagenum}, 
+			<if test="rcols != '' ">
+				#{rcols},
+			</if>
+			#{body}, #{pagenum}, 
+			<if test="cols != '' ">
+				#{cols},
+			</if>
+			#{tpl}
+		)
+	</insert>
+	
+	<!-- 상품 카테고리/브랜드 정보 수정 -->
+	<update id="updateGoodsCategoryBrandInfo">
+		UPDATE xm_category_brand_info SET
+		  rtpl			 = #{rtpl}
+		, rpage_num= #{rpagenum}
+		<if test="rcols != '' ">
+		, rcols		 = #{rcols}
+		</if>
+		, body		 = #{body}
+		, rsize			 = #{rsize}
+		, page_num	 = #{pagenum}
+		<if test="cols != '' ">
+		, cols			 = #{cols}
+		</if>
+		, tpl			 = #{tpl}
+		, size			 = #{size}
+		WHERE 1=1
+		<if test="brandno != null">
+			AND brand_no = #{brandno}
+		</if>
+		<if test="category != null">
+			AND category = #{category}
+		</if>
+	</update>
+	
+	<!-- 상품출력순서 삭제 -->
+	<delete id="deleteGoodsDisplay">
+		DELETE FROM gd_goods_display
+		WHERE mode=#{category}
+		<if test="goodsno != null">
+			AND goodsno = #{goodsno}
+		</if>
+	</delete>
+	
+	<!-- 상품출련순서 등록 -->
+	<insert id="insertGoodsDisplay">
+		INSERT INTO gd_goods_display ( 
+			goodsno, mode, sort 
+		) VALUES (
+			#{goodsno}, #{category}, #{sort}
+		)
+	</insert>
+	
+	<!-- 상품 카테고리 하위 수정 -->
+	<update id="updateGoodsCategorySub">
+		UPDATE gd_category a,
+			   (SELECT hidden, k_level, useimg, bold_flag 
+			   FROM gd_category 
+			   WHERE category = #{prtcategory}) b
+		SET	
+			a.hidden		= b.hidden 
+			, a.k_level		= b.k_level
+			, a.useimg		= b.useimg
+			, a.bold_flag   = b.bold_flag
+		WHERE a.category = #{category}
+	</update>
+	
+	<!-- 상품 하위 카테고리/브랜드 정보 조회 -->
+	<select id="getGoodsCategoryBrandInfoSub" resultType="int">
+		SELECT IFNULL(COUNT(*), 0) cnt
+		FROM	xm_category_brand_info
+		WHERE category = #{category}
+	</select>
+	
+	<!-- 상품 하위 카테고리/브랜드 정보 등록 -->
+	<insert id="insertGoodsCategoryBrandInfoSub">
+		INSERT INTO xm_category_brand_info(
+			category, brand_no, rtpl, rpage_num, rcols, body, rsize, page_num, cols, tpl, size
+		)
+		SELECT #{category}
+			, brand_no, rtpl, rpage_num, rcols, body, rsize, page_num, cols, tpl, size 
+		 FROM xm_category_brand_info
+		WHERE category = #{prtcategory}
+	</insert>
+	
+	<!-- 상품 하위 카테고리/브랜드 정보 수정 -->
+	<update id="updateGoodsCategoryBrandInfoSub">
+		UPDATE xm_category_brand_info a
+			, ( select * from xm_category_brand_info where category = #{prtcategory}) b 
+		SET
+			  a.rtpl			= b.rtpl
+			, a.rpage_num		= b.rpage_num
+			, a.rcols			= b.rcols
+			, a.body			= b.body
+			, a.rsize			= b.rsize
+			, a.page_num		= b.page_num
+			, a.cols			= b.cols
+			, a.tpl				= b.tpl
+			, a.size			= b.size
+		WHERE a.category = #{category}
+	</update>
+	
+	<!-- 카테고리  hidden값 UPDATE -->
+	<update id="updateGoodsCategoryHidden">
+		UPDATE gd_category SET hidden = #{hidden}
+		WHERE category = #{category}
+	</update>
+	
+	<!-- 카테고리 삭제 -->
+	<delete id="deleteGoodsCategory">
+		DELETE FROM gd_category
+		WHERE category like concat(#{category},'%')
+	</delete>
+	
+	<!-- 카테고리 링크 상품 삭제 -->
+	<delete id="deleteGoodsCategoryLink">
+		DELETE FROM gd_goods_link
+		WHERE category like concat(#{category},'%')
+	</delete>
+	
+	<!-- 상품카테고리 정보 삭제 -->
+	<delete id="deleteGoodsXmCategory">
+		DELETE FROM xm_category_brand_info
+		WHERE category like concat(#{category},'%')	
+	</delete>
+	
+	<!-- 카테고리 노출 삭제 -->
+	<delete id="deleteGoodsCategoryDisplay">
+		DELETE FROM gd_goods_display
+		WHERE mode like concat(#{category},'%')
+	</delete>
+	
+	<!-- 분류페이지 상품진열 조회개수 -->
+	<select id="getGoodsLinkSortCount" resultType="int">
+		SELECT count(distinct a.goodsno) 
+		FROM gd_goods_link a, gd_goods b
+		WHERE a.goodsno = b.goodsno
+		<if test="category != null and category != '' ">
+			AND category like concat(#{category},'%')
+		</if>
+	</select>
+	
+	<!-- 분류페이지 상품진열 목록 -->
+	<select id="getGoodsLinkSortList" resultType="map">
+		SELECT
+			a.goodsno,a.sort,a.sno,b.goodsnm,b.goodsnmKR,b.goodsnmCN,b.img_s,c.price, b.coupon,b.coupon_date,b.coupon_usecnt,b.coupon_ea
+		FROM
+			gd_goods_link a, gd_goods b, gd_goods_option c
+		WHERE a.goodsno = b.goodsno
+		AND a.goodsno=c.goodsno
+		<if test="category != null and category != '' ">
+			AND category like concat(#{category}, '%')
+		</if>
+		GROUP BY a.goodsno
+		ORDER BY sort
+		LIMIT ${limitCnt}
+	</select>
+	
+	<!-- 분류페이지 상품진열 UPDATE -->
+	<update id="updateGoodsLinkSort">
+		UPDATE gd_goods_link SET sort = #{sort}
+		WHERE sno = #{sno}	
+	</update>
+	
+	<!-- 카테고리 Hidden UPDATE -->
+	<update id="updateGoodsCategoryHiddenUpdate">
+		UPDATE gd_category set 
+			hidden = #{hidden}
+		WHERE category = #{category}
+	</update>
+	
+	<!--  -->
+
+</mapper>

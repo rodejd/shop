@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.member.dao.SellerSmsMapper">
+
+	<!-- SMS발송리스트(Count)-->
+	<select id="getSellerSmsListCount" resultType="int">
+		select count(*) 
+	  	  from gd_sms_log
+	  	 where 1 = 1
+		<if test="sword != null and sword != '' and skey == 'all'">
+	   		and ( msg like concat('%',#{sword},'%')
+	       		)
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sMsg'">
+			and msg like concat('%',#{sword},'%')
+		</if>
+	</select>
+
+	<!-- SMS발송리스트-->
+	<select id="getSellerSmsList" resultType="com.wepinit.wepinit_shop.xmall.seller.member.vo.SellerSmsVO">
+		select msg
+		     , type
+		     , to_tran
+		     , cnt
+		     , regdt
+		  from gd_sms_log
+		 where 1 = 1
+		<if test="sword != null and sword != '' and skey == 'all'">
+	   		and ( msg like concat('%',#{sword},'%')
+	       		)
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sMsg'">
+			and msg like concat('%',#{sword},'%')
+		</if>
+		 order by regdt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	 
+	 <!-- SMS자동발송설정 -->
+	<select id="getGdMemberGrpList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT 
+			grpnm, k_level, dc 
+			, ( SELECT count(*) sum FROM gd_member WHERE sms='y' AND mobile!='' AND a.k_level = k_level ) as smsCnt
+		FROM gd_member_grp a
+		order by k_level
+	</select>
+
+	<select id="getGdSmsSampleCount" resultType="int">
+	SELECT  /* smsMapper/getGdSmsSampleCount */
+		COUNT(sno) 
+		  FROM gd_sms_sample
+	WHERE 1 =1 
+	<if test=" null != category and '' != category ">
+		AND category = #{category}
+	</if>
+	</select>
+	 
+	<select id="getGdSmsSampleList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsSample">
+	SELECT  /* smsMapper/getGdSmsSampleList */
+			* 
+	FROM gd_sms_sample
+	WHERE 1 =1 
+	<if test=" null != category and '' != category ">
+		AND category = #{category}
+	</if>
+	ORDER BY sort
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	 
+</mapper>
+

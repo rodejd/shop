@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.NoticeMapper">
+
+	<!-- ########### 상품문의관리 관련 ########## -->
+	<!-- 공지사항 총 갯수 -->
+	<select id="getNoticeCount" resultType="int">
+		SELECT count(*) FROM gd_bd_notice
+	</select>
+	
+	<!-- 리스트 검색해서 나온 총 갯수  -->
+	<select id="getNoticeSearchCount" resultType="int" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.NoticeVO">
+		SELECT count(*) 
+		  FROM gd_bd_notice
+		WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(name, subject, contents) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test=" vo.skey != 'all' and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sregdt_0 != '' and vo.sregdt_1 != '' and vo.sregdt_0 != null and vo.sregdt_1 != null ">
+			AND regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="vo.schSkin != '' ">
+			AND skin =#{vo.schSkin}
+		</if>
+	</select>
+	
+	<!-- 공지사항 게시판 리스트 -->
+	<select id="getNoticeList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdNotice">
+		SELECT 
+			*,sort+1 as uprow , sort-1 as downrow, 
+			(select MAX(sort) from gd_bd_notice) as lastsort 
+		FROM gd_bd_notice
+		WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(name, subject, contents) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test=" vo.skey != 'all' and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sregdt_0 != '' and vo.sregdt_1 != '' and vo.sregdt_0 != null and vo.sregdt_1 != null ">
+			AND regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="vo.schSkin != '' ">
+			AND skin =#{vo.schSkin}
+		</if>
+		ORDER BY no DESC
+		LIMIT #{vo.rowStart}, #{vo.pageSize}
+	</select>
+	
+	<!-- sort MAX값 -->
+	<select id="getSortMax" resultType="int">
+		SELECT IFNULL(MAX(sort),0)+1 as lastsort FROM gd_bd_notice
+	</select>
+	
+	<!-- 공지사항 등록 -->
+	<insert id="insertNotice">
+		INSERT
+		  INTO gd_bd_notice
+		  	 ( subject
+			 , name
+			 , secret
+			 , contents
+			 , ip
+			 , regdt
+			 , sort
+			 , skin
+			 ) 
+		VALUES
+			 ( #{noticeVO.subject}
+			 , #{noticeVO.name}
+			 , #{noticeVO.secret}
+			 , #{noticeVO.contents}
+			 , #{noticeVO.ip}
+			 , NOW()
+			 , #{sort}
+			 , #{noticeVO.skin}
+			 ) 
+	</insert>
+	
+	<!-- no MAX값 -->
+	<select id="getNoMax" resultType="int">
+		SELECT MAX(no) as myidx FROM gd_bd_notice 
+	</select>
+	
+	<!-- 공지사항 수정 -->
+	<update id="updateNoticeModify">
+		UPDATE gd_bd_notice
+		SET 
+			subject=#{subject}, 
+			name=#{name}, 
+			secret=#{secret}, 
+			contents=#{contents},
+			ip = #{ip},
+			skin = #{skin}
+		WHERE no = #{no}
+	</update>
+	
+	<!-- 공지사항 Detail VIEW -->
+	<select id="getNoticeDetail" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdNotice">
+		SELECT *
+		FROM gd_bd_notice
+		WHERE no=#{no}
+		LIMIT 1
+	</select>
+	
+	<!-- 공지사항 순서 변경 -->
+	<update id="updateNoticeSortModify">
+		UPDATE gd_bd_notice 
+		   SET sort=#{sort}
+		WHERE no=#{no}
+	</update>
+	
+	<!-- 공지사항 단건 삭제 -->
+	<delete id="deleteNoticeRegister">
+		DELETE FROM gd_bd_notice 
+		 WHERE no= #{no}
+	</delete>
+	
+	<!-- 공지사항 목록 순서 수정 -->
+	<update id="updateNoticeListSort">
+		UPDATE gd_bd_notice
+		   SET sort = #{sort}
+		WHERE no = #{no}
+	</update>
+	
+	<!-- 공지사항 순서(sort) 중복값 조회 -->
+	<select id="getNoticeExistingSort" resultType="int">
+		SELECT sort
+		 FROM gd_bd_notice
+		WHERE sort IN 
+		<foreach item="item" index="index" collection="sort"
+		open="(" separator="," close=")">
+		#{item}
+		</foreach>
+		AND no NOT IN
+		<foreach item="item" index="index" collection="no"
+		open="(" separator="," close=")">
+		#{item}
+		</foreach>
+	</select>
+	
+	<update id="updateNoticeByFile">
+		UPDATE gd_bd_notice 
+		   SET old_file=#{oldfile}
+		     , new_file=#{newfile}
+		WHERE no=#{no}
+	</update>
+
+</mapper>

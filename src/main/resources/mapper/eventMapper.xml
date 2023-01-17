@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.event.EventMapper">
+
+	<resultMap id="detailSurveyResult" type="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		<result property="surveySno" 	column="surveySno"/>
+		<result property="surveyTitle"  column="surveyTitle"/>
+		<result property="open" 	 	column="open"/>
+		<result property="sdate" 		column="sdate"/>
+		<result property="edate"		column="edate"/>
+		<collection property="questions" column="surveySno" javaType="list" ofType="map" select="getSurveyQuestions"/>
+	</resultMap>
+	
+	<!-- ##################### 이벤트 > 이벤트 관리 ################################## -->
+	
+	<!-- 2017-11-14 추가 - 판매사 join gd_seller -->
+	<sql id="getEventIncludeTable">
+		LEFT JOIN gd_seller b ON a.sellerCd = b.sellerCd
+	</sql>
+	
+	<!-- 2017-11-14 추가 - 판매사 조건 gd_seller -->
+	<sql id="getEventIncludeWhere">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			<if test=" schSellerCd != null and schSellerCd != '' ">
+				and a.sellerCd = #{schSellerCd}
+			</if>
+			<if test=" schSellerNm != null and schSellerNm != '' ">
+				and b.sellerNm LIKE CONCAT('%',#{schSellerNm},'%')
+			</if>
+			<if test=" sellerYn == 'Y'.toString() ">
+				and a.sellerCd is not null and a.sellerCd <![CDATA[ <> ]]> ''
+			</if>
+		</trim>
+	</sql>
+	
+	<!-- 리스트 조회(Count)-->
+	<select id="getEventCount" resultType="int">
+		select count(*) from gd_event a
+		<include refid="getEventIncludeTable" />
+		<include refid="getEventIncludeWhere" />
+	</select>
+	
+	<!-- 이벤트 리스트 조회(리스트)-->
+	<!-- 2017-11-14 추가 - 판매사 sellercode, sellername -->
+	<select id="getEventList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+		SELECT 
+			a.sno,	
+			a.sellerCd as "sellercode",	 
+			b.sellerNm as "sellername",
+			a.subject,		
+			a.body,		
+			a.sdate,		
+			a.edate,		
+			a.tpl,		
+			a.size,		
+			a.page_num,		
+			a.cols,		
+			a.category,		
+			a.r_category,		
+			a.r_brand,		
+			a.wview,		
+			a.win,		
+			a.attach,
+			a.open,
+			a.approvalStatus as "approvalstatus",
+			(select gc.itemnm from gd_code gc where gc.itemcd = a.approvalStatus and groupcd = 'AS') as "approvalstatusnm",
+			a.memo
+		FROM gd_event a
+		<include refid="getEventIncludeTable" /> 
+		<include refid="getEventIncludeWhere" />
+		ORDER BY 
+		<choose>
+			<when test=" 'snoDESC' == schSort">
+				a.sno DESC
+			</when>
+			<when test=" 'snoASC' == schSort">
+				a.sno ASC
+			</when>
+			<when test=" 'sdateDESC' == schSort">
+				a.sdate DESC
+			</when>
+			<when test=" 'sdateASC' == schSort">
+				a.sdate ASC
+			</when>
+			<when test=" 'edateDESC' == schSort">
+				a.edate DESC
+			</when>
+			<when test=" 'edateASC' == schSort">
+				a.edate ASC
+			</when>
+			<otherwise>
+				a.sno DESC
+			</otherwise>
+		</choose>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 리스트 삭제 -->
+	<delete id="deleteEvent">
+		DELETE FROM gd_event
+		WHERE SNO = #{sno}
+	</delete>
+	
+	<!-- 이벤트 업데이트 -->
+	<update id="updateEvent">
+		UPDATE gd_event 
+		SET 
+			sellerCd = #{sellercode},
+			subject = #{subject}, 
+			sdate = #{sdate},
+			edate = #{edate}, 
+			body = #{body}, 
+			tpl = #{tpl},
+			wview = #{wview}, 
+			win = #{win},
+			<if test=" attach != null and attach != '' ">
+				attach = #{attach},
+			</if>
+			open = #{open},
+			approvalStatus = #{approvalstatus},
+			memo = #{memo}
+		WHERE sno=#{sno}
+	</update>
+	
+	<!-- 이벤트 추가 -->
+	<insert id="insertEvent">
+		INSERT INTO gd_event
+		SET
+			sellerCd = #{sellercode},
+			subject = #{subject}, 
+			sdate = #{sdate},
+			edate = #{edate}, 
+			body = #{body}, 
+			tpl = #{tpl},
+			wview = #{wview}, 
+			win = #{win},
+			attach = #{attach},
+			open = #{open},
+			approvalStatus = #{approvalstatus},
+			memo = #{memo}
+	</insert>
+	
+	<!-- 이벤트 상세 조회 -->
+	<select id="detailEvent" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+		SELECT 
+			a.sno, a.sellerCd as "sellercode", b.sellerNm as "sellername", a.subject, a.body, 
+			a.sdate, a.edate, a.tpl, a.size, a.page_num, a.cols, a.category, 
+			a.r_category, a.r_brand, a.wview, a.win, a.attach, a.open, a.approvalStatus as "approvalstatus",
+			(select gc.itemnm from gd_code gc where gc.itemcd = a.approvalStatus and groupcd = 'AS') as "approvalstatusnm",
+			a.memo
+		FROM gd_event a
+		LEFT JOIN gd_seller b ON a.sellerCd = b.sellerCd
+		WHERE a.sno = #{sno}
+	</select>
+	
+	<!-- ##################### 이벤트 > 쿠폰 관리 ################################## -->
+	
+	<!-- 쿠폰리스트 조회(Count)-->
+	<select id="getCouponCount" resultType="int">
+	SELECT count(*) FROM (
+		SELECT 
+			a.couponcd 
+		FROM 
+			gd_coupon a
+			<include refid="getCouponIncludeTable"></include>
+		WHERE 1=1
+			<include refid="getCouponIncludeWhere"></include>
+		GROUP BY a.couponcd
+	) z
+	</select>
+	
+	<!-- 쿠폰 리스트 조회(리스트)-->
+	<select id="getCouponList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+	SELECT 
+		a.couponcd,
+		a.goodstype,
+		a.coupontype,
+		a.coupon,
+		a.summa,
+		a.priodtype,
+		a.sdate,
+		a.edate,
+		a.excPrice,
+		a.ability,
+		a.price,
+		a.maxprice,
+		a.skin,
+		a.regdt,
+		a.goodsall,
+		a.couponimg,
+		a.eactl,
+		a.dncnt,
+		a.open,
+		a.approvalStatus as "approvalstatus",
+		(select gc.itemnm from gd_code gc where gc.itemcd = a.approvalStatus and groupcd = 'AS') as "approvalstatusnm",
+		a.memo,
+		count(b.sno) cnt,
+		(
+			select GROUP_CONCAT(distinct d.sellerNm SEPARATOR ', ') 
+			from gd_coupon_goodsno b 
+			inner join gd_goods c on b.goodsno = c.goodsno
+			inner join gd_seller d on c.sellerCd = d.sellerCd
+			where a.couponcd = b.couponcd
+			<if test=" (null != schSellerCd and '' != schSellerCd) ">
+				and c.sellerCd = #{schSellerCd}
+			</if>
+			<if test=" (null != schSellerNm and '' != schSellerNm) ">
+				and d.sellerNm LIKE CONCAT('%',#{schSellerNm},'%')
+			</if>
+		) as "sellerNameList"
+	FROM 
+		gd_coupon a
+		<include refid="getCouponIncludeTable"></include>
+	WHERE 1=1
+		<include refid="getCouponIncludeWhere"></include>
+	GROUP BY a.couponcd
+	ORDER BY 
+	<choose>
+		<when test=" 'couponcdDESC' == schSort">
+			a.couponcd DESC
+		</when>
+		<when test=" 'couponcdASC' == schSort">
+			a.couponcd ASC
+		</when>
+		<when test=" 'couponDESC' == schSort">
+			a.coupon DESC
+		</when>
+		<when test=" 'couponASC' == schSort">
+			a.coupon ASC
+		</when>
+		<when test=" 'regdtDESC' == schSort">
+			a.regdt DESC
+		</when>
+		<when test=" 'regdtASC' == schSort">
+			a.regdt ASC
+		</when>
+		<otherwise>
+			a.regdt DESC
+		</otherwise>
+	</choose>
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<sql id="getCouponIncludeTable">
+		LEFT JOIN gd_coupon_apply b ON a.couponcd = b.couponcd
+		<!-- 적용상품범위(카테고리) - 분류선택 -->
+		<if test=" (null != category and '' != category) ">
+			LEFT JOIN gd_coupon_category d ON a.couponcd = d.couponcd
+		</if>
+		<!-- 적용상품범위(카테고리) - 분류선택(word) -->
+		<if test=" (null != gword and '' != gword) ">
+			LEFT JOIN gd_coupon_goodsno c ON a.couponcd = c.couponcd
+		</if>
+		
+		<!-- 판매사-->
+		<if test=" sellerYn != 'Y'.toString() ">
+			<if test=" ( (null != schSellerCd and '' != schSellerCd) or (null != schSellerNm and '' != schSellerNm) ) ">
+				INNER JOIN gd_coupon_goodsno gcg on a.couponcd = gcg.couponcd
+				INNER JOIN gd_goods gg on gcg.goodsno = gg.goodsno
+				INNER JOIN gd_seller sim ON gg.sellerCd = sim.sellerCd
+			</if>
+		</if>
+		
+		<if test=" sellerYn == 'Y'.toString() ">
+			INNER JOIN gd_coupon_goodsno gcg on a.couponcd = gcg.couponcd
+			INNER JOIN gd_goods gg on gcg.goodsno = gg.goodsno
+			INNER JOIN gd_seller sim ON gg.sellerCd = sim.sellerCd
+		</if>
+	</sql>
+	
+	<sql id="getCouponIncludeWhere">
+		<!-- 쿠폰검색(통합) -->
+		<if test=" (null != sword and '' != sword) ">
+			AND ( a.couponcd like concat( '%', #{sword}, '%' ) OR a.coupon like concat( '%', #{sword}, '%' ) )
+		</if>
+		<!-- 적용상품범위 -->
+		<if test=" (null != goodstype and '' != goodstype) ">
+			AND a.goodstype = #{goodstype}
+		</if>
+		<!-- 적용상품범위(카테고리) - 분류선택 -->
+		<choose>
+			<when test=" (null != category and '' != category) and (null != gkey and '' != gkey) and (null != gword and '' != gword) ">
+				AND ( d.category like concat( #{category}, '%' ) OR c.goodsno IN (SELECT goodsno FROM gd_goods WHERE #{gkey} like concat( '%', #{gword)}, '%' ) ) )
+	    	</when>
+			<when test=" (null == category or '' == category) and (null != gkey and '' != gkey) and (null != gword and '' != gword) ">
+				AND c.goodsno IN (SELECT goodsno FROM gd_goods WHERE #{gkey} like concat( '%', #{gword)}, '%' ) )
+	    	</when>
+			<when test=" (null != category and '' != category) and (null == gword or '' == gword) ">
+				AND d.category like concat( #{category}, '%' )
+	    	</when>
+	    	<otherwise></otherwise>
+	  	</choose>
+		
+		<!-- 쿠폰기능 -->
+		<if test=" (null != ability) ">
+			AND a.ability IN 
+			<foreach item="item" index="index" collection="ability" open="(" separator="," close=")">
+        		#{item}
+  			</foreach>
+		</if>
+		<if test=" (null != coupontype) ">
+			AND a.coupontype IN 
+			<foreach item="item" index="index" collection="coupontype" open="(" separator="," close=")">
+        		#{item}
+  			</foreach>
+		</if>
+		
+		<!-- 스킨 -->
+		<if test=" (null != schSkin and '' != schSkin) ">
+			AND a.skin = #{schSkin}
+		</if>
+		
+		
+		<!-- 쿠폰발행일/기간 -->
+		<if test=" (null != regdts and '' != regdts) and (null != regdte and '' != regdte) ">
+			<choose>
+				<when test=" ( dtkind == 'regdt' ) ">
+				<![CDATA[
+					AND date_format(a.regdt, '%Y-%m-%d 00:00:00') between date_format(#{regdts}, '%Y-%m-%d 00:00:00') AND date_format(#{regdte},'%Y-%m-%d 23:59:59')
+				]]>
+		    	</when>
+		    	<when test=" ( dtkind == 'sddate' )">
+				<![CDATA[
+					AND (( date_format(a.sdate, '%Y-%m-%d 00:00:00') <= date_format(#{regdts}, '%Y-%m-%d 00:00:00') AND date_format(a.edate, '%Y-%m-%d 00:00:00') >= date_format(#{regdte}, '%Y-%m-%d 00:00:00') AND a.priodtype='0' ) OR (a.priodtype='1'))
+				]]>
+		    	</when>
+		    	<otherwise></otherwise>
+		  	</choose>
+		</if>
+		
+		<!-- 판매사  검색 -->
+		<if test=" (null != schSellerCd and '' != schSellerCd) ">
+			AND gg.sellerCd = #{schSellerCd}
+		</if>
+		<if test=" (null != schSellerNm and '' != schSellerNm) ">
+			and sim.sellerNm LIKE CONCAT('%',#{schSellerNm},'%')
+		</if>
+		
+		<!-- 판매사 있는 경우에만 조회 -->
+		<if test=" sellerYn == 'Y'.toString() ">
+			and gg.sellerCd is not null and gg.sellerCd <![CDATA[ <> ]]> ''
+		</if>
+		
+	</sql>
+	
+	<!-- 쿠폰발급/조회 gd_member_grp -->
+	<select id="getCouponApply1TotalCount" resultType="int">
+	SELECT 
+		SUM(aa.cnt) total
+	FROM (
+			SELECT 
+				a.grpnm, a.k_level, a.sno, count(b.m_no) cnt
+			FROM 
+				gd_member_grp a
+				LEFT JOIN gd_member b ON a.k_level = b.k_level
+			GROUP BY a.grpnm, a.k_level, a.sno
+	) aa
+	</select>
+	
+	<!-- 쿠폰발급/조회 gd_member_grp -->
+	<select id="getCouponApply1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+	SELECT 
+		a.grpnm, a.k_level, a.sno, count(b.m_no) cnt
+	FROM 
+		gd_member_grp a
+		LEFT JOIN gd_member b ON a.k_level = b.k_level
+	GROUP BY a.grpnm, a.k_level, a.sno
+	</select>
+	
+	<!-- 쿠폰발급/조회 gd_coupon -->
+	<select id="getCouponApply2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+	SELECT a.*
+		 , DATE_FORMAT(sdate, '%Y%m%d') sdt
+		 , DATE_FORMAT(sdate, '%H:%i:%S') stm
+		 , DATE_FORMAT(edate, '%Y%m%d') edt
+		 , DATE_FORMAT(edate, '%H:%i:%S') etm
+		 , (select gc.itemnm from gd_code gc where gc.itemcd = a.approvalStatus and groupcd = 'AS') as approvalstatusnm
+	  FROM gd_coupon a
+	 WHERE a.couponcd = #{couponcd}
+	</select>
+	
+	<!-- 쿠폰발급/조회 gd_coupon_apply -->
+	<select id="getCouponMemberCount" resultType="int">
+	SELECT 
+		count(*)
+	FROM 
+		gd_coupon_apply a
+		LEFT JOIN gd_member_grp b ON b.sno = a.member_grp_sno
+		LEFT JOIN gd_goods c 
+			ON c.goodsno = a.goodsno
+			AND a.membertype = '1'
+	WHERE a.couponcd = #{couponcd}
+	ORDER BY a.regdt
+	</select>
+	
+	<!-- 쿠폰발급/조회 gd_coupon_apply -->
+	<select id="getCouponMember1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApply">
+	SELECT 
+		a.*, b.grpnm, c.img_s
+		, (select count(*) from gd_coupon_order where applysno = a.sno) couCnt
+	FROM 
+		gd_coupon_apply a
+		LEFT JOIN gd_member_grp b ON b.sno = a.member_grp_sno
+		LEFT JOIN gd_goods c 
+			ON c.goodsno = a.goodsno
+			AND a.membertype = '1'
+	WHERE a.couponcd = #{couponcd}
+	ORDER BY a.regdt
+	</select>
+	
+	<!-- 쿠폰발급/조회 gd_coupon_applymember -->
+	<select id="getCouponMember2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApply">
+	SELECT 
+		b.m_id, a.m_no, c.regdt
+	FROM 
+		gd_coupon_applymember a
+		LEFT JOIN gd_member b ON a.m_no = b.m_no
+		LEFT JOIN gd_coupon_order c 
+			ON a.applysno = c.applysno
+			AND a.m_no=c.m_no 
+	WHERE a.applysno = #{sno}
+	LIMIT 1
+	</select>
+	
+	<!-- 쿠폰발급/조회 NEW -->
+	<select id="getCouponMemberNew" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApply">
+	<!--
+	SELECT 
+		a.*, b.grpnm, c.img_s imgs, sub.m_id mid, sub.m_no mno, sub.regdt mregdt
+		, (SELECT count(*) FROM gd_coupon_order WHERE applysno = a.sno) couCnt
+	FROM 
+		gd_coupon_apply a
+		LEFT JOIN gd_member_grp b ON b.sno = a.member_grp_sno
+		LEFT JOIN gd_goods c 
+			ON c.goodsno = a.goodsno
+        LEFT JOIN ( SELECT d.applysno, e.m_id, e.m_no, f.regdt 
+        			FROM gd_coupon_applymember d 
+					LEFT JOIN gd_member e 
+						ON d.m_no = e.m_no
+					LEFT JOIN gd_coupon_order f 
+						ON d.applysno = f.applysno
+						AND d.m_no=f.m_no 
+					) sub ON sub.applysno  = a.sno
+	WHERE a.couponcd = #{couponcd}
+	ORDER BY a.regdt
+	-->
+	<!-- 2017-09-05 수정 -->
+	SELECT b.sno, b.goodsno, b.membertype, b.member_grp_sno, b.regdt, b.status, c.grpnm, a.img_s
+	,(SELECT COUNT(d.applysno)
+		FROM gd_coupon_applymember d
+		WHERE d.applysno = b.sno) AS totalCount
+	,(SELECT COUNT(case when e.used in ('1') then 1 END)
+		FROM gd_coupon_applymember e
+		WHERE e.applysno = b.sno) AS usedCount
+	FROM gd_coupon_apply b
+	LEFT JOIN gd_member_grp c ON b.member_grp_sno=c.sno
+	LEFT JOIN gd_goods a ON a.goodsno=b.goodsno
+	WHERE b.couponcd = #{couponcd}
+	</select>
+	
+	<!-- 2017-09-05 추가 -->
+	<!-- 쿠폰발급회원 건수 -->
+	<select id="getCouponApplyMemberCount" resultType="int">
+		SELECT count(a.applysno) FROM gd_coupon_applymember a
+		LEFT JOIN gd_member b ON a.m_no=b.m_no
+		WHERE applysno=#{sno}
+	</select>
+	
+	<!-- 쿠폰발급회원 내역 조회 -->
+	<select id="getCouponApplyMember" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApplyMember">
+		SELECT a.applysno, a.m_no, a.used, b.m_id, b.name
+		FROM gd_coupon_applymember a
+		LEFT JOIN gd_member b ON a.m_no=b.m_no
+		WHERE applysno=#{sno}
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 발급 쿠폰 사용가능여부 수정(발급내역) -->
+	<update id="updateCouponApply">
+		UPDATE gd_coupon_apply SET status=#{status}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 발급 쿠폰 사용가능여부 수정(회원별발급내역) -->
+	<update id="updateCouponApplyMember">
+		UPDATE gd_coupon_applymember SET status=#{status}
+		WHERE applysno = #{sno}
+	</update>
+	
+	<!-- 2017-09-05 추가 END -->
+	
+	<!-- 쿠폰발급/조회 삭제 처리-->
+	<delete id="deleteCouponApply"><!-- coupon_DELAPPLY -->
+	DELETE a, b 
+	FROM gd_coupon_apply a 
+  		LEFT JOIN gd_coupon_applymember b ON a.sno = b.applysno 
+ 	WHERE a.sno = #{sno}
+	</delete>
+	
+	<!-- 쿠폰발급/조회 등록처리 START-->
+	<select id="getCouponApplyMax" resultType="int"><!-- coupon_SEND_3 -->
+	SELECT 
+		ifnull(MAX(sno), 0) as maxCnt  
+	FROM 
+		gd_coupon_apply
+	</select>
+	
+	<insert id="insertCouponApply"><!-- coupon_SEND_2 -->
+	INSERT INTO 
+		gd_coupon_apply
+	SET
+		sno = #{sno}, 
+		couponcd = #{couponcd},
+		membertype = #{membertype}, 
+		member_grp_sno = #{membergrpsno}, 
+		regdt = now()
+	</insert>
+	
+	<delete id="deleteCouponApplyMember"><!-- coupon_APPLY_MEMBER_2 -->
+		DELETE FROM gd_coupon_applymember
+		WHERE applysno = #{sno}
+	</delete>
+	
+	<insert id="insertCouponApplyMember"><!-- coupon_APPLY_MEMBER_1 -->
+	INSERT INTO 
+		gd_coupon_applymember
+	SET
+		m_no = #{mno}, 
+		applysno = #{sno}
+	</insert>
+	
+	<!-- 2017-09-05 추가 - 해당 그룹 회원정보 조회(mno)  -->
+	<select id="getGroupMember" resultType="int">
+		SELECT a.m_no
+		FROM gd_member a
+		WHERE a.k_level = (SELECT b.k_level FROM gd_member_grp b
+								WHERE b.sno = #{membergrpsno})
+	</select>
+	
+	<!-- 2017-09-05 추가 - 전체 회원정보 조회(mno) -->
+	<select id="getTotalMember" resultType="int">
+		SELECT m_no FROM gd_member
+	</select>
+	
+	<!-- 쿠폰발급/조회 등록처리 END-->
+	
+	<!-- 쿠폰만들기 gd_coupon_category -->
+	<select id="getCouponCategory" resultType="String"><!-- coupon_CATEGORY -->
+		SELECT 
+			category
+		FROM 
+			gd_coupon_category
+		WHERE couponcd = #{couponcd}
+		ORDER BY category
+	</select>
+	
+	<!-- 쿠폰만들기 gd_goods 조회 -->
+	<select id="getCouponGoods"  resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApply"><!-- coupon_GOODS -->
+		SELECT 
+			a.goodsno, b.goodsnm, b.goodsnmKR, b.goodsnmCN, b.img_s imgs, c.price
+		FROM 
+			 gd_coupon_goodsno a,
+			 gd_goods b,
+			 gd_goods_option c
+		WHERE a.goodsno = b.goodsno
+		AND a.goodsno = c.goodsno AND c.parent = 0
+		AND a.couponcd = #{couponcd}
+	</select>
+	
+	<!-- 쿠폰만들기 gd_coupon -->
+	<insert id="insertCoupon"><!-- coupon_INSERT -->
+		INSERT INTO gd_coupon SET
+			 	goodstype 	= #{goodstype}
+			 ,	priodtype 	= #{priodtype}
+			 ,	coupontype 	= #{coupontypesel}
+			 ,	coupon 		= #{couponname}
+			 ,	summa 		= #{summa}
+			 ,	sdate 		= #{sdate}
+			 ,	edate 		= #{edate}
+			 ,	excPrice 	= #{excPrice}
+			 ,	ability 	= #{abilitysel}
+			 ,	price 		= #{price}
+			 ,  maxprice	= #{maxprice}
+			 ,  skin		= #{skin}
+			 ,	couponimg 	= #{couponimg}
+	 		 ,	eactl 		= #{eactl}
+	 		 ,	duplctl 	= #{duplctl}
+	 		 <if test=" dncnt != '' ">
+	 		 ,	dncnt = #{dncnt}
+	 		 </if>
+	 		 <if test=" edncnt != '' ">
+	 		 ,	edncnt = #{edncnt}
+	 		 </if>
+			 ,	regdt  = now()
+	 		 ,	open = #{open}
+	 		 ,	approvalStatus = #{approvalstatus}
+	 		 ,	memo = #{memo}
+	 		 ,	dncode = #{dncode}
+		<selectKey resultType="String" keyProperty="couponcd" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 쿠폰만들기 gd_coupon -->
+	<update id="updateCoupon"><!-- coupon_UPDATE -->
+   	UPDATE gd_coupon SET
+		 	goodstype 	= #{goodstype}
+		 ,	priodtype 	= #{priodtype}
+		 ,	coupontype 	= #{coupontypesel}
+		 ,	coupon 		= #{couponname}
+		 ,	summa 		= #{summa}
+		 ,	sdate 		= #{sdate}
+		 ,	edate 		= #{edate}
+		 ,	excPrice 	= #{excPrice}
+		 ,	ability 	= #{abilitysel}
+		 ,	price 		= #{price}
+		 ,  maxprice	= #{maxprice}
+		 ,  skin		= #{skin}
+		 ,	couponimg 	= #{couponimg}
+ 		 ,	eactl 		= #{eactl}
+ 		 ,	duplctl 	= #{duplctl}
+ 		 <if test= ' dncnt != null and dncnt != "" '>
+ 		 ,	dncnt = #{dncnt}
+ 		 </if>
+ 		 <if test = ' edncnt != null and edncnt !=""  '>
+ 		 ,	edncnt = #{edncnt}
+ 		 </if>
+ 		 ,	open = #{open}
+ 		 ,	approvalStatus = #{approvalstatus}
+ 		 ,	memo = #{memo}
+ 		 ,	dncode = #{dncode}
+   	WHERE couponcd = #{couponcd}
+	</update>
+	
+	<!-- 쿠폰만들기 gd_coupon -->
+	<select id="getNewCouponcd" resultType="int"><!-- coupon_COUPONCD -->
+	SELECT ifnull(MAX(couponcd), 0) as maxCnt FROM gd_coupon
+	</select>
+	
+	<!-- 쿠폰 이미지수정 -->
+	<update id="updateCouponImage">
+		UPDATE gd_coupon 
+		   SET couponimg = #{couponimg}
+		WHERE couponcd = #{couponcd}
+	</update>
+	
+	<!-- 쿠폰만들기 gd_coupon_goodsno -->
+	<delete id="deleteCouponGoodsno"><!-- coupon_GOODS_DELETE -->
+		DELETE FROM gd_coupon_goodsno
+		WHERE couponcd = #{couponcd}
+	</delete>
+	
+	<!-- 쿠폰만들기 gd_coupon_category -->
+	<delete id="deleteCouponCategory"><!-- coupon_CATEGORY_DELETE -->
+		DELETE FROM gd_coupon_category
+		WHERE couponcd = #{couponcd}
+	</delete>
+	
+	<!-- 쿠폰만들기 gd_coupon_goodsno -->
+	<insert id="insertCouponGoodsno"><!-- coupon_GOODS_INSERT -->
+	INSERT INTO gd_coupon_goodsno SET
+		 	goodsno 	= #{goodsno}
+		 ,	couponcd 	= #{couponcd}
+	</insert>
+	
+	<!-- 쿠폰만들기 gd_coupon_goodsno -->
+	<insert id="insertCouponGoodCategory"><!-- coupon_CATEGORY_INSERT -->
+	INSERT INTO gd_coupon_category SET
+		 	category 	= #{category}
+		 ,	couponcd 	= #{couponcd}
+	</insert>
+	
+	<!-- 쿠폰삭제 gd_coupon_applymember -->
+	<delete id="deleteCouponApplymemberByCoupon"><!-- coupon_DELETE_1 -->
+		DELETE FROM gd_coupon_applymember 
+		WHERE applysno IN (SELECT sno FROM gd_coupon_apply WHERE couponcd = #{couponcd})
+	</delete>
+	
+	<!-- 쿠폰삭제 gd_coupon_applymember -->
+	<delete id="deleteCoupon"><!-- coupon_DELETE_2 -->
+		DELETE a,b,c,d FROM gd_coupon a
+			LEFT JOIN gd_coupon_category b ON b.couponcd = a.couponcd
+			LEFT JOIN gd_coupon_goodsno c ON c.couponcd = a.couponcd
+			LEFT JOIN gd_coupon_apply d ON d.couponcd = a.couponcd
+		WHERE a.couponcd = #{couponcd}
+	</delete>
+	
+	<!-- 게시 수정 -->
+	<update id="updateOpen" >
+		UPDATE gd_event SET
+			open = #{statVal}
+		WHERE sno in
+			<foreach collection="eventArr" item="sno" open="(" close=")" separator=",">
+				#{sno}
+			</foreach>
+	</update>
+	
+	<!-- 승인 수정 -->
+	<update id="updateApproval" >
+		UPDATE gd_event SET
+			approvalStatus = #{statVal}
+		WHERE sno in
+			<foreach collection="eventArr" item="sno" open="(" close=")" separator=",">
+				#{sno}
+			</foreach>
+		AND sellerCd in
+			<foreach collection="sellercodeArr" item="sellercode" open="(" close=")" separator=",">
+				#{sellercode}
+			</foreach>
+	</update>
+	
+	<!-- 게시 수정(쿠폰) -->
+	<update id="updateCouponOpen" >
+		UPDATE gd_coupon SET
+			open = #{statVal}
+		WHERE couponcd in
+			<foreach collection="couponArr" item="couponcd" open="(" close=")" separator=",">
+				#{couponcd}
+			</foreach>
+	</update>
+	
+	<!-- 승인 수정(쿠폰) -->
+	<update id="updateCouponApproval" >
+		UPDATE gd_coupon SET
+			approvalStatus = #{statVal}
+		WHERE couponcd in
+			<foreach collection="couponArr" item="couponcd" open="(" close=")" separator=",">
+				#{couponcd}
+			</foreach>
+	</update>
+	
+	<!-- 설문조사 검색 -->
+	<sql id="surveySearch">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			<if test=" schTitle != null and schTitle != '' ">
+				and T1.surveyTitle LIKE CONCAT('%',#{schTitle},'%')
+			</if>
+		</trim>
+		  ORDER BY 
+		<choose>
+			<!-- 설문번호 정렬 -->
+			<when test=" 'snoDESC' == schSort">
+				T1.surveySno DESC
+			</when>
+			<when test=" 'snoASC' == schSort">
+				T1.surveySno ASC
+			</when>
+			<!-- 시작날짜순 정렬 -->
+			<when test=" 'sdateDESC' == schSort">
+				T1.sdate DESC
+			</when>
+			<when test=" 'sdateASC' == schSort">
+				T1.sdate ASC
+			</when>
+			<!-- 종료날짜순 정렬 -->
+			<when test=" 'edateDESC' == schSort">
+				T1.edate DESC
+			</when>
+			<when test=" 'edateASC' == schSort">
+				T1.edate ASC
+			</when>
+			<!-- 기본값 번호순 정렬 -->
+			<otherwise>
+				T1.surveySno DESC
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 설문 개수 조회 -->
+	<select id="getSurveyCount" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO" resultType="int">
+		/* EventMapper / getSurveyCount */
+		SELECT count(*)
+		  FROM gd_survey T1
+		<!-- 설문검색어 조회  -->
+		<include refid="surveySearch"/>
+	</select>
+	
+	<!-- 설문조사 리스트 -->
+	<select id="getSurveyList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		SELECT T1.surveySno
+			  ,T1.surveyTitle
+			  ,T1.open
+			  ,T1.sdate
+			  ,T1.edate
+			  ,T1.surveydt
+			  ,(SELECT SUM(surveyCount) FROM gd_survey_question WHERE T1.surveySno = surveySno) surveyCount
+		  FROM gd_survey T1
+		<!-- 설문검색어 조회  -->
+		<include refid="surveySearch"/>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	
+	<!-- 설문조사 등록 -->
+	<insert id="setSurvey" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO" useGeneratedKeys="true" keyProperty="surveySno">
+		/* EventMapper / setSurvey */
+		INSERT INTO gd_survey(surveyTitle ,open ,sdate ,edate) VALUES(#{surveyTitle} ,#{open} ,#{sdate} ,#{edate})
+	</insert>
+	
+	<!-- 설문조사 질문등록 -->
+	<insert id="setSurveyQuestion" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		/* EventMapper / setSurveyQuestion */
+			INSERT INTO gd_survey_question(surveySno ,surveyNum ,surveySubName) 
+			VALUES
+ 		<foreach item="subject" index="index" collection="question" separator=",">
+			(#{surveySno} , #{index} ,#{subject})
+		</foreach>
+	</insert>
+	
+	<!-- 설문조사 수정 -->
+	<update id="modifySurvey" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		UPDATE gd_survey
+		SET		surveyTitle = #{surveyTitle}
+				, open		= #{open}
+				, sdate		= #{sdate}
+				, edate		= #{edate}
+		WHERE surveySno		= #{surveySno}
+	</update>
+
+	<!-- 설문 게시여부 수정 -->
+	<update id="updateSurveyOpen" >
+		UPDATE gd_survey 
+		   SET open = #{statVal}
+		WHERE surveySno in
+			<foreach collection="surveyArr" item="sno" open="(" close=")" separator=",">
+				#{sno}
+			</foreach>
+	</update>
+	
+	<!-- 설문조사 삭제 -->
+	<delete id="deleteSurvey" >
+		DELETE FROM gd_survey
+		 WHERE surveySno = #{sno}
+	</delete>
+	
+	<!-- 설문조사 질문삭제 -->
+	<delete id="deleteSurveyQuestion" >
+		DELETE FROM gd_survey_question
+		 WHERE surveySno = #{sno}
+	</delete>
+	
+	<!-- 설문조사 상세보기 조회-->
+	<select id="getDetailSurvey" resultMap="detailSurveyResult">
+		SELECT surveySno
+			  ,surveyTitle
+			  ,open
+			  ,sdate
+			  ,edate
+			  ,(SELECT SUM(surveyCount) FROM gd_survey_question WHERE surveySno = #{sno}) AS sumSurveyCnt
+	      FROM gd_survey
+	     WHERE surveySno = #{sno}
+	</select>
+	
+	<!-- 설문조사 상세보기 질문 조회 -->
+	<select id="getSurveyQuestions" resultType="map">
+		SELECT surveySno
+			  ,surveyNum 
+			  ,surveySubName
+			  ,surveyCount
+	      FROM gd_survey_question
+	     WHERE surveySno = #{surveySno}
+	</select>
+	
+	
+</mapper>
+

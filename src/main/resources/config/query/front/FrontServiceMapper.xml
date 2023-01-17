@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.service.FrontServiceMapper">
+
+	<!-- 광고/제휴 등록 -->
+	<insert id="setCooperation">
+	INSERT INTO  /* FrontServiceMapper/setCooperation */ 
+		   gd_cooperation 
+	( itemcd, name, email, title, content, regdt ) VALUES  
+	(#{itemcd}, #{name}, #{email}, #{title}, #{content}, NOW())
+	</insert>
+	
+	<!-- 사용 은행계좌 목록 -->
+	<select id="bankUseList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListBank">
+		SELECT * FROM gd_list_bank WHERE useyn='y'
+	</select>
+	
+	<!-- 원하는 게시판 data 가져오기 -->
+	<select id="faqRecentList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdFaq">
+		SELECT T1.sno
+			  ,T1.itemcd
+			  ,T1.question
+			  ,T1.descant
+			  ,T1.answer
+			  ,T1.sort
+			  ,T1.regdt
+			  ,T1.best
+			  ,T1.bestsort
+			  ,T2.itemnm
+		  FROM gd_faq T1 LEFT JOIN gd_code T2 ON T1.itemcd=T2.itemcd and T2.groupcd='faq'
+		 WHERE T1.best='Y' 
+      ORDER BY T1.bestsort ASC ,T1.regdt DESC
+         LIMIT 0 ,${pageSize}
+	</select>
+	
+	<!-- 고객센터 > faq 리스트 COUNT -->
+	<select id="frontFaqlistCount" resultType="int">
+		SELECT count(*)
+		FROM gd_faq 
+		WHERE itemcd= ${sitemcd} 
+		AND concat(question, descant, answer) like #{sword}
+	</select>
+	
+	
+	<!-- 고객센터 > faq 리스트 -->
+	<select id="frontFaqlistSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdFaq">
+		SELECT
+			sno, 
+			itemcd, 
+			question, 
+			descant, 
+			answer 
+		FROM gd_faq 
+		WHERE itemcd = ${sitemcd}
+		AND concat(question, descant, answer) like #{sword}
+		ORDER BY sort
+		LIMIT ${rowStart}, ${pageSize}
+	</select>
+	
+	<!-- faq > 하위 > (최하위) 항목들 리스트 -->
+	<select id="faq3thCategorySelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT * 
+		FROM gd_code 
+		WHERE groupcd IN
+		(
+			SELECT itemcd 
+		 	FROM gd_code 
+		 	WHERE groupcd='faq'
+		)
+	</select>
+		
+	
+</mapper>

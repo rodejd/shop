@@ -1,0 +1,1549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.order.OrderMapper">
+
+	<!-- 주문관리 > 주문관리 > 주문리스트(갯수) -->
+	<select id="getOrderCount" resultType="int">
+		SELECT COUNT(*) CNT
+		  FROM (
+				SELECT item.ordno
+					  , ord.skin 
+					  , ord.agent
+					  , ord.orddt
+					  , ord.nameOrder
+					  , ord.customs_num
+					  , item.goodsno
+					  , item.brandnm
+					  , item.brandnmKR
+					  , item.brandnmCN
+					  , item.goodsnm
+					  , item.goodsnmKR
+					  , item.goodsnmCN
+					  , option.opt1
+					  , option.opt2
+					  , item.ea
+					  , option.price
+					  , ord.goodsprice
+					  , ord.prn_settleprice
+					  , ord.settlekind
+					  , ord.settleprice
+					  , ord.emoney
+					  , ord.addemoney
+					  , coupon.couponNm
+					  , ifnull(coupon.couponPrice,0) couponPrice
+					  , coupon.dcCodeNm
+					  , ifnull(coupon.dcCodePrice,0) dcCodePrice
+					  , ord.country
+					  , ROUND((((option.price*option.margin)-(ifnull(coupon.couponPrice,0)+ifnull(coupon.dcCodePrice,0)))-ifnull(item.addemoney,0)) / ifnull(option.price,0)) estimate
+					  , soi.goodsnmcnt
+				FROM gd_order_item item
+				 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+				 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+				  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+				  LEFT JOIN (
+					  SELECT y.ordno
+						    , y.m_no
+						    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+							 , MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+							 , MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+							 , MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+						  FROM gd_coupon_order y
+						  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+						  GROUP BY y.ordno
+						    	 	, y.m_no
+				  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+				  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+				  LEFT JOIN (
+				  	  SELECT ordno
+					  		 , COUNT(*) goodsnmcnt
+					   FROM gd_order_item
+					   GROUP BY ordno
+				   )soi ON item.ordno = soi.ordno
+				WHERE 1=1
+				<include refid="includeOrderWhere"></include>
+				GROUP BY item.ordno
+			)z
+	</select>
+	
+	<!-- 주문관리 > 주문관리 > 주문리스트(리스트) -->
+	<select id="getOrderList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderMember">
+		SELECT item.ordno
+			  , ord.skin 
+			  , ord.agent
+			  , ord.orddt
+			  , ord.nameorder
+			  , ord.customs_num
+			  , item.goodsno
+			  , item.brandnm
+			  , item.brandnmKR
+			  , item.brandnmCN
+			  , item.goodsnm
+			  , item.goodsnmKR
+			  , item.goodsnmCN
+			  , option.opt1
+			  , option.opt2
+			  , item.ea
+			  , option.price
+			  , ord.goodsprice
+			  , ord.prn_settleprice
+			  , ord.settlekind
+			  , ord.settleprice
+			  , ord.emoney
+			  , ord.addemoney
+			  , coupon.couponcd
+			  , coupon.couponNm
+			  , ifnull(coupon.couponPrice,0) couponPrice
+			  , coupon.dcCouponcd
+			  , coupon.dcCodeNm
+			  , ifnull(coupon.dcCodePrice,0) dcCodePrice
+			  , ord.country
+			  , ROUND((((option.price*option.margin)-(ifnull(coupon.couponPrice,0)+ifnull(coupon.dcCodePrice,0)))-ifnull(item.addemoney,0)) / ifnull(option.price,0)) estimate
+			  , soi.goodsnmcnt
+			  , ord.step
+			  , ord.step2
+			  , item.istep
+		FROM gd_order_item item
+		 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+		 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+		  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+		  LEFT JOIN (
+			  SELECT y.ordno
+				    , y.m_no
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.couponcd ELSE null END) couponcd
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+					, MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.couponcd ELSE null END) dcCouponcd
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+				  FROM gd_coupon_order y
+				  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+				  GROUP BY y.ordno
+				    	 	, y.m_no
+		  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+		  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+		  LEFT JOIN (
+		  	  SELECT ordno
+			  		 , COUNT(*) goodsnmcnt
+			   FROM gd_order_item
+			   GROUP BY ordno
+		   )soi ON item.ordno = soi.ordno
+		WHERE 1 =1 
+		<include refid="includeOrderWhere"></include>
+		GROUP BY item.ordno
+		ORDER BY item.ordno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 주문관리 > 주문관리 > 주문리스트(리스트(그룹)) -->
+	<select id="getOrderList2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderMember">
+		SELECT item.ordno
+			  , ord.skin 
+			  , ord.agent
+			  , ord.orddt
+			  , ord.nameorder
+			  , ord.customs_num
+			  , item.goodsno
+			  , item.brandnm
+			  , item.brandnmKR
+			  , item.brandnmCN
+			  , item.goodsnm
+			  , item.goodsnmKR
+			  , item.goodsnmCN
+			  , option.opt1
+			  , option.opt2
+			  , item.ea
+			  , option.price
+			  , ord.goodsprice
+			  , ord.prn_settleprice
+			  , ord.settlekind
+			  , ord.settleprice
+			  , ord.emoney
+			  , ord.addemoney
+			  , coupon.couponcd
+			  , coupon.couponNm
+			  , ifnull(coupon.couponPrice,0) couponPrice
+			  , coupon.dcCouponcd
+			  , coupon.dcCodeNm
+			  , ifnull(coupon.dcCodePrice,0) dcCodePrice
+			  , ord.country
+			  , ROUND((((option.price*option.margin)-(ifnull(coupon.couponPrice,0)+ifnull(coupon.dcCodePrice,0)))-ifnull(item.addemoney,0)) / ifnull(option.price,0)) estimate
+			  , soi.goodsnmcnt
+			  , ord.step
+			  , ord.step2
+			  , item.istep
+		FROM gd_order_item item
+		 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+		 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+		  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+		  LEFT JOIN (
+			  SELECT y.ordno
+				    , y.m_no
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.couponcd ELSE null END) couponcd
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+					, MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.couponcd ELSE null END) dcCouponcd
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+				  FROM gd_coupon_order y
+				  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+				  GROUP BY y.ordno
+				    	 	, y.m_no
+		  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+		  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+		  LEFT JOIN (
+		  	  SELECT ordno
+			  		 , COUNT(*) goodsnmcnt
+			   FROM gd_order_item
+			   GROUP BY ordno
+		   )soi ON item.ordno = soi.ordno
+		WHERE 1 =1 
+		<include refid="includeOrderWhere"></include>
+		GROUP BY item.ordno
+		ORDER BY istep*10+step, item.dyn, item.ordno DESC
+	</select>
+	
+	<!-- 주문관리 > 주문관리 > 엑셀다운로드 -->
+	<select id="selectOrderExcelList" resultType="map">
+		SELECT *
+		  FROM (
+			SELECT @rownum:=@rownum+1 rn
+				 , y.* 
+			  FROM (
+					SELECT cast(item.ordno as varchar(100)) ordno
+						  , CASE
+								WHEN INSTR(DATE_FORMAT(ord.orddt, '%Y-%m-%d %p %h:%i'), 'PM') > 0
+								THEN REPLACE(DATE_FORMAT(ord.orddt, '%Y-%m-%d %p %h:%i:%s'), 'PM', '오후')
+								ELSE REPLACE(DATE_FORMAT(ord.orddt, '%Y-%m-%d %p %h:%i:%s'), 'AM', '오전')
+							END AS orddt
+						  , ord.nameorder
+						  , ord.email
+						  , ord.mobileOrder
+						  , ord.nameReceiver
+						  , ord.emailReceiver
+						  , ord.mobileReceiver
+						  , ord.country
+						  , ord.zipcode
+						  , ord.address
+						  , ord.address2
+						  , ord.city
+						  , ord.state
+						  , ord.customs_num 
+						  , CASE WHEN ord.settlekind = 'c'THEN '신용카드' ELSE '무통장'  END settlekindNm
+						  , cast(item.goodsno as varchar(100)) goodsno
+						  , goods.goodscd
+						  , item.brandnm
+						  , item.brandnmKR
+						  , item.brandnmCN
+						  , item.goodsnm
+						  , item.goodsnmKR
+						  , item.goodsnmCN	  
+						  , goods.shippingOrigin
+						  , option.opt1
+						  , option.opt2
+						  , item.ea
+						  , option.consumer
+						  , option.price
+						  , ord.prn_settleprice
+						  , ifnull(ord.coupon ,0) + ifnull(ord.emoney ,0) dcTotal
+						  , ord.emoney
+						  , ord.addemoney
+						  , coupon.couponcd
+						  , coupon.couponNm
+						  , FORMAT(IFNULL(coupon.couponPrice,0),2) couponPrice
+						  , coupon.dcCouponcd
+						  , coupon.dcCodeNm
+						  , FORMAT(IFNULL(coupon.dcCodePrice,0),2) dcCodePrice
+						  , listdeli.deliverycomp
+						  , delivery.invoice
+						  , CASE
+								WHEN INSTR(DATE_FORMAT(delivery.deliverySdt, '%Y-%m-%d %p %h:%i'), 'PM') > 0
+								THEN REPLACE(DATE_FORMAT(delivery.deliverySdt, '%Y-%m-%d %p %h:%i:%s'), 'PM', '오후')
+								ELSE REPLACE(DATE_FORMAT(delivery.deliverySdt, '%Y-%m-%d %p %h:%i:%s'), 'AM', '오전')
+							END AS deliverySdt
+						  , CASE
+								WHEN INSTR(DATE_FORMAT(delivery.deliveryEdt, '%Y-%m-%d %p %h:%i'), 'PM') > 0
+								THEN REPLACE(DATE_FORMAT(delivery.deliveryEdt, '%Y-%m-%d %p %h:%i:%s'), 'PM', '오후')
+								ELSE REPLACE(DATE_FORMAT(delivery.deliveryEdt, '%Y-%m-%d %p %h:%i:%s'), 'AM', '오전')
+							END AS deliveryEdt
+						  , listretdeli.deliverycomp deliveryReturncomp
+						  , delivery.returnInvoice
+						  , ord.step
+						  , ord.step2
+						  , item.istep
+					  FROM gd_order_item item
+					 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+					 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+					  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+					  LEFT JOIN (
+						  SELECT y.ordno
+							    , y.m_no
+							    , MAX(CASE WHEN z.coupontype != '3' THEN y.couponcd ELSE null END) couponcd
+							    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+								, MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+								, MAX(CASE WHEN z.coupontype = '3' THEN y.couponcd ELSE null END) dcCouponcd
+								, MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+								, MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+							  FROM gd_coupon_order y
+							  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+							  GROUP BY y.ordno
+							    	 	, y.m_no
+					  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+					  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+					  LEFT JOIN (
+					  	  SELECT ordno
+						  		 , COUNT(*) goodsnmcnt
+						   FROM gd_order_item
+						   GROUP BY ordno
+					   )soi ON item.ordno = soi.ordno
+					   LEFT JOIN gd_list_delivery listdeli ON listdeli.deliveryno = delivery.deliveryCompCd
+					   LEFT JOIN gd_list_delivery listretdeli ON listretdeli.deliveryno = delivery.returnDeliveryCompCd
+					WHERE 1 =1 
+					<include refid="includeOrderWhere"></include>
+				GROUP BY ord.ordno, item.goodsno
+				)y 
+			)z
+			ORDER BY rn DESC 
+	</select>
+	
+	<!-- 주문관리 > 주문관리 > 주문리스트(주문별 다운로드) -->
+	<select id="getOrderXls" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderExcel">
+	SELECT  /* orderMapper/getOrderXls */
+			a.*
+	FROM 
+		gd_order a
+		<include refid="getOrderIncludeTable"></include>
+	WHERE 1 = 1 
+	<include refid="getOrderIncludeWhere"></include>
+	ORDER BY a.ordno desc
+	</select>
+	
+	<!-- 주문관리 > 주문관리 > 주문리스트(상품별 다운로드) -->
+	<select id="getOrderGoodsXls" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderExcel">
+	SELECT  /* orderMapper/getOrderGoodsXls */
+			a.*, d.*, c.*, a.memo as order_memo
+	FROM 
+		gd_order a
+		LEFT JOIN gd_order_item c ON a.ordno = c.ordno
+		LEFT JOIN gd_goods d ON c.goodsno = d.goodsno
+		<include refid="getOrderIncludeTable"></include>
+	WHERE 1 = 1 
+	<include refid="getOrderIncludeWhere"></include>
+	ORDER BY a.ordno desc
+	</select>
+	
+	<sql id="getOrderIncludeTable">
+		<!-- 상품검색[선택] -->
+		<if test=" (null != sgkey and '' != sgkey and null != sgword and '' != sgword) or ( null != step2_60 and 'step2_60' == step2_60 )">
+			 left join gd_order_item c on a.ordno=c.ordno
+		</if>
+		
+		<!-- 쿠폰사용여부 -->
+		<if test=" ( null != couponyn and '' != couponyn )">
+			  left join gd_coupon_order e on a.ordno=e.ordno 
+		</if>
+	</sql>
+	
+	<sql id="getMimOrderIncludeTable">
+		<!-- 쿠폰사용여부 -->
+		<if test=" ( null != couponyn and '' != couponyn )">
+			  left join gd_coupon_order e on a.ordno=e.ordno 
+		</if>
+	</sql>
+	
+	<sql id="getOrderIncludeWhere">
+		<!-- 주문검색(통합) -->
+		<if test=" null != sword and '' != sword ">
+			<choose>
+				<when test=" 'all' == skey ">
+		      		AND CONCAT(nameOrder, mobileOrder, nameReceiver, mobileReceiver, a.ordno, gdGoods.goodsno, a.deliveryno, bankSender) LIKE concat( '%', #{sword}, '%')
+		    	</when>
+				<when test=" null != skey and '' != skey ">
+		      		AND ${skey} like concat( '%', #{sword}, '%')
+		    	</when>
+		  	</choose>
+	  	</if>
+
+		<!-- 판매사 -->		
+		<if test="null != schSellerCd and '' != schSellerCd">
+			AND gdGoods.sellerCd = #{schSellerCd}
+		</if>
+		
+		<!-- 상품검색[선택] -->
+		<if test=" (null != sgkey and '' != sgkey) and (null != sgword and '' != sgword) ">
+			AND ${sgkey} like concat('%', #{sgword}, '%') group by a.ordno 
+		</if>
+		
+		<!-- 주문상태(step, step2) -->
+		<choose>
+			<when test=" ( null != step and '' != step ) and ( null != step2 and '' != step2 )  ">
+	      		AND ( step in (${step}) and step2 = '' ) or ( ${step2} )
+	    	</when>
+	    	<when test=" ( null != step and '' != step ) and ( null == step2 or '' == step2 )">
+	      		AND ( step in (${step}) and step2 = '0' )
+	    	</when>
+	    	<when test=" ( null == step or '' == step ) and ( null != step2 and '' != step2 )">
+	      		AND istep in (${step2})
+	    	</when>
+	    	<otherwise></otherwise>
+	  	</choose>
+	  	
+	  	<if test="sregdt_0 != null and sregdt_0 != '' and sregdt_1 != null and sregdt_1 != '' ">
+			AND ${dtkind} between date_format(#{sregdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		
+		<if test="settlekind != null and settlekind != '' ">
+			AND settlekind = #{settlekind}
+		</if>
+		
+		<!-- 쿠폰사용여부 -->
+		<if test="( null != couponyn and '' != couponyn )">
+			AND d.ordno is not null 
+		</if>
+		
+		<!-- 현금영수증신청여부 -->
+		<if test=" ( null != cashreceipt and '' != cashreceipt )">
+			AND a.cashreceipt != ''
+		</if>
+		
+	</sql>
+	
+	<sql id="includeOrderWhere">
+		<!-- 주문검색(통합) -->
+		<if test=" null != sword and '' != sword ">
+			<choose>
+				<when test=" 'all' == skey ">
+		      		AND CONCAT( ifnull(ord.nameOrder,'')
+				      		  , ifnull(ord.mobileOrder,'')
+				      		  , ifnull(ord.nameReceiver,'')
+				      		  , ifnull(ord.mobileReceiver,'')
+				      		  , ifnull(ord.ordno,'')
+				      		  , ifnull(item.goodsno,'')
+				      		  , ifnull(delivery.invoice,'')
+				      		  , ifnull(ord.bankSender,'')
+				      		  ) LIKE concat( '%', #{sword}, '%')
+		    	</when>
+				<when test=" null != skey and '' != skey ">
+		      		AND ${skey} like concat( '%', #{sword}, '%')
+		    	</when>
+		  	</choose>
+	  	</if>
+		<!-- 주문처 -->
+		<if test="null != sagent and '' != sagent">
+			AND ord.agent = #{sagent}
+		</if>
+		<!-- 스킨 -->
+		<if test="null != sskin and '' != sskin">
+			AND ord.skin = #{sskin}
+		</if>
+		<!-- 배송국가 -->
+		<if test="null != scountry and '' != scountry">
+			AND ord.country = #{scountry}
+		</if>
+		<!-- 주문상태(step, step2) -->
+		<choose>
+			<when test=" ( null != step and '' != step ) and ( null != step2 and '' != step2 )  ">
+	      		AND (( step in (${step}) and istep = 0 ) or ( istep in (${step2}) ))
+	    	</when>
+	    	<when test=" ( null != step and '' != step ) and ( null == step2 or '' == step2 )">
+	      		AND ( step in (${step}) and istep = 0 )
+	    	</when>
+	    	<when test=" ( null == step or '' == step ) and ( null != step2 and '' != step2 )">
+	      		AND istep in (${step2})
+	    	</when>
+	    	<otherwise></otherwise>
+	  	</choose>
+	  	<!-- 처리일자 -->
+	  	<if test="sregdt_0 != null and sregdt_0 != '' and sregdt_1 != null and sregdt_1 != '' ">
+			AND ${dtkind} between date_format(#{sregdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<!-- 결제방법 -->
+		<if test="settlekind != null and settlekind != '' ">
+			AND settlekind = #{settlekind}
+		</if>
+	</sql>
+	
+	<sql id="getMimOrderIncludeWhere">
+		<!-- 주문검색(통합) -->
+		<if test=" null != sword and '' != sword ">
+			<choose>
+				<when test=" 'all' == skey ">
+		      		AND CONCAT(nameOrder, mobileOrder, nameReceiver, mobileReceiver, a.ordno, gdGoods.goodsno, god.invoice, bankSender) LIKE concat( '%', #{sword}, '%')
+		    	</when>
+				<when test=" null != skey and '' != skey ">
+		      		AND ${skey} like concat( '%', #{sword}, '%')
+		    	</when>
+		  	</choose>
+	  	</if>
+
+		<if test="null != sagent and '' != sagent">
+			AND a.agent = #{sagent}
+		</if>
+		
+		<if test="null != sskin and '' != sskin">
+			AND a.skin = #{sskin}
+		</if>
+		
+		<if test="null != scountry and '' != scountry">
+			AND a.country = #{scountry}
+		</if>
+
+		<!-- 판매사 -->		
+		<if test="null != schSellerCd and '' != schSellerCd">
+			AND gdGoods.sellerCd = #{schSellerCd}
+		</if>
+		
+		<!-- 상품검색[선택] -->
+		<if test=" (null != sgkey and '' != sgkey) and (null != sgword and '' != sgword) ">
+			<if test="sgkey == 'gdGoods.goodsnm'">
+				AND
+					CONCAT(gdGoods.goodsnm, gdGoods.goodsnmKR, gdGoods.goodsnmCN) like concat('%', #{sgword}, '%')
+			</if>
+			<if test="sgkey == 'brandnm'">
+				AND
+					brandnm like concat('%', #{sgword}, '%')
+			</if>
+		</if>
+		
+		<!-- 주문상태(step, step2) -->
+		<choose>
+			<when test=" ( null != step and '' != step ) and ( null != step2 and '' != step2 )  ">
+	      		AND (( step in (${step}) and istep = 0 ) or ( istep in (${step2}) ))
+	    	</when>
+	    	<when test=" ( null != step and '' != step ) and ( null == step2 or '' == step2 )">
+	      		AND ( step in (${step}) and istep = 0 )
+	    	</when>
+	    	<when test=" ( null == step or '' == step ) and ( null != step2 and '' != step2 )">
+	      		AND istep in (${step2})
+	    	</when>
+	    	<otherwise></otherwise>
+	  	</choose>
+	  	
+	  	<if test="sregdt_0 != null and sregdt_0 != '' and sregdt_1 != null and sregdt_1 != '' ">
+			AND ${dtkind} between date_format(#{sregdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		
+		<if test="settlekind != null and settlekind != '' ">
+			AND settlekind = #{settlekind}
+		</if>
+		
+		<!-- 쿠폰사용여부 -->
+		<if test="( null != couponyn and '' != couponyn )">
+			AND e.ordno is not null 
+		</if>
+		
+		<!-- 현금영수증신청여부 -->
+		<if test=" ( null != cashreceipt and '' != cashreceipt )">
+			AND a.cashreceipt != ''
+		</if>
+		
+	</sql>
+	
+	<!-- 주문취소 목록 총갯수 -->
+	<select id="cancelListCnt1" resultType="int">
+		SELECT count(*) 
+		FROM gd_order_cancel c 
+	    LEFT JOIN gd_order_item b 
+	    	ON c.sno = b.cancel 
+	    LEFT JOIN gd_order a 
+	    	ON b.ordno = a.ordno 
+	    LEFT JOIN gd_member d 
+	    	ON a.m_no = d.m_no 
+	 	WHERE 1=1
+	 		AND istep IN(40,56,58,79,80,81,82,83)
+			AND a.ordno is not null 
+		<if test="null != schSword and '' != schSword">
+			AND ${schSword}
+		</if>
+		<if test="null != schType and '' != schType">
+			AND ${schType}
+		</if>
+		<if test="null != schRegdt and '' != schRegdt">
+			AND ${schRegdt}
+		</if>
+		<if test="null != schSettlekind and '' != schSettlekind">
+			AND ${schSettlekind}
+		</if>
+	   		#GROUP BY c.sno
+	</select>
+	
+	<!-- 주문취소리스트 -->
+	<select id="cancelList1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderCancel" >
+		SELECT
+			a.*,       
+			b.*,       
+			c.regdt canceldt,       
+			c.code,       
+			count(b.sno) cnt,
+       		sum(b.ea) sea,       
+       		sum((b.price-b.memberdc-b.coupon)*b.ea) pay,       
+       		d.m_id,       
+       		b.sno as itemsno 
+		FROM gd_order_cancel c 
+		LEFT JOIN gd_order_item b ON c.sno = b.cancel 
+		LEFT JOIN gd_order a ON b.ordno = a.ordno 
+		LEFT JOIN gd_member d ON a.m_no = d.m_no 
+		LEFT JOIN gd_goods gdGoods ON gdGoods.goodsno = b.goodsno
+		WHERE 1=1
+		AND istep IN(40,56,58,79,80,81,82,83) 
+		AND a.ordno is not null 
+		<if test="null != schSword and '' != schSword">
+			AND ${schSword}
+		</if>
+		<if test="null != schType and '' != schType">
+			AND ${schType}
+		</if>
+		<if test="null != schRegdt and '' != schRegdt">
+			AND ${schRegdt}
+		</if>
+		<if test="null != schSettlekind and '' != schSettlekind">
+			AND ${schSettlekind}
+		</if>
+		<if test="null != schSellerCd and '' != schSellerCd">
+			AND gdGoods.sellerCd = #{schSellerCd}
+		</if>
+		GROUP BY c.sno 
+		ORDER BY canceldt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 택배회사 리스트 -->
+	<select id="ordersPopupOrder3" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListDelivery">
+		select * from gd_list_delivery where useyn='y' order by deliverycomp
+	</select>
+	
+	<!-- 계좌리스트 -->
+	<select id="ordersPopupOrder4" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListBank">
+		select * from gd_list_bank where useyn = 'y' order by sno
+	</select>
+
+	<!-- 주문번호로 상품조회 -->
+	<select id="ordersPopupOrder1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrder1">
+		SELECT
+			a.*, 
+			b.*,
+			c.sellerNm,
+			c.sellerCd,
+			CONCAT(d.opt1, ' ' ,d.opt2) AS optname,
+			e.step,
+			e.step2
+		FROM gd_order_item a
+			LEFT JOIN gd_goods b ON a.goodsno=b.goodsno
+			LEFT JOIN gd_seller c ON b.sellerCd = c.sellerCd
+			LEFT JOIN gd_goods_option d ON a.opt1 = d.sno
+			LEFT JOIN gd_order e ON a.ordno = e.ordno
+		WHERE a.ordno=#{ordno}
+		ORDER BY c.sellerCd
+	</select>
+	
+	<!-- 주문번호로 주문자 정보조회 -->
+	<select id="ordersPopupOrder2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrder2">
+		SELECT 
+			b.m_id, a.* 
+		FROM gd_order a LEFT JOIN gd_member b 
+			ON a.m_no=b.m_no 
+		WHERE ordno=#{ordno}
+	</select>
+	
+	<!-- 주문번호로 주문한 상품갯수 조회 -->	
+	<select id="ordersPopupOrder5" resultType="int">
+		select count(*) as icnt from gd_order_item where istep &lt; 40 and ordno=#{ordno}
+	</select>
+
+	<!-- 세금관리 -->
+	<select id="paperTaxState" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdTax">
+		SELECT 
+			regdt, 
+			agreedt, 
+			printdt, 
+			price, 
+			step, 
+			doc_number 
+		FROM gd_tax 
+		WHERE ordno=#{ordno} 
+		ORDER BY sno DESC limit 1
+	</select>
+
+	<select id="ordersPopupOrder6" resultType="int">
+		select count(*) as cnt from gd_order where oldordno=#{ordno}
+	</select>
+	
+	<select id="ordersPopupOrder7" resultType="long">
+		select ordno from gd_order where oldordno=#{ordno}
+	</select>
+	
+	<select id="ordersPopupOrder8" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrder3">
+		 /* ordersPopupOrder8 */
+		SELECT * 
+		  FROM (
+			SELECT ordno
+				  , coupon
+				  , dc
+				  , regdt
+				  , 'C' type
+			  FROM gd_coupon_order 
+			 WHERE ordno=#{ordno}
+			 GROUP BY ordno
+				  , coupon
+				  , dc
+				  , regdt
+			UNION ALL 	
+			SELECT ordno
+				  , '적립금 사용'
+				  , cast(emoney as varchar(11)) emoney
+				  , orddt
+				  , 'E'
+			FROM gd_order
+		  WHERE ordno=#{ordno}
+		)z ORDER BY type, regdt
+	</select>
+	
+	<select id="ordersPopupOrder9" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrder4">
+		SELECT distinct a.cancel, b.* 
+		FROM gd_order_item a 
+		LEFT JOIN gd_order_cancel b 
+		ON a.cancel=b.sno 
+		WHERE a.istep = 44 
+		AND a.cyn in ('r','y') 
+		AND a.ordno=#{ordno} 
+		AND (b.rprice OR b.remoney OR b.rfee)
+	</select>
+	
+	<select id="ordersPopupOrder10" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrderItem">
+		select * from gd_order_item where cancel=#{cancel}
+	</select>
+	
+	<select id="ordersPopupOrder11" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrderCancel">
+		select * from gd_order_cancel where ordno=#{ordno} order by sno desc
+	</select>
+	
+	<select id="ordersPopupOrder12" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdLogCancel">
+		select * from gd_log_cancel where cancel=#{cancel} 
+	</select>
+	
+	<select id="ordersRecovery1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrdersRecovery1">
+		select * 
+		from gd_order a, gd_order_item b 
+		where a.ordno=b.ordno and b.sno=#{sno}
+	</select>
+	
+	<select id="ordersRecovery2" resultType="java.lang.Integer">
+		select emoney from gd_member where m_no=#{mno} limit 1
+	</select>
+	
+	<select id="ordersRecovery3" resultType="int">
+		SELECT 
+			sno 
+		FROM
+			gd_order_item
+		WHERE
+			ordno 		= #{ordno}
+			and istep 	= #{istep}
+			and goodsno = #{goodsno}
+			and opt1 	= #{opt1}
+			and opt2 	= #{opt2}
+			and addopt 	= #{addopt}
+			and price 	= #{price}	
+	</select>
+
+	<update id="ordersRecovery4">
+		update gd_order_item set ea=ea+${ea} where sno=#{sno1}
+	</update>
+
+	<delete id="ordersRecovery5">
+		delete from gd_order_item where sno=#{sno2}
+	</delete>
+	
+	<!-- 주문리스트에서 팝업 -->
+	<update id="ordersRecovery6">
+		update gd_order_item set istep=#{istep}, cancel=0 where sno=#{sno}
+	</update>
+	
+	<insert id="ordersRecovery7">
+		insert into 
+			gd_order_cancel 
+		set
+			ordno	= #{ordno},
+			name	= #{name},
+			regdt	= now()
+	</insert>
+	
+	<insert id="ordersRecovery8">
+		insert into gd_log_cancel 
+		set
+			ordno	= #{ordno} ,
+			itemno	= #{itemno} ,
+			cancel	= (select max(sno) from gd_order_cancel),
+			prev	= #{prev},
+			next	= #{next},
+			goodsnm	= #{goodsnm},
+			goodsnmKR	= #{goodsnmKR},
+			goodsnmCN	= #{goodsnmCN},
+			ea		= #{ea}
+	</insert>
+	
+	<update id="ordersRecovery9">
+		update gd_order set step2=0 where ordno=#{ordno}
+	</update>
+	
+	<update id="ordersRecovery10">
+		update gd_member set emoney = emoney + ${reserve} where m_no=${m_no}
+	</update>
+	
+	<insert id="ordersRecovery11">
+		insert into gd_log_emoney 
+		set
+			m_no	= #{m_no},
+			ordno	= #{ordno},
+			emoney	= #{emoney},
+			memo	= #{msg},
+			regdt	= now()
+	</insert>
+	
+	<!-- 2020-01-07 이현빈 복원시 배송비 정보 가져오기 -->
+	<select id="getRecoveryDelivery" resultType="map">
+		SELECT DISTINCT T1.deliveryPrice ,T1.addDeliveryPrice 
+  		  FROM gd_log_cancel T1 JOIN gd_order_item T2 ON T1.cancel=T2.cancel
+ 		 WHERE T1.itemno = #{sno}
+	</select>
+	
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="getCancelNumber" resultType="int">
+		SELECT MAX(sno) as max_sno FROM gd_order_cancel WHERE ordno = #{ordno}
+	</select>
+	
+
+	<!-- 주문상품 취소/반품 처리 > 대상 상품 조회 -->
+	<select id="ordersCancel1" resultType="map"><!-- orders_ifrm_cancel_1 -->
+		SELECT T1.sno ,T1.istep ,T1.goodsnm ,T1.goodsnmKR ,T1.goodsnmCN ,T1.ea ,T2.step ,T3.bankcode ,T3.bankuser ,T3.bankaccount ,T3.memo ,T3.code ,T3.name ,T1.opt1
+  		  FROM gd_order_item T1 LEFT JOIN gd_order T2 ON T1.ordno=T2.ordno 
+  	 LEFT JOIN gd_order_cancel T3 ON T1.cancel=T3.sno 
+	 	 WHERE T1.sno IN 
+ 		<foreach item="sno" index="index" collection="snoArr" open="(" separator="," close=")">
+			#{sno}
+		</foreach>
+	</select>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<insert id="orderChkCancel1"><!-- libfunc_chkCancel_1 -->
+		INSERT INTO gd_order_cancel 
+		SET
+			ordno	= #{ordno} ,
+			name	= #{name} ,
+			code	= #{code} ,
+			memo	= #{memo},
+		<if test="null != bankcode and '' != bankcode">
+			bankcode	= #{bankcode},
+		</if>
+		<if test="null != bankaccount and '' != bankaccount">
+			bankaccount	= #{bankaccount},
+		</if>
+		<if test="null != bankuser and '' != bankuser">
+			bankuser	= #{bankuser},
+		</if>
+			regdt	= now()
+	</insert>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel2" resultType="int"><!-- libfunc_chkCancel_2 -->
+		SELECT MAX(sno) as max_sno FROM gd_order_cancel
+	</select>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel3" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrderItem"><!-- libfunc_chkCancel_3 -->
+		SELECT * FROM gd_order_item WHERE sno = #{sno}
+	</select>
+	
+	<!-- 주문상품 취소/반품 처리 > 취소로그저장 -->
+	<insert id="orderChkCancel4"><!-- libfunc_chkCancel_4 -->
+		INSERT INTO gd_log_cancel 
+		SET
+			ordno	= #{ordno}
+			,itemno	= #{itemno}
+			,cancel	= #{cancel}
+			,prev	= #{prev}
+			,next	= #{next}
+			,goodsnm	= #{goodsnm}
+			,goodsnmKR	= #{goodsnmKR}
+			,goodsnmCN	= #{goodsnmCN}
+			,ea		= #{ea}
+			<!-- 20200107 이현빈 취소시 주문복원 처리할 때 배송비 복원을 위해 deliveryPrice,AddDeliveryPrice 추가  -->
+			,deliveryPrice = #{deliveryPrice}
+			,addDeliveryPrice = #{addDeliveryPrice}
+			,goodsno = #{goodsno}
+			,paymentTerms = #{paymentTerms}
+			,opt = #{opt}
+	</insert>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<insert id="orderChkCancel5"><!-- libfunc_chkCancel_5 -->
+		INSERT INTO 
+			gd_order_item
+		  (ordno, goodsno, goodsnm, goodsnmKR, goodsnmCN, brandnm, opt1, opt2
+		   , addopt, price, supply, reserve, coupon, memberdc, ea, dvno
+		   , dvcode, istep, stockyn, cyn, dyn, cancel, tax, optno, coupon_emoney)
+		SELECT 
+		  ordno, goodsno, goodsnm, goodsnmKR, goodsnmCN, brandnm, opt1, opt2
+		   , addopt, price, supply, reserve, coupon, memberdc, #{ea}, dvno
+		   , dvcode, #{istep}, stockyn, cyn, dyn, #{cancel}, tax, optno, coupon_emoney
+		FROM
+			gd_order_item 
+		WHERE sno = #{sno}
+	</insert>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel6"><!-- libfunc_chkCancel_6 -->
+		UPDATE gd_order_item SET ea = #{ea} WHERE sno = #{sno}
+	</update>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel7"><!-- libfunc_chkCancel_7 -->
+		UPDATE gd_order_item SET istep = #{istep}, cancel = #{cancel} WHERE sno = #{sno}
+	</update>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel8" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrder"><!-- libfunc_chkCancel_8 -->
+		SELECT * FROM gd_order WHERE ordno = #{ordno}
+	</select>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel9" resultType="map"><!-- libfunc_chkCancel_9 -->
+		SELECT 
+			COUNT(*) cnt
+            , MIN(istep) ministep
+			, SUM(CASE WHEN istep > 40 THEN 1 ELSE 0 END) icnt 
+		FROM gd_order_item 
+		WHERE ordno = #{ordno}
+
+	</select>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel10" resultType="int"><!-- libfunc_chkCancel_10 -->
+		SELECT MIN(istep) FROM gd_order_item WHERE ordno = #{ordno}
+	</select>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel11"><!-- libfunc_chkCancel_11 -->
+		UPDATE gd_order SET step2 = #{step2} WHERE ordno = #{ordno}
+	</update>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel12" resultType="int"><!-- libfunc_chkCancel_12 -->
+		SELECT COUNT(*) FROM gd_coupon_order WHERE ordno = #{ordno}
+	</select>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<delete id="orderChkCancel13"><!-- libfunc_chkCancel_13 -->
+		DELETE FROM gd_coupon_order WHERE ordno = #{ordno}
+	</delete>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel14"><!-- libfunc_chkCancel_14 -->
+		UPDATE gd_order SET coupon = '', coupon_emoney='' WHERE ordno = #{ordno}
+	</update>
+
+	<!-- 주문상품 취소/반품 처리 -->
+	<select id="orderChkCancel15" resultType="int"><!-- libfunc_chkCancel_15 -->
+		SELECT SUM(reserve * ea) 
+		FROM gd_order_item 
+		WHERE ordno = #{ordno} 
+		AND sno IN 
+ 		<foreach item="sno" index="index" collection="snoArr" open="(" separator="," close=")">
+			#{sno}
+		</foreach>
+	</select>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel16"><!-- libfunc_chkCancel_16 -->
+		UPDATE gd_member 
+		SET emoney = emoney + ( #{emoney} )
+		WHERE m_no = #{mno}
+	</update>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<insert id="orderChkCancel17"><!-- libfunc_chkCancel_17 -->
+		INSERT INTO gd_log_emoney 
+		SET
+			m_no	= #{mno},
+			ordno	= #{ordno},
+			emoney	= #{emoney},
+			memo	= #{memo},
+			regdt	= now()
+	</insert>
+	
+	<!-- 주문상품 취소/반품 처리 -->
+	<update id="orderChkCancel18"><!-- libfunc_setEmoney_1 -->
+		UPDATE gd_member 
+		SET emoney = emoney + #{emoney}
+		WHERE m_no = #{mno}
+	</update>
+	
+	<!-- 주문상품 취소/반품 재고처리 -->
+	<select id="orderSetStock1" resultType="map"><!-- libfunc_setStock_1 -->
+		SELECT 
+			a.sno, a.stockyn, a.istep, a.goodsno, a.opt1, a.opt2, a.ea
+			, IFNULL(b.usestock, '') usestock
+		FROM gd_order_item a
+		LEFT JOIN gd_goods b 
+			ON a.goodsno = b.goodsno
+		WHERE
+			a.ordno = #{ordno}
+	</select>
+
+	<!-- 주문상품 취소/반품 재고처리 -->
+	<select id="orderSetStock2" resultType="int"><!-- libfunc_setStock_2 -->
+		SELECT stock 
+		FROM gd_goods_option 
+		WHERE goodsno = #{goodsno} 
+		AND opt1 = #{opt1} 
+		AND opt2 = #{opt2}
+	</select>
+
+	<!-- 주문상품 취소/반품 재고처리 -->
+	<update id="orderSetStock3"><!-- libfunc_setStock_3 -->
+		UPDATE gd_goods_option 
+		SET
+			stock = #{cstock}
+		WHERE goodsno = #{goodsno} 
+		AND opt1 = #{opt1} 
+		AND opt2 = #{opt2}
+	</update>
+
+	<!-- 주문상품 취소/반품 재고처리 -->
+	<update id="orderSetStock4"><!-- libfunc_setStock_4 -->
+		UPDATE gd_order_item 
+		SET
+			stockyn = #{stockyn}
+		WHERE sno = #{sno} 
+	</update>
+
+	<!-- 20200107 이현빈 주문취소시 gd_order_cancel 에 저장할  배송비 정보 조회 -->
+	<select id="getDeliveryInfoForInsertCancel" resultType="map">
+		SELECT T2.deliveryPrice ,T2.addDeliveryPrice ,T2.paymentTerms ,T2.goodsno ,T2.opt 
+		  FROM gd_order_item T1 JOIN gd_order_delivery T2 ON T1.ordno=T2.ordno AND T1.goodsno=T2.goodsno AND T1.opt1=T2.opt
+		 WHERE T1.sno=#{sno}
+	</select>
+	
+	<!-- 20200103 이현빈 배송비관련 업데이트 위한 판매사코드 가져오기 -->
+	<select id="getSellerCdForCancel" resultType="String">
+		SELECT <![CDATA[ IFNULL(T2.sellerCd,"admin") ]]>
+		  FROM gd_order_item T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno
+		 WHERE T1.sno=#{sno}
+	</select>
+	
+	<!-- 20200103 이현빈 배송비관련 업데이트를 위한 취소상품수  -->
+	<select id="checkAllCancelOfSellerGoods" resultType="int">
+		SELECT <![CDATA[ count(T1.goodsno) - SUM(CASE WHEN 39 < T1.istep AND T1.istep NOT IN(55,60,61) THEN 1 ELSE 0 END) ]]>
+		  FROM gd_order_item T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno
+		 WHERE T1.ordno=#{ordno}
+		 <if test="sellerCd != 'admin' and sellerCd != null">
+		  	AND T2.sellerCd=#{sellerCd}
+		  </if>
+	</select>
+	
+	<select id="getCancelGoodsCntOfSeller" resultType="int">
+		SELECT count(T1.goodsno)
+		  FROM gd_order_item T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno
+		 WHERE T1.ordno=#{ordno} AND T2.sellerCd=#{sellerCd}
+	</select>
+	
+	<!-- 20200103 이현빈 전부취소 해당판매사 goodsno 가져오기 -->
+	<select id="getCancelGoodsOfSeller" resultType="String">
+		SELECT T1.goodsno
+		  FROM gd_order_item T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno
+		 WHERE T1.ordno=#{ordno} AND T2.sellerCd=#{sellerCd}
+	</select>
+	
+	<!-- 20200103 이현빈 gd_order_delivery 배송비 업데이트 -->
+	<update id="updateDeliveryPrice1" parameterType="hashmap">
+		UPDATE gd_order_delivery
+		   SET deliveryPrice=#{deliveryPrice}, addDeliveryPrice=#{addDeliveryPrice}
+		 WHERE ordno=#{ordno} AND goodsno=#{cgoodsno}
+	</update>
+	
+	<!-- 20200106 이현빈 gd_order 배송비 업데이트 -->
+	<update id="updateDeliveryPrice2" parameterType="hashmap">
+		UPDATE gd_order
+		   SET delivery=#{delivery}, addDelivery=#{addDelivery}
+		 WHERE ordno=#{ordno}
+	</update>
+	
+	<select id="getDeliveryPriceInfo" resultType="hashmap">
+		select sum(a.addDeliveryPrice) addDelivery ,sum(a.deliveryPrice) delivery from (
+		SELECT DISTINCT T2.sellercd ,addDeliveryPrice ,deliveryPrice 
+		  FROM gd_order_delivery T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno 
+		 WHERE T1.ordno=#{ordno}) a
+	</select>
+
+
+	<!-- 공통 부분에 결제금액 계산하는 쿼리가 이미있기에 중복되는 부분 추후에 삭제해도 될지 고려해봐야할 듯 -->	
+
+	<!-- 20191227 이현빈 addopt 정보 추가 -->
+	<!-- 주문상품 취소/반품 결제금액(최종/출력) 계산 -->
+	<select id="orderSetPrnSettleprice1"  resultType="map"><!-- libfunc_set_prn_settleprice_1 -->
+		SELECT istep ,price ,memberdc ,ea ,addopt ,coupon
+		FROM gd_order_item 
+		WHERE ordno = #{ordno} 
+	</select>
+
+	<!-- 20191227 이현빈 adddelivery 정보 추가 -->
+	<!-- 주문상품 취소/반품 결제금액(최종/출력) 계산 -->
+	<select id="orderSetPrnSettleprice2"  resultType="map"><!-- libfunc_set_prn_settleprice_2 -->
+		SELECT enuri ,delivery ,m_no ,emoney ,eggFee ,coupon ,adddelivery
+		FROM gd_order 
+		WHERE ordno = #{ordno} 
+	</select>
+
+	<!-- 주문상품 취소/반품 결제금액(최종/출력) 계산 -->
+	<update id="orderSetPrnSettleprice3"><!-- libfunc_set_prn_settleprice_3 -->
+		UPDATE gd_order 
+		SET prn_settleprice = #{settleprice}
+		WHERE ordno = #{ordno} 
+	</update>
+
+	<!-- 주문상품 취소/반품 결제금액(최종/출력) 계산 -->
+	<select id="orderSetPrnSettleprice4"  resultType="map"><!-- libfunc_set_prn_settleprice_4 -->
+		SELECT IFNULL(SUM(prn_settleprice),0) membersum 
+			, IFNULL(COUNT(*),0) membercnt 
+		FROM gd_order 
+		WHERE step = '4' 
+		AND (step2 IS NULL OR step2 = '0') 
+		AND m_no = #{mno} 
+	</select>
+
+	<!-- 주문상품 취소/반품 결제금액(최종/출력) 계산 -->
+	<update id="orderSetPrnSettleprice5"><!-- libfunc_set_prn_settleprice_5 -->
+		UPDATE gd_member 
+		SET 
+			sum_sale = #{membersum}
+			, cnt_sale = #{membercnt}
+			, last_sale = now() 
+		WHERE m_no = #{mno} 
+	</update>
+	
+	
+	<!-- 반품/교환접수리스트 총 건수 -->
+	<select id="getOrderRegoodsListCount" resultType="int">
+		SELECT count(*)
+		FROM gd_order_cancel a
+        LEFT JOIN gd_order_item b ON a.sno = b.cancel
+        LEFT JOIN gd_order c ON b.ordno = c.ordno
+        LEFT JOIN gd_member d ON d.m_no = c.m_no
+	 	LEFT JOIN gd_goods gdGoods ON b.goodsno = gdGoods.goodsno
+	 	LEFT JOIN gd_seller s ON s.sellerCd = gdGoods.sellerCd
+		WHERE istep > 40 AND b.cyn = 'y' AND b.dyn = 'y'
+		ORDER BY a.sno DESC
+	</select>
+	
+	<!-- 반품/교환접수 상품리스트 -->
+	<select id="getOrderRegoodsList" resultType="map">
+		SELECT a.sno, a.regdt canceldt, a.name nameCancel, a.code, c.ordno, c.orddt, c.nameOrder, c.settlekind, d.m_no as mno, d.m_id as mid, s.sellerNm
+		FROM gd_order_cancel a
+		LEFT JOIN gd_order_item b ON a.sno = b.cancel
+        LEFT JOIN gd_order c ON b.ordno = c.ordno
+        LEFT JOIN gd_member d ON d.m_no = c.m_no
+	 	LEFT JOIN gd_goods gdGoods ON b.goodsno = gdGoods.goodsno
+	 	LEFT JOIN gd_seller s ON s.sellerCd = gdGoods.sellerCd
+		WHERE istep > 40 AND b.cyn = 'y' AND b.dyn = 'y'
+		GROUP BY a.sno
+		ORDER BY a.sno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 반품/교환접수 상품 상세 정보 리스트 -->
+	<select id="getOrderRegoodsInfoList" resultType="map">
+		SELECT a.*, b.*, CONCAT(c.opt1, ' ' ,c.opt2) AS optname 
+		 FROM gd_order_item a
+		LEFT JOIN gd_goods b ON a.goodsno=b.goodsno
+		LEFT JOIN gd_goods_option c ON a.opt1 = c.sno
+		WHERE a.cancel=#{sno}
+	</select>
+	
+	<!-- 반품/교환접수 상품리스트 > 반품완료 UPDATE -->
+<!-- 	<update id="updateOrderRegoodsItem" >
+		UPDATE gd_order_item SET istep=42,dyn='r'
+		WHERE cancel=#{sno}
+	</update> -->
+	
+		<!-- 반품/교환접수 상품리스트 > 반품완료시 istep update 수정 71  -->
+	<update id="updateOrderRegoodsItem" >
+		UPDATE gd_order_item SET istep=72,dyn='r'
+		WHERE cancel=#{sno}
+	</update>
+	
+	<!-- 반품/교환접수 주문취소정보 반환 -->
+	<select id="getOrderRegoodsCancel" resultType="long">
+		SELECT ordno FROM gd_order_cancel
+		WHERE sno=#{sno}
+	</select>
+	
+	<!-- 반품/교환접수 상품리스트 > 반품완료 UPDATE -->
+	<update id="updateOrderRegoods">
+		UPDATE gd_order SET step2=72,dyn='r'
+		WHERE ordno=#{ordno} AND step2 IN (41, 42, 61, 71);
+	</update>
+	
+	<!-- 반품/교환접수 상품리스트 > 교환완료 UPDATE -->
+	<!-- <update id="updateOrderItemExchange">
+		UPDATE gd_order_item SET istep=44,dyn='e',cyn='e'
+		WHERE cancel=#{sno}
+	</update> -->
+	<update id="updateOrderItemExchange">
+		UPDATE gd_order_item SET istep=62,dyn='e',cyn='e'
+		WHERE cancel=#{sno}
+	</update>
+	
+	<!-- 반품/교환접수 상품리스트 > 교환완료 주문취소정보 반환 -->
+	<select id="getOrderExchangeCancel" resultType="long">
+		SELECT ordno FROM gd_order_cancel
+		WHERE sno=#{sno}
+	</select>
+	
+	<!-- 반품/교환접수 상품리스트 > 교환완료 UPDATE -->
+	<select id="updateOrderExchange">
+		UPDATE gd_order SET step2=62,dyn='e',cyn='e'
+		WHERE ordno=#{ordno} AND step2 IN(41,61,71)
+	</select>
+	
+	<!-- 주문정보 조회 -->
+	<select id="getOrderInfo" resultType="map">
+		SELECT * FROM gd_order
+		WHERE ordno=#{ordno}
+	</select>
+	
+	<!-- 주문상품 삭제 처리 -->
+	<insert id="orderDeleteInsert" ><!-- order_DELETE_INSERT -->
+		INSERT INTO 
+			gd_order_del (
+			address ,adminmemo ,bankAccount ,bankSender ,cashbagcard ,cashbagpoint ,cashreceipt ,cbyn
+			,cdt ,confirm ,confirmdt ,coupon ,coupon_emoney ,cyn ,ddt ,deli_msg ,deli_title ,deli_type
+			,delivery ,deliverycode ,deliveryno ,dyn ,eggFee ,eggno ,eggpginfo ,eggyn ,email ,emoney 
+			,enuri ,escrowconfirm ,escrowno ,escrowyn ,goodsprice ,ip
+			,m_no ,memberdc ,memo ,mobileOrder ,mobileReceiver ,nameOrder ,nameReceiver ,oldordno ,orddt
+			,ordno ,phoneOrder ,phoneReceiver ,prn_settleprice ,referer ,reserve ,settlekind ,settlelog
+			,settleprice ,step ,step2 ,vAccount ,zipcode ,regdt )
+		SELECT 
+			address ,adminmemo ,bankAccount ,bankSender ,cashbagcard ,cashbagpoint ,cashreceipt ,cbyn
+			,cdt ,confirm ,confirmdt ,coupon ,coupon_emoney ,cyn ,ddt ,deli_msg ,deli_title ,deli_type
+			,delivery ,deliverycode ,deliveryno ,dyn ,eggFee ,eggno ,eggpginfo ,eggyn ,email ,emoney 
+			,enuri ,escrowconfirm ,escrowno ,escrowyn ,goodsprice ,ip
+			,m_no ,memberdc ,memo ,mobileOrder ,mobileReceiver ,nameOrder ,nameReceiver ,oldordno ,orddt
+			,ordno ,phoneOrder ,phoneReceiver ,prn_settleprice ,referer ,reserve ,settlekind ,settlelog
+			,settleprice ,step ,step2 ,vAccount ,zipcode ,now()
+		FROM
+			gd_order 
+		WHERE ordno = #{ordno}
+	</insert>
+	
+	<!-- 20191212 주문상세 수량및 가격변경시 수정하는 로직 재수정 -->
+	<!-- 할인정보 수정 -->
+	<select id="orderModifyDC1" resultType="Map">
+		SELECT DISTINCT T1.applysno, T2.couponcd, T3.excPrice, T3.price, T3.maxprice, ifnull(T4.goodsno,'전체') AS goodsno ,T3.goodstype
+		  FROM gd_coupon_applymember T1
+		  JOIN gd_coupon_apply T2 ON T1.applysno = T2.sno
+	      JOIN gd_coupon T3 ON T2.couponcd = T3.couponcd
+	 LEFT JOIN gd_coupon_goodsno T4 ON T3.couponcd = T4.couponcd
+	     WHERE T1.ordno = #{ordno}
+	</select>
+	
+	<!-- 회원 할인율 정보 -->
+	<select id="orderModifyDC2" resultType="int">
+		SELECT IFNULL(MAX(T2.dc), 0)
+		  FROM gd_member T1
+	      JOIN gd_member_grp T2 ON T1.k_level = T2.k_level
+		 WHERE T1.m_id = #{id}
+	</select>
+	
+	
+	<!-- 주문상품 삭제 처리 -->
+	<delete id="orderDelete"><!-- order_DELETE -->
+		DELETE FROM gd_order WHERE ordno = #{ordno}
+	</delete>
+
+	<!-- 주문처리Log내역 -->
+	<select id="orderLogList"  resultType="map"><!-- order_LOG_LIST -->
+		SELECT *
+		FROM gd_order_log 
+		WHERE ordno = #{ordno} 
+	</select>
+
+	<!-- 주문 수정 처리 -->
+	<select id="orderModify1"  resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrderItem"><!-- orders_modOrder_1 -->
+		SELECT *
+		FROM gd_order_item 
+		WHERE sno = #{sno} 
+	</select>
+
+	<!-- 주문 수정 처리 -->
+	<select id="orderModify2"  resultType="int"><!-- orders_modOrder_2 -->
+		SELECT stock 
+		FROM gd_goods_option 
+		WHERE goodsno = #{goodsno}	
+		AND sno = #{opt1}	
+	</select>
+
+	<!-- 주문 수정 처리 -->
+	<update id="orderModify3"><!-- orders_modOrder_3 -->
+		UPDATE gd_goods_option 
+		SET
+			stock = #{cstock}
+		WHERE goodsno = #{goodsno}
+		  AND sno = #{opt1}
+		
+	</update>
+
+	<!-- 주문 수정 처리 -->
+	<update id="orderModify4"><!-- orders_modOrder_4 -->
+		UPDATE gd_order_item 
+		SET
+			ea			= #{ea}
+			, price		= #{price}
+			, supply	= #{supply}
+			, memberdc = #{memberdc}
+			, coupon = #{coupon}
+		WHERE sno = #{sno}
+	</update>
+
+	<!-- 주문 수정 처리 -->
+	<update id="orderModify5"><!-- orders_modOrder_5 -->
+		UPDATE gd_order 
+		   SET zipcode		      = #{zipcode}
+			 , address		      = #{address}
+			 , address2		      = #{address2}
+			 , city			      = #{city}
+			 , state		      = #{state}
+			 , memo			      = #{memo}
+			 , customs_num	      = #{customs_num}
+			 , adminmemo	      = #{adminmemo}
+			 , settlelog	      = #{settlelog}
+			 , bankAccount	      = #{bankAccount}
+			 , bankSender	      = #{bankSender}
+			 , nameReceiver	      = #{nameReceiver}
+			 , mobileReceiver     = #{mobileReceiver}
+			 , mobileReceiverType = #{mobileReceiverType}
+			 , country= #{country}
+		 WHERE ordno = #{ordno}
+	</update>
+	
+	<!-- 주문상세 출력 -->
+	<select id="orderPrintList" resultType="java.lang.Long">
+		SELECT ordno 
+		FROM gd_order
+		WHERE 
+			1=1
+		<if test="null != settlekind and '' != settlekind">
+	    	AND settlekind = #{settlekind}
+	   	</if>
+	   	<if test="null != regdt0 and '' != regdt0 and null != regdt1 and '' != regdt1">
+	    	AND orddt 
+	    	BETWEEN date_format(#{regdt0}, '%Y-%m-%d 00:00:00') AND date_format(#{regdt1}, '%Y-%m-%d 23:59:59')	   	
+	   	</if>
+	   	<choose>
+	   		<when test="'step' == sStep0">
+		    	AND step = #{sStep1} and step2 = ''
+	   		</when>
+	   		<when test="'step2' == sStep0">
+	   			<choose>
+	   				<when test="'1' == sStep1">
+	   					(step = 0 AND step2 BETWEEN 1 AND 49)
+	   				</when>
+	   				<when test="'2' == sStep1">
+	   					(step in (1, 2) AND step2 != 0)
+	   				</when>
+	   				<when test="'3' == sStep1">
+	   					(step in (3, 4) AND step2 != 0)
+	   				</when>
+	   				<otherwise>
+	   					step2 = #{sStep1}
+	   				</otherwise>
+	   			</choose>
+	   		</when>
+	   	</choose>
+	    ORDER BY ordno DESC
+	</select>
+	
+	<select id="paperTaxCount" resultType="int">
+		SELECT count(*) 
+		FROM gd_tax 
+		WHERE step > 0 
+		AND ordno=#{ordno}
+	</select>
+	
+	<!-- 주문상세 > 간이영수증 출력 -->
+	<select id="paperReception" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.PopupOrdersRecovery1">
+		SELECT a.* , CONCAT(c.opt1, ' ' ,c.opt2) AS optname FROM gd_order_item a
+		LEFT JOIN gd_order b ON a.ordno = b.ordno
+		LEFT JOIN gd_goods_option c ON a.opt1 = c.sno
+		WHERE a.istep &lt; 40 AND a.ordno = #{ordno}
+	</select>
+	
+	
+	<!-- 택배회사 리스트 -->
+	<resultMap type="com.wepinit.wepinit_shop.xmall.admin.vo.order.OrderDeliveryVO" id="orderDelivery">
+		<result column="ordno" property="ordno"/>
+		<result column="sellerNm" property="sellerNm"/>
+		<result column="sellerCd" property="sellerCd"/>
+		<result column="goodsnm" property="goodsnm"/>
+		<result column="goodsnmKR" property="goodsnmKR"/>
+		<result column="goodsnmCN" property="goodsnmCN"/>
+		<result column="goodsno" property="goodsno"/>
+		<result column="deliveryPrice" property="deliveryPrice"/>
+		<result column="addDeliveryPrice" property="addDeliveryPrice"/>
+		<result column="paymentTerms" property="paymentTerms"/>
+		<result column="invoice" property="invoice"/>
+		<result column="deliveryStatus" property="deliveryStatus"/>
+		<result column="deliveryEdt" property="deliveryEdt"/>
+		<result column="deliveryCompCd" property="deliveryCompCd"/>
+		<result column="returnDeliveryCompCd" property="returnDeliveryCompCd"/>
+		<result column="returnDeliveryCompNm" property="returnDeliveryCompNm"/>
+		<result column="returnInvoice" property="returnInvoice"/>
+		
+		<collection javaType="java.util.ArrayList" column="sellerCd" property="deliveryCompList" ofType="com.wepinit.wepinit_shop.xmall.common.vo.GdListDelivery" select="getUseDeliveryCompList" />
+	</resultMap>
+	
+	<select id="getUseDeliveryCompList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListDelivery" parameterType="java.lang.String">
+		SELECT 
+			deliveryno,
+			deliverycomp,
+			deliveryurl,
+			useyn
+		FROM gd_list_delivery AS delivery
+		WHERE
+		(
+			SELECT useDeliveryComp
+			FROM
+			(
+				SELECT 
+					useDeliveryComp,
+					sellerCd
+				FROM gd_seller_delivery_policy
+				UNION
+				(
+					SELECT
+						GROUP_CONCAT(deliveryno SEPARATOR ',') AS useDeliveryComp,
+						'admin' AS sellerCd
+					FROM gd_list_delivery
+					WHERE useyn='y' 
+					GROUP BY useyn
+				)
+			) AS useDelivery
+		    WHERE sellerCd = #{value}
+		) LIKE concat('%', deliveryno, '%')
+		ORDER BY deliverycomp
+	</select>
+	
+	<!-- 배송정보 가져오기 istep도 추가로 가져오기 20191126 이현빈 -->
+	<select id="selectDeliveryInfo" resultMap="orderDelivery">
+		 SELECT ifnull(delipoli.sellerNm,'관리자') as sellerNm 
+		 		, ifnull(delipoli.sellerCd,'admin') as sellerCd 
+				, goods.goodsnm 
+				, goods.goodsnmKR 
+				, goods.goodsnmCN
+				, deli.deliveryPrice
+				, deli.addDeliveryPrice 
+				, deli.paymentTerms
+				, deli.invoice 
+				, deli.deliveryStatus
+				, deli.deliveryEdt
+				, deli.deliveryCompCd
+				, deli.level
+				, gditem.istep
+				, deli.opt
+				, deli.returnDeliveryCompCd
+				, gld.deliverycomp returnDeliveryCompNm
+				, deli.returnInvoice
+			FROM gd_order_delivery AS deli 
+		LEFT JOIN gd_goods AS goods ON deli.goodsno = goods.goodsno 
+		LEFT JOIN (
+				SELECT delipoli.sellerCd ,sellerNm 
+				FROM gd_seller_delivery_policy AS delipoli 
+				LEFT JOIN gd_seller AS seller ON delipoli.sellerCd = seller.sellerCd UNION (SELECT '' AS sellerCd, 'admin' 
+				AS sellerNm ) 
+				) AS delipoli ON goods.sellerCd = delipoli.sellerCd 
+		LEFT JOIN gd_order_item AS gditem ON gditem.ordno = deli.ordno AND deli.goodsno = gditem.goodsno AND gditem.opt1 = deli.opt
+		LEFT JOIN gd_list_delivery gld ON deli.returnDeliveryCompCd = gld.deliveryno AND gld.useyn = 'y'
+		WHERE deli.ordno = #{ordno}
+	</select>
+	
+	<select id="selectPopupDeliveryInfo" resultMap="orderDelivery">
+		SELECT delivery.ordno
+			 , delivery.deliveryCompCd
+			 , delivery.invoice
+			 , delivery.deliveryPrice
+			 , delivery.deliverySdt
+			 , delivery.deliveryEdt
+			 , delivery.deliveryStatus
+			 , delivery.paymentTerms
+			 , delivery.level
+			 , delivery.returnDeliveryCompCd
+			 , gld.deliverycomp returnDeliveryCompNm
+			 , delivery.returnInvoice
+			 , ord.step
+			 , ord.step2
+			 , item.istep
+		  FROM gd_order_delivery delivery
+		  LEFT JOIN gd_order ord ON delivery.ordno = ord.ordno
+		  LEFT JOIN gd_order_item item ON item.ordno = delivery.ordno AND item.goodsno = delivery.goodsno AND item.opt1 = delivery.opt
+		  LEFT JOIN gd_list_delivery gld ON delivery.returnDeliveryCompCd = gld.deliveryno
+		WHERE delivery.ordno = #{ordno}
+		GROUP BY delivery.ordno
+	</select>
+	
+	<update id="updateDeliveryInfo">
+		UPDATE gd_order_delivery
+		SET 
+			invoice = #{invoice},
+			deliveryCompCd = #{deliveryCompCd},
+			deliverySdt = now()
+		<choose>
+			<when test=" level == 6 ">
+				, deliveryEdt = now()
+				, level = #{level}
+			</when>
+			<otherwise>
+				, deliveryEdt = null
+				, level = null
+			</otherwise>
+		</choose>
+		WHERE ordno = #{ordno}
+	</update>
+	
+		<!-- 주문정보 전부 가져오기  -->
+	<select id="getOrderInfo3" resultType="com.wepinit.wepinit_shop.xmall.front.vo.order.FrontOrderSettleVO">
+		SELECT *
+		FROM gd_order
+		WHERE ordno in 
+		<foreach item="ordnoList" collection="ordnoList" open="(" separator="," close=")">
+			#{ordnoList}
+		</foreach> 
+	</select>
+	
+	<select id="getItemGoodsno" resultType="int">
+		SELECT goodsno
+		  FROM gd_order_item
+		 WHERE sno=#{sno}
+	</select>
+	
+		<!-- 주문번호로 취소한 상품 조회  -->
+	<select id="getCancelOrRefundCnt" resultType="int">
+		SELECT count(istep) as cnt 
+		  FROM gd_order_item
+		 WHERE ordno=#{ordno} AND (istep &lt; 40 OR istep IN(55,60,61,62))
+	</select>
+	
+	<!-- 주문번호로 사용한 전체쿠폰 가격정보 가져오기 -->
+	<select id="getAllCouponPrice" resultType="string">
+	   	SELECT T3.price
+   		  FROM gd_coupon_apply T1 JOIN gd_coupon_applymember T2 ON T1.sno=T2.applysno 
+	      JOIN gd_coupon T3 ON T1.couponcd=T3.couponcd
+   		 WHERE T2.ordno=#{ordno} AND T3.goodstype=0
+    </select>
+	
+	<update id="updateCancelStep">
+		UPDATE gd_order_item 
+		   SET istep = #{istep}
+		 WHERE sno = #{sno}
+	</update>
+	
+</mapper>
+

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+
+	<context:annotation-config />
+	
+  <!-- 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		p:driverClassName="com.mysql.jdbc.Driver"
+		p:url="jdbc:mysql://192.168.0.6:3306/xmall_mall_in_mall?autoReconnect=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"
+		p:validationQuery="SELECT 1"
+		p:username="xmuser"
+		p:password="xmu1234" 
+	/>    
+	 -->
+	
+<!-- 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+      <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+      <property name="url" value="jdbc:log4jdbc:mysql://192.168.0.5:3306/Xmall_in_mall_demo88?autoReconnect=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"></property>
+      <property name="username" value="xmuser"></property>
+      <property name="password" value="xmu1234"></property>
+   </bean> -->   
+   
+<!--    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+      <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+      <property name="url" value="jdbc:log4jdbc:mysql://127.0.0.1:3306/xmall4?autoReconnect=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"></property> 
+       <property name="url" value="jdbc:log4jdbc:mysql://115.92.213.44:5306/xmall31?useSSL=false&amp;autoReconnect=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"></property>
+      <property name="username" value="root"></property>
+      <property name="password" value="pmgk1234"></property>
+   </bean> -->
+    
+	<bean id="dataSourceSpied" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"> 
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/> 
+		<property name="url" value="jdbc:mysql://13.209.132.5:3306/wepinit?autoReconnect=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"/> 
+		<property name="validationQuery" value="SELECT 1"/> 
+		<property name="username" value="wepinit"/> 
+		<property name="password" value="wepinit7812"/> 
+	</bean> 
+	<bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource"> 
+		<constructor-arg ref="dataSourceSpied" /> 
+		<property name="logFormatter"> 
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter"> 
+				<property name="loggingType" value="MULTI_LINE" /> 
+				<property name="sqlPrefix" value="SQL : "/> 
+			</bean> 
+		</property> 
+	</bean>
+	
+	<!-- Transaction manager for a single JDBC DataSource (alternative to JTA) -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		p:dataSource-ref="dataSource"/>
+	
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.wepinit.wepinit_shop.xmall" />
+		<property name="configLocation" value="classpath:config/mapper/mybatis-config-base.xml" />
+		
+				<property name="mapperLocations" value="classpath*:config/query/**/*Mapper.xml"></property>
+		
+	</bean>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.wepinit.wepinit_shop" />
+	</bean>
+	
+    <bean id="downloadViewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order">
+			<value>0</value>
+		</property>
+    </bean>
+
+
+	
+</beans>

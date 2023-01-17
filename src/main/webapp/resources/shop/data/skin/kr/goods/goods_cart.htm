@@ -1,0 +1,38 @@
+﻿{*** 장바구니 | goods/goods_cart.php ***}
+{ # header }
+
+<!-- 상단이미지 || 현재위치 -->
+<TABLE width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td><img src="../img/common/title_cart.gif" border=0></td>
+</tr>
+<TR>
+<td class="path">HOME > <B>장바구니</B></td>
+</TR>
+</TABLE>
+
+
+<div class="indiv"><!-- Start indiv -->
+
+<form name=frmCart method=post>
+<input type=hidden name=mode value=modItem>
+<br>
+{=include_file("proc/orderitem.htm")}
+</form>
+
+<br>
+<TABLE width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td align=center>
+<!--{ ? count(cart->item) }-->
+<a href="../order/order.php" onFocus="blur()"><img src="../img/common/btn_order.gif" border=0></a>&nbsp;
+<!--{ / }-->
+<a href="javascript:history.back();"onFocus="blur()"><img src="../img/common/btn_back.gif" border=0></a>&nbsp;
+<a href="goods_cart.php?mode=empty" onFocus="blur()"><img src="../img/common/btn_empty.gif" border=0></a>&nbsp;
+<a href="../index.php" onFocus="blur()"><img src="../img/common/btn_continue.gif" border=0></a></td>
+</tr>
+</TABLE>
+
+</div><!-- End indiv -->
+
+{ # footer }

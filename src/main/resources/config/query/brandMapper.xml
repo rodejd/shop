@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.BrandMapper">
+
+	<!-- 상품 브랜드 목록 -->
+	<select id="getGoodsBrandList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		SELECT * 
+		FROM gd_goods_brand
+		WHERE 1=1
+		<if test=" sellerCd != null and sellerCd != '' ">
+			AND sellerCd = #{sellerCd}
+		</if>
+		<if test=" schApprovalStatus != null and schApprovalStatus != '' ">
+			AND approvalStatus = #{schApprovalStatus}
+		</if>
+		<if test=' schBrandMemo == "Y" '>
+			AND LENGTH(brandMemo) <![CDATA[>]]> 0
+		</if>
+		<if test=' schBrandMemo == "N" '>
+			AND LENGTH(brandMemo) = 0
+		</if>
+		<if test="schRegdtS != null and schRegdtS !=''">
+			AND regdt <![CDATA[>=]]> DATE_FORMAT(#{schRegdtS}, '%Y-%m-%d 00:00:00')
+		</if>
+		<if test="schRegdtE != null and schRegdtE !=''">
+			AND regdt <![CDATA[<=]]> DATE_FORMAT(#{schRegdtE}, '%Y-%m-%d 23:59:59')
+		</if>
+		<if test="schBrandnm != null and schBrandnm !=''">
+			AND CONCAT(brandnm, brandnmKR, brandnmCN) LIKE CONCAT('%', #{schBrandnm}, '%')
+		</if>
+		ORDER BY brandnm
+	</select>
+	
+	<!-- 상품 브랜드별 상품 수 -->
+	<select id="getGoodsBrandCount" resultType="int">
+		SELECT count(distinct goodsno) FROM gd_goods
+		WHERE 1=1
+		<if test=" brandno != null and brandno != 0 ">
+			AND brandno = #{brandno}
+		</if>
+	</select>
+	
+	<!-- 상품 브랜드 정보 -->
+	<select id="getGoodsBrandInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		SELECT a.sno
+			 , a.brandnm
+			 , a.brandnmKR
+			 , a.brandnmCN
+			 , a.sort
+			 , a.sellerCd
+			 , a.approvalStatus
+			 , a.brandMemo
+			 , b.sellerNm
+			 , a.imgPC
+			 , a.imgMO
+			 , a.bestYn
+		FROM gd_goods_brand a
+		LEFT OUTER JOIN gd_seller b ON a.sellerCd = b.sellerCd
+		WHERE a.sno = #{sno}
+	</select>
+	
+	<!-- 상품 카테고리/브랜드 depth별 정보 -->
+	<select id="getCategoryBrandInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmCategoryBrandInfo">
+		SELECT * 
+		FROM xm_category_brand_info
+		WHERE category = ''
+		<if test="brandno != null ">
+			AND brand_no = #{brandno}
+		</if> 
+	</select>
+	
+	<!-- 상품 브랜드명 업데이트 -->
+	<update id="updateGoodsBrand">
+		UPDATE gd_goods_brand 
+		SET brandnm 		= 	#{brandnm} 
+		  , brandnmKR 		= 	#{brandnmKR}
+		  , brandnmCN 		= 	#{brandnmCN}
+		  , sellerCd 		=	#{sellerCd} 
+		  , approvalStatus	=	#{approvalStatus}
+		  , brandMemo		=	#{brandMemo}
+		  , bestYn			=	#{bestYn}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 상품 카테고리/브랜드 정보 수정 -->
+	<update id="updateGoodsCategoryBrandInfo">
+		UPDATE xm_category_brand_info 
+		SET rtpl		= #{rtpl}
+		  , rpage_num	= #{rpagenum}
+		  , rcols		= #{rcols}
+		  , body		= #{body}
+		  , rsize		= #{rsize}
+		  , page_num	= #{pagenum}
+		<if test="cols != '' ">
+		  , cols		= #{cols}
+		</if>
+		  , tpl			= #{tpl}
+		  , size		= #{size}
+		WHERE 1=1
+		<if test="brandno != null">
+		  AND brand_no = #{brandno}
+		</if>
+		<if test="category != null">
+		  AND category = #{category}
+		</if>
+	</update>
+	
+	<!-- 상품 카테고리/브랜드 정보 등록 -->
+	<insert id="insertGoodsCategoryBrandInfo">
+		INSERT INTO xm_category_brand_info (
+			category, brand_no,  rtpl, rpage_num, rcols, body, page_num, 
+			<if test="cols != '' ">
+				cols,
+			</if>
+			tpl
+		)VALUES(
+			#{category}, #{brandno}, #{rtpl}, #{rpagenum}, #{rcols}, #{body}, #{pagenum}, 
+			<if test="cols != '' ">
+				#{cols},
+			</if>
+			#{tpl}
+		)
+	</insert>
+	
+	<!-- 상품 브랜드 등록 -->
+	<insert id="insertGoodsBrand">
+		INSERT INTO gd_goods_brand (
+			   brandnm
+			 , brandnmKR
+			 , brandnmCN
+			 , sort
+			 , sellerCd
+			 , approvalStatus
+			 , brandMemo
+			 , bestYn)
+		SELECT #{sub}
+			 , #{subKR}
+			 , #{subCN}
+			 , IFNULL(MAX(sort) + 1, 1) AS sort
+			 , #{sellerCd}
+			 , #{approvalStatus}
+			 , #{brandMemo}
+			 , #{bestYn}
+		FROM gd_goods_brand
+		
+		<selectKey resultType="int" keyProperty="sno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey> 
+	</insert>
+	
+	<!-- 상품 브랜드 삭제 -->
+	<delete id="deleteGoodsBrand">
+		DELETE FROM gd_goods_brand
+		WHERE sno = #{sno}
+	</delete>
+	
+	<!-- 2017-08-23 추가 - 브랜드 삭제 시 관련 정보 삭제 -->
+	<!-- 해당 브랜드 관련정보 유무확인 -->
+	<select id="getXmCategoryBrandInfoCount" resultType="int">
+		SELECT COUNT(brand_no) FROM xm_category_brand_info
+		WHERE brand_no=#{brandno}
+	</select>
+	
+	<!-- 상품 브랜드 관련 정보 삭제 -->
+	<delete id="deleteXmCategoryBrandInfo">
+		DELETE FROM xm_category_brand_info
+		WHERE brand_no=#{brandno}
+	</delete>
+	
+	<update id="updateBrandByImage">
+		UPDATE gd_goods_brand 
+			SET imgPC = #{imgPC}
+			  , imgMO = #{imgMO}
+			WHERE sno = #{sno}
+	</update>
+	
+	<select id="getGoodsBrandCountList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		SELECT COUNT(*) tCount
+			 , SUM(CASE WHEN approvalStatus = 2 THEN 1 ELSE 0 END) uCount
+			 , SUM(CASE WHEN approvalStatus = 3 THEN 1 ELSE 0 END) nCount
+		  FROM gd_goods_brand
+	</select>
+	
+</mapper>

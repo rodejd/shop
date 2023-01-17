@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.log.PopuMapper">
+	
+	<!-- #####################상품분석(인기카테고리분석)################################## -->
+	<!--  -->
+	<select id="getpopuCategoryList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.PopuCategoryOutVO">
+	SELECT 
+		category, catnm, length(category) as len 
+	FROM
+		gd_category
+	WHERE 
+		${schWhere}
+		order by category,len
+	</select>
+	
+	<select id="getpopuCategoryList2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.PopuCategoryOutVO">
+	SELECT 
+		sum(b.ea) ea
+		, count(b.sno) cnt
+	FROM gd_goods_link l 
+		LEFT JOIN gd_goods a on l.goodsno=a.goodsno 
+		LEFT JOIN gd_order_item b on a.goodsno=b.goodsno 	
+		WHERE 
+			l.category like concat(#{category},'%') 
+			AND b.istep &lt; 40 
+			AND b.istep > 0 
+			AND from_unixtime(substring(b.ordno,1,10)) LIKE concat(#{year},'-',#{month},'%')
+	</select>
+	
+	<select id="getpopuCategoryRet" resultType="com.wepinit.wepinit_shop.xmall.common.vo.PopuCategoryOutVO">
+	SELECT 
+		category, catnm 
+	FROM
+		gd_category
+	WHERE
+		category in (left(#{category},3),left(#{category},6),left(#{category},9),#{category})
+	ORDER BY category
+	</select>
+	
+	<select id="getPopuGoodsCount" resultType="int">
+	SELECT 
+		count(cnt) as cnt
+	FROM
+	(
+	SELECT 
+		count(*) as cnt 
+	FROM gd_order_item 
+	WHERE istep &lt; 40 and istep > 0 and from_unixtime(substring(ordno,1,10)) LIKE CONCAT(#{year},'-',#{month},'%')
+	GROUP BY goodsno
+	) a
+	</select>
+	
+	<select id="getPopuGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.PopuGoodsOutVO">
+	SELECT 
+		goodsnm,
+		goodsnmKR,
+		goodsnmCN,
+		count(sno) cnt,
+		sum(ea) as ea,
+		sum(price * ea) as price  
+	FROM gd_order_item 
+	WHERE 
+		istep &lt; 40 and istep > 0 
+		and from_unixtime(substring(ordno,1,10)) LIKE CONCAT(#{year},'-',#{month},'%')
+	GROUP BY goodsno 
+	ORDER BY cnt desc
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+</mapper>
+

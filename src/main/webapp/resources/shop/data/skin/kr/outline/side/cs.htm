@@ -1,0 +1,43 @@
+﻿{*** 고객센터측면 | main/index.php ***}
+
+<!-- 고객센터 메뉴 -->
+<div style="height:7px; font-size:0"></div>
+<div><img src="../../img/common/cs_left.gif"></div>
+<div style="text-align:center">
+<TABLE width=180 cellpadding=0 cellspacing=0 border=0>
+<TR>
+	<TD><A HREF="../service/faq.php" onFocus="blur()"><img src="../../img/common/cs_left_01.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+<TR>
+	<TD><A HREF="../service/guide.php" onFocus="blur()"><img src="../../img/common/cs_left_02.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+<TR>
+	<TD><A HREF="../mypage/mypage_qna.php" onFocus="blur()"><img src="../../img/common/cs_left_03.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+<TR>
+	<TD><A HREF="../member/find_id.php" onFocus="blur()"><img src="../../img/common/cs_left_04.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+<TR>
+	<TD><A HREF="../member/find_pwd.php" onFocus="blur()"><img src="../../img/common/cs_left_05.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+<TR>
+	<TD><A HREF="../member/myinfo.php" onFocus="blur()"><img src="../../img/common/cs_left_06.gif"></A></TD>
+</TR>
+<tr><td height=1 bgcolor="#E7E7E7"></td></tr>
+</TABLE>
+</div>
+
+
+<!-- 관리자에게 SMS보내기 기능 : 관련파일은 '디자인관리 > 기타페이지디자인 > 기타/추가페이지(proc) > 관리자에게 SMS상담문의하기 - ccsms.htm' 에 있습니다. -->
+<!-- 아래 기능은 기본적으로 회원들만 보이도록 되어있는 소스입니다.
+만약 비회원들도 이 기능을 사용하게 하려면 아래 소스중에,  \{ # ccsms \}  요부분만 남겨놓고 아래위 소스를 삭제하시면 됩니다.
+또한 이기능을 사용하려면 '회원관리 > SMS포인트충전' 에서 포인트충전이 되어있어야만 가능합니다. -->
+
+<!--{ ? _sess // 로그인후 }-->
+{ # ccsms }
+<!--{ / }-->

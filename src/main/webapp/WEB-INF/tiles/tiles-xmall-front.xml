@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" 
+									"http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+									
+<tiles-definitions>
+
+	<!-- ==================== Layout Definition ==================== -->
+	<!-- 사용자 default layout -->
+    <definition name="front_default_layout" template="/WEB-INF/views/shop/template/front/default_template.jsp">
+    	<put-attribute name="title" 		value="xmall3.1 사용자" />
+    	<put-attribute name="header" 	value="/WEB-INF/views/shop/template/front/layout/header.jsp" />
+    	<put-attribute name="left"  		value=""/>
+    	<put-attribute name="body" 	value="" />
+        <put-attribute name="bottom" 	value="/WEB-INF/views/shop/template/front/layout/bottom.jsp" />
+    </definition>
+    
+    <!-- 사용자 popup layout -->
+    <definition name="front_popup_layout" template="/WEB-INF/views/shop/template/front/popup_template.jsp">
+    	<put-attribute name="left" 	value="" />
+    </definition>
+
+	<!-- 사용자 ajax default layout -->
+	<definition name="front_ajax_layout" template="/WEB-INF/views/shop/template/front/ajax_template.jsp">
+		<put-attribute name="left"  		value=""/>
+	</definition>
+
+
+	<!-- ==================== Layout Mapping Rule ==================== -->
+    <!-- popup layout -->
+	<definition name="/*/shop/*/popup_*" extends="front_popup_layout">
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}/popup_{3}.jsp" />
+    </definition>
+
+
+   	<!-- ajax  layout -->
+	<definition name="/*/shop/*/ajax*" extends="front_ajax_layout">
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}/ajax{3}.jsp" />
+    </definition>
+    
+	<definition name="/*/shop/*/*/ajax*" extends="front_default_layout">
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}/{3}/ajax{4}.jsp" />
+    </definition>
+    <!-- //ajax  layout -->
+    
+    <!-- default layout -->
+	<definition name="/error/http/*" extends="front_ajax_layout">
+    	<put-attribute name="body" 	value="/WEB-INF/views/error/http/{1}.jsp" />
+    </definition>
+    
+	<definition name="/*/shop/*/*" extends="front_default_layout">
+    	<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+	<definition name="/*/shop/*/*/*" extends="front_default_layout">
+    	<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}/{3}/{4}.jsp" />
+    </definition>
+    <!-- //default layout -->
+
+	<definition name="/shop/**/skin/**" extends="front_default_layout">
+		<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/left.jsp"/>
+		<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{2}.jsp" />
+	</definition>
+
+	<definition name="/shop/*/**" extends="front_default_layout">
+		<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/left.jsp"/>
+		<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/{2}.jsp" />
+	</definition>
+
+    
+    <!-- 마이페이지  layout -->
+	<definition name="/*/shop/mypage/*" extends="front_default_layout">
+		<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/mypage_left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/mypage/{2}.jsp" />
+    </definition>
+	<definition name="/*/shop/mypage/*/*" extends="front_default_layout">    
+		<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/mypage_left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/mypage/{2}/{3}.jsp" />
+   	</definition>
+    <!-- //고객센터  layout -->   
+    
+    <!-- 고객센터  layout -->
+	<definition name="/*/shop/service/*" extends="front_default_layout">
+    	<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/cs_left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/service/{2}.jsp" />
+    </definition>
+	<definition name="/*/shop/service/*/*" extends="front_default_layout">
+    	<put-attribute name="left"  		value="/WEB-INF/views/shop/template/front/layout/cs_left.jsp"/>
+    	<put-attribute name="body" 	value="/WEB-INF/views/shop/front/skin/{1}/service/{2}/{3}.jsp" />
+  	</definition>
+    <!-- //고객센터  layout -->   
+    
+    
+    
+</tiles-definitions>									

@@ -1,0 +1,82 @@
+﻿<!-- eCredit.js에서 제공하는 현금영수증출력함수(showCashReceipts) 사용 -->
+<script language="JavaScript" src="http://pg.dacom.net/mert/pg/eCredit.js"></script>
+<script language="javascript">
+function chkreceiptFrm(){
+	var f = document.chkreceiptFrm;
+	if(!f.ssn.value){
+		alert('발급 정보를 입력하세요!');
+		return;
+	}
+	if(!f.bussinessno.value){
+		alert('사업자번호를 입력하세요!');
+		return;
+	}
+	f.submit();
+}
+</script>
+
+<table width=100% style="border:1px solid #DEDEDE" cellpadding=0 cellspacing=0>
+<tr>
+	<td width=150 valign=top align=right bgcolor="#F3F3F3"></td>
+	<td id="orderbox">
+
+	<table>
+	<col width=100>
+	<!--{ ? ! cashreceipt && ( settlekind=="o" || settlekind=="v" )}-->
+	<tr>
+		<td>현금영수증</td>
+		<td>
+		<form name="receiptFrm" method="post" action="../order/card/dacom/cashreceipt.php" target="ifrmHidden">
+		<input type="hidden" name="ordno" value="{ordno}">
+		<input type="hidden" name="method" value="auth">
+		<input type="hidden" name="paytype" value="SC0100">
+		<table>
+		<tr>
+			<td width=80 nowrap>발급 정보</td>
+			<td width=100%><input type=text name="ssn" size=20 value="" style="border:1 solid #cccccc"></td>
+		</tr>
+		<tr>
+			<td class=small colspan=2>
+			(현금영수증 발급 정보는 주민등록번호 또는 사업자번호 또는 전화번호등을 입력해주세요)
+			</td>
+		</tr>
+		<tr>
+			<td width=80 nowrap>사업자번호</td>
+			<td width=100%><input type=text name="bussinessno" size=20 value="" style="border:1 solid #cccccc"></td>
+		</tr>
+		<tr>
+			<td>발행용도</td>
+			<td>
+			<input type=radio name="usertype" value="1" checked>소득공제용
+			<input type=radio name="usertype" value="2">지출증빙용
+			</td>
+		</tr>
+		</table>
+
+		</form>
+		<input type=button value="현금영수증발급요청" name=app_btn onClick="javascript:chkreceiptFrm();">
+
+		</td>
+	</tr>
+	<!--{ : }-->
+	<tr>
+		<td>현금영수증</td>
+		<td>
+		<!--{ ? cashreceipt && settlekind=="o" }--><!-- 계좌이체 -->
+		<a href="javascript:showCashReceipts('{_pg.id}','{ordno}','','BANK','service')">현금영수증출력</a>
+		<!--{ : cashreceipt && settlekind=="v" }--><!-- 무통장입금(가상계좌) -->
+		<a href="javascript:showCashReceipts('{_pg.id}','{ordno}','','CAS','service')">현금영수증출력</a>
+		<!--{ : settlekind=="a" }--><!-- 자체 무통장입금 -->
+		무통장입금의 현금영수증은 본 사이트내에서 발급하지 않습니다.
+		<!--{ : }-->
+		결제시 발급받지 않았습니다.
+		<!--{ / }-->
+		</td>
+	</tr>
+	<!--{ / }-->
+	</table>
+
+	</td>
+</tr>
+</table>
+<div style="font-size:0;height:5px"></div>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+<tlib-version>1.1</tlib-version>
+<uri>StringUtil</uri>
+    
+    <function>
+    	<description>숫자에 컴마표기</description>
+        <name>getMoneyFormatDouble</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String getMoneyFormat(double)
+        </function-signature>
+        <example>
+        	${stringUtil:getMoneyFormat(1000)}
+        </example>
+    </function> 
+ 
+    <function>
+    	<description>숫자에 컴마표기(int)</description>
+        <name>getMoneyFormatInteger</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String getMoneyFormat(int)
+        </function-signature>
+        <example>
+        	${stringUtil:getMoneyFormat(1000)}
+        </example>
+    </function> 
+ 
+     <function>
+    	<description>숫자에 컴마표기</description>
+        <name>getMoneyFormatString</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String getMoneyFormat(java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:getMoneyFormat("str")}
+        </example>
+    </function> 
+       
+    <function>
+    	<description>만약 length가 0이 아닐경우 넘어온 String을 substring하여 넘겨준다.</description>
+        <name>strlen</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String strlen(java.lang.String, int)
+        </function-signature>
+        <example>
+        	${stringUtil:strlen("subject", 37)}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>주어진 길이(len)에서 문자열(s)의 길이를 제외한 좌측을 특정 character(padc)로 채워준다.</description>
+        <name>lpad</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String lpad(java.lang.String, int, java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:lpad('1', 2, '0')}
+        </example>
+    </function>
+    
+    <function>
+    	<description>HTML의 input type="select" name의 option 값을 selected 하기 위한 값셋팅</description>
+        <name>selected</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String selected(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:selected('1', '0')}
+        </example>
+    </function>  
+    
+    <function>
+    	<description>해당 문자열 중 oldString을 newString로 변환</description>
+        <name>replaceAll</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String replaceAll(java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:replaceAll('str', 'oldString', 'newString')}
+        </example>
+    </function>  
+    
+    <function>
+    	<description>HTML의 input type="select" name의 option 값을 checked 하기 위한 값셋팅</description>
+        <name>checked</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String checked(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:checked('check', 'option')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>arr_str배열에 str값이 존재하면 return 값에 "checked" 반환</description>
+        <name>checkedArry</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String checked(java.lang.String[], java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:checked(array, 'str')}
+        </example>
+    </function>  
+    
+    <function>
+    	<description>문자열 내에서 원하는 문자열 replace 하기</description>
+        <name>replace</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String replace(java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:replace('oldstring', 'from', 'to')}
+        </example>
+    </function>  
+    
+    <function>
+    	<description>주어진 길이(len)에서 문자열(s)의 길이를 제외한 우측을 특정 character(padc)로 채워준다 </description>
+        <name>rpad</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String rpad(java.lang.String, int, char)
+        </function-signature>
+        <example>
+        	${stringUtil:rpad('str', 1, 'c')}
+        </example>
+    </function>      
+    
+    <function>
+    	<description>Null String을 "" String으로 바꿔준다.</description>
+        <name>nullConv</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String nullConv(java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:nullConv('str')}
+        </example>
+    </function>
+    
+    <function>
+    	<description>입력한 값이 같으면 checked 출력</description>
+        <name>checkedOption2</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String checkedOption2(java.lang.String[], java.lang.String)
+        </function-signature>
+        <example>
+        	${stringUtil:checkedOption('str','str')}
+        </example>
+    </function>
+    
+    <function>
+    	<description>주민번호, 카드번호, 전화번호, 계좌번호 등 주요정보에 대해 *로 마스킹 처리</description>
+        <name>getMask</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+        <function-signature>
+           java.lang.String getMask(java.lang.String, int)
+        </function-signature>
+        <example>
+        	${stringUtil:getMask('str',6)}
+        </example>
+    </function>
+    
+    <function>
+    	<description>숫자 포맷</description>
+    	<name>sprintf</name>
+    	<function-class>com.wepinit.wepinit_shop.xcube.util.StringUtil</function-class>
+    	<function-signature>
+    		java.lang.String sprintf(java.lang.String, java.lang.String)
+    	</function-signature>
+    	<example>
+    		${stringUtil:sprintf('%06d', 'str')}
+    	</example>
+    </function>
+    
+    
+</taglib>

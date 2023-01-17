@@ -1,0 +1,25 @@
+﻿{*** 갤러리형 | goods/goods_list.php ***}
+<!-- 상품 리스트 -->
+<table width=100% border=0 cellpadding=0 cellspacing=0>
+<tr><td height=10></td></tr>
+<tr>
+	<!--{ @ loop }-->	
+	<!--{ ? .index_ && .index_%cols==0 }--></tr><tr><td height=10></td></tr><!-- <tr><td colspan={cols} bgcolor=#E6E6E6 height=1></td></tr> --><tr><td height=10></td></tr><tr><!--{ / }-->
+	<td align=center valign=top width="{100/cols}%">
+	
+	<div><a href="../goods/goods_view.php?goodsno={.goodsno}&category={_GET.category}">{=goodsimg(.img_s,size)}</a></div>
+	<!--{ ? .runout }--><div style="padding:3px"><img src="../../img/icon/good_icon_soldout.gif"></div><!--{ / }-->
+	<div style="padding:5"><a href="../goods/goods_view.php?goodsno={.goodsno}&category={_GET.category}">{.goodsnm}</a></div>
+	<!--{ ? !.strprice }-->
+		<!--{ ? .consumer }--><strike>{=number_format(.consumer)}</strike>↓<!--{ / }-->
+		<div style="padding-bottom:3px"><b>{=number_format(.price)}원</b></div>
+	<!--{ : }-->{.strprice}
+	<!--{ / }-->
+	<!--{ ? .icon }--><div>{.icon}</div><!--{ / }-->
+	<!--{ ? .coupon }--><div class=eng><b style="color:red">{.coupon}<font class=small>원</font></b> <img src="../../img/icon/good_icon_coupon.gif" align=absmiddle></div><!--{ / }-->	
+	</td>
+	<!--{ / }-->
+	
+</tr>
+<tr><td height=10></td></tr>
+</table>

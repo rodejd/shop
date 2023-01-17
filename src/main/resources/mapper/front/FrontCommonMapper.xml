@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.common.FrontCommonMapper">
+
+
+	<!-- 카테고리 목록(front 상품 카테코리 left menu) -->
+	<select id="getFrontCommonCategoryList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		<![CDATA[
+			SELECT AA.* 
+				FROM (
+							SELECT a.category, a.catnm, LENGTH(a.category) as cateLength , (a.hidden + b.hidden) as hidden
+							FROM gd_category a, (select category, hidden FROM gd_category where LENGTH(category) = 3) b
+							WHERE 1=1
+								and left(a.category, 3) = b.category
+								and length( a.category ) <= 6
+							ORDER BY a.category
+						) AA WHERE AA.hidden = 0
+		]]>
+	</select>
+	
+	<!-- 브랜드 목록(front 상품 브랜드 목록) -->
+	<select id="getFrontCommonBrandList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		<![CDATA[
+			SELECT 
+				* 
+			FROM gd_goods_brand
+			WHERE 1=1
+				and sno != ''
+				and approvalStatus = '2'
+			order by sort
+		]]>
+	</select>
+	
+	<!-- 커뮤니티 게시판 목록(front 게시판 Id, Name 가져오기) -->
+	<select id="getFrontCommonBoardList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmBoardSetup">
+		<![CDATA[
+			SELECT 
+					b.id, a.bdName
+			FROM 
+					xm_board_setup a, gd_board b
+			WHERE 
+					a.id = b.id
+			ORDER by b.sno
+		]]>
+	</select>
+	
+	<select id="getFrontCommonMainCampaignList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMainCampaign">
+		<![CDATA[
+		SELECT *
+		  FROM gd_main_campaign
+		 WHERE DATE_FORMAT(NOW(), '%Y%m%d%H%i%S') BETWEEN DATE_FORMAT(CONCAT(sdt,replace(stm,':','')), '%Y%m%d%H%i%S') AND DATE_FORMAT(CONCAT(edt,replace(etm,':','')), '%Y%m%d%H%i%S')
+		   AND use_yn = 'Y'
+		   AND skin IN ('al', #{skin})
+		]]>
+	</select>
+	
+</mapper>

@@ -1,0 +1,74 @@
+﻿{*** 회원가입 이용약관 | member/join.php ***}
+{ # header }
+
+<style>
+.scroll	{
+scrollbar-face-color: #FFFFFF;
+scrollbar-shadow-color: #AFAFAF;
+scrollbar-highlight-color: #AFAFAF;
+scrollbar-3dlight-color: #FFFFFF;
+scrollbar-darkshadow-color: #FFFFFF;
+scrollbar-track-color: #F7F7F7;
+scrollbar-arrow-color: #838383;
+}
+</style>
+
+<!-- 상단이미지 || 현재위치 -->
+<TABLE width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+	<td><img src="../img/common/title_join.gif" border=0></td>
+</tr>
+<TR>
+	<td class="path">HOME > 회원가입 > <B>이용약관</B></td>
+</TR>
+</TABLE>
+
+
+<div class="indiv"><!-- Start indiv -->
+
+<form id=form name=frmAgree method=post action="indb.php" target="ifrmHidden" onSubmit="return chkForm2(this)">
+<input type=hidden name=mode value="chkRealName">
+<input type=hidden name=type>
+
+<!-- 이용약관 -->
+<div><img src="../img/common/join_txt_01.gif" border=0></div>
+<div style="background:#F1F1F1; text-align:center; padding:10 10 0 10;">
+<textarea style="width:100%; height:190; padding:10; background:#FFFFFF" class=scroll readonly><!--{ = include_file( "proc/_agreement.txt" ) }--></textarea>
+<div align=center class=noline style="height:30;margin-top:10px;" >
+<input type=checkbox name=agree required label="약관 동의" msgR="약관에 동의를 하셔야 합니다"> 이용약관에 동의합니다
+</div>
+</div>
+<p>
+<div style="padding-left:7"><font color=f7443f><b>개인정보취급방침</b></font></div>
+<div style="padding-top:10; background:#F1F1F1;  text-align:center;">
+<iframe style="width:96%; height:195;" frameborder=0 src='../service/_private.php'></iframe>
+<div align=center class=noline style="height:30;margin-top:10px;" >
+<input type=checkbox name=agree2 required label="개인정보취급방침 동의" msgR="개인정보취급방침에 동의를 하셔야 합니다"> 개인정보취급방침에 동의합니다</div>
+</div>
+
+<!--{ ? realnameyn == 'y' // 실명인증여부 }-->
+<!--{ = include_file( "member/NiceCheck.htm" ) }-->
+<!--{ / }-->
+
+<!-- 하단버튼 -->
+<div align=center style="padding:50px 0 20px 0" class=noline>
+<input type=image src="../img/common/btn_join.gif">
+<a href="javascript:history.back()"><img src="../img/common/btn_back.gif" border=0></a>
+</div>
+
+</form>
+
+</div><!-- End indiv -->
+
+<script>
+function chkForm2(fm)
+{
+	if (typeof(goIDCheck) != "undefined"){
+		if (goIDCheck(fm) === false) return false;
+	}
+
+	return chkForm(fm);
+}
+</script>
+
+{ # footer }

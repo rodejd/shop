@@ -1,0 +1,56 @@
+﻿{*** 하단레이아웃 | main/index.php ***}
+<div style="width:0;height:0;font-size:0"></div></td>
+<!--{ ? this->tpl_['side_inc'] && _cfg['outline_sidefloat'] == 'right' }-->
+<td valign=top width={_cfg['shopSideSize']} nowrap>{ # side_inc // 측면디자인 }</td>
+<!--{ / }-->
+<td width=0 id=pos_scroll valign=top>
+
+<!-- 스크롤 배너 -->
+
+<div id=scroll style="position:absolute;padding-left:3px">
+<table cellpadding=0 cellspacing=0>
+<tr><td><!-- 맨오른쪽_스크롤배너 (배너관리에서 수정가능) --><!--{ @ dataBanner( 17 ) }-->{.tag}<!--{ / }--></td></tr>
+</table>
+
+<div style="height:5"></div>
+<div style="width:90; border:1px solid #E6E6E6">
+<table width=100% border=0 cellpadding=0 cellspacing=0 bgcolor=#ffffff>
+<tr><td><img src="../img/common/scroll_today_top.gif" border=0></td></tr>
+<tr><td><a href="javascript:gdscroll(-73)" onfocus=blur()><img src="../img/common/scroll_today_up.gif" border=0></a></td></tr>
+<tr>
+<td align=center style="padding-bottom:8px">
+<div id=gdscroll style="height:216px;overflow:hidden">
+<!--{ @ _todayGoodsList }-->
+<div><a href="../goods/goods_view.php?goodsno={.goodsno}">{=goodsimg(.img,70)}</a></div>
+<!--{ ? .index_!=.size_-1 }--><div style="height:3px;font-size:0"></div><!--{ / }-->
+<!--{ / }-->
+</div>
+</td>
+</tr>
+<tr><td><a href="javascript:gdscroll(73)" onfocus=blur()><img src="../img/common/scroll_today_down.gif" border=0></a></td></tr>
+</table>
+</div>
+
+</div>
+<!-- 스크롤 배너 활성화 -->
+<script>scrollBanner();</script>
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+<!--{ ? this->tpl_['footer_inc'] }-->
+<tr>
+<td>{ # footer_inc // 하단디자인 }</td>
+</tr>
+<!--{ / }-->
+</table>
+
+<!-- 절대! 지우지마세요 : Start -->
+<iframe name="ifrmHidden" src='{_cfg.rootDir}/blank.php' style="display:none;width:100%;height:600"></iframe>
+<!-- 절대! 지우지마세요 : End -->
+
+</body>
+</html>

@@ -1,0 +1,439 @@
+﻿{*** 상품상세화면 | goods/goods_view.php ***}
+{ # header }
+
+<style>
+/* goods_spec list */
+#goods_spec table {
+	width:100%;
+}
+#goods_spec .top {
+	border-top-width:1; border-top-style:solid;border-top-color:#DDDDDD;
+	border-bottom-width:1; border-bottom-style:solid;border-bottom-color:#DDDDDD;
+	background:#f7f7f7;
+}
+#goods_spec .sub {
+	border-bottom-width:1; border-bottom-style:solid;border-bottom-color:#DDDDDD;
+	margin-bottom:10;
+}
+#goods_spec th, #goods_spec td {
+	padding:3px;
+}
+#goods_spec th {
+	width: 80px;
+	text-align:right;
+	font-weight:normal;
+}
+#goods_spec td {
+	text-align:left;
+}
+</style>
+
+<script>
+
+var price = new Array();
+var reserve = new Array();
+var consumer = new Array();
+<!--{ @ _opt }--><!--{ @ .value_ }-->
+<!--{ ? .index_ == 0 && ..index_ == 0 }-->
+var fkey = '{..opt1}{?..opt2}|{..opt2}{/}';
+<!--{ / }-->
+price['{..opt1}{?..opt2}|{..opt2}{/}'] = {..price};
+reserve['{..opt1}{?..opt2}|{..opt2}{/}'] = {..reserve};
+consumer['{..opt1}{?..opt2}|{..opt2}{/}'] = {..consumer};
+<!--{ / }--><!--{ / }-->
+
+/* 필수 옵션 분리형 스크립트 start */
+var opt = new Array();
+opt[0] = new Array("('1차옵션을 먼저 선택해주세요','')");
+<!--{ @ _opt }-->
+opt['{.index_+1}'] = new Array("('== 옵션선택 ==','')",<!--{ @ .value_ }-->"('{..opt2}{?..price!=price} ({=number_format(..price)}원){/}{?usestock&&!..stock} [품절]{/}','{..opt2}','{?usestock&&!..stock}soldout{/}')"{?..index_!=..size_-1},{/}<!--{ / }-->);
+<!--{ / }-->
+function subOption(obj)
+{
+	var el = document.getElementsByName('opt[]');
+	var sub = opt[obj.selectedIndex];
+	while (el[1].length>0) el[1].options[el[1].options.length-1] = null;
+	for (i=0;i<sub.length;i++){
+		var div = sub[i].replace("')","").split("','");
+		eval("el[1].options[i] = new Option" + sub[i]);
+		if (div[2]=="soldout"){
+			el[1].options[i].style.color = "#808080";
+			el[1].options[i].setAttribute('disabled','disabled');
+		}
+	}
+	el[1].selectedIndex = el[1].preSelIndex = 0;
+	if (el[0].selectedIndex == 0) chkOption(el[1]);
+}
+/* 필수 옵션 분리형 스크립트 end */
+
+function chkOption(obj)
+{
+	if (!selectDisabled(obj)) return false;
+
+	var opt = document.getElementsByName('opt[]');
+	var opt1 = opt[0].value; var opt2 = '';
+	if (typeof(opt[1])!="undefined") opt2 = "|" + opt[1].value;
+	var key = opt1 + opt2;
+	if (opt[0].selectedIndex == 0) key = fkey;
+	key = key.replace('"','&quot;');
+	if (typeof(price[key])!="undefined"){
+		document.getElementById('price').innerHTML = comma(price[key]);
+		document.getElementById('reserve').innerHTML = comma(reserve[key]);
+		if (document.getElementById('consumer')) document.getElementById('consumer').innerHTML = comma(consumer[key]);
+	}
+	var realprice = chkRealPrice(price[key]);
+	chkCoupon(realprice);
+}
+function chkRealPrice(price)
+{
+	var realprice = price;
+	if (document.getElementById('obj_realprice')){
+		realprice -= getDcprice(price,"{_member.dc}%","{_set.emoney.base}");
+		document.getElementById('obj_realprice').innerHTML = comma(realprice);
+	}
+	return realprice;
+}
+function chkCoupon(price)
+{
+	if (document.getElementById('obj_coupon')){
+		var coupon_dc = getDcprice(price,"{coupon}","{_set.emoney.base}");
+		price = price-coupon_dc;
+		document.getElementById('obj_coupon').innerHTML = comma(price) + "원 ";
+	}
+}
+function act(target)
+{
+	var form = document.frmView;
+	if(!(form.ea.value>0))
+	{
+		alert("구매수량은 1개 이상만 가능합니다");
+		return;
+	}
+	form.action = target + ".php";
+	if (chkForm(form)) form.submit();
+}
+
+function chgImg(obj)
+{
+	var objImg = document.getElementById('objImg');
+	objImg.src = obj.src.replace("/t/","/");
+}
+
+function innerImgResize()	// 본문 이미지 크기 리사이징
+{
+	var objContents = document.getElementById('contents');
+	var innerWidth = 645;
+	var img = objContents.getElementsByTagName('img');
+	for (var i=0;i<img.length;i++){
+		img[i].onload = function(){
+			if (this.width>innerWidth) this.width = innerWidth;
+		};
+	}
+}
+</script>
+
+<div align=right style="padding:5px 10px;">HOME > {=currPosition(category)}</div><p>
+
+
+<div class="indiv"><!-- Start indiv -->
+
+<!-- 상품 이미지 -->
+<div style="width:330px;float:left;text-align:center;">
+<div style="padding-bottom:10"><a href="javascript:popup('goods_popup_large.php?goodsno={goodsno}',800,600)">{=goodsimg(r_img[0],0,'id=objImg')}</a></div>
+<div style="padding-bottom:10">
+<a href="javascript:popup('goods_popup_large.php?goodsno={goodsno}',800,600)"><img src="../img/common/btn_zoom.gif" align=absmiddle></a>
+</div>
+<div align=center>
+<!--{ @ t_img }-->
+{=goodsimg(.value_,45,"onmouseover='chgImg(this)' class=hand style='border-width:1; border-style:solid; border-color:#cccccc'")}
+<!--{ / }-->
+</div>
+</div>
+
+<!-- 상품 스펙 리스트 -->
+<div id=goods_spec style="width:330px;float:right;">
+<form name=frmView method=post>
+<input type=hidden name=mode value="addItem">
+<input type=hidden name=goodsno value="{goodsno}">
+<input type=hidden name=goodsCoupon value="{coupon}">
+<div style="padding:10px 0 10px 5px" align=left>
+<b style="font:bold 12pt 돋움;">{goodsnm}</b>
+</div>
+<div style="padding:0 0 10px 5px;font:11px dotum;letter-spacing:-1px;color:#666666">{shortdesc}</div>
+
+<table border=0 cellpadding=0 cellspacing=0 class=top>
+	<tr><td height=2></td></tr>
+	<!--{ ? !strprice }-->
+	<tr>
+		<th>판매가격 :</th>
+		<td>
+		<!--{ ? consumer }-->
+		<strike><span id=consumer>{=number_format(consumer)}</span></strike> →
+		<!--{ / }-->
+		<b><span id=price>{=number_format(price)}</span>원</b>
+		</td>
+	</tr>
+	<!--{ ? _member.dc }-->
+	<tr>
+		<th>회원할인가 :</th>
+		<td style="font-weight:bold"><span id=obj_realprice>{=number_format(realprice)}</span>원</b></td>
+	</tr>
+	<!--{ / }-->
+	<!--{ ? coupon }-->
+	<tr><th>쿠폰적용가 :</th>
+	<td>
+	<span id=obj_coupon style="font-weight:bold;color:#EF1C21"></span> &nbsp;<span style="font:bold 9pt tahoma; color:#FF0000" >{=number_format(coupon)}원</span>
+	</td></tr>
+	<!--{ / }-->
+	<tr><th>적립금 :</th><td><span id=reserve>{=number_format(reserve)}</span>원</td></tr>
+	<!--{ ? coupon_emoney }-->
+	<tr><th>쿠폰적립금 :</th>
+	<td>
+	<span id=obj_coupon_emoney style="font-weight:bold;color:#EF1C21"></span> &nbsp;<span style="font:bold 9pt tahoma; color:#FF0000" >{=number_format(coupon_emoney)}원</span>
+	</td></tr>
+	<!--{ / }-->
+	<!--{ ? delivery_type == 1 }-->
+	<tr><th>배송비 :</th><td>무료배송</td></tr>
+	<!--{ : delivery_type == 2 }-->
+	<tr><th>개별배송비 :</th><td>{=number_format(goods_delivery)}원</td></tr>
+	<!--{ : delivery_type == 3 }-->
+	<tr><th>착불배송비 :</th><td>{=number_format(goods_delivery)}원</td></tr>
+	<!--{ / }-->
+	<!--{ : }-->
+	<tr><th>판매가격 :</th><td><b>{strprice}</b></td></tr>
+	<!--{ / }-->
+</table>
+
+<table border=0 cellpadding=0 cellspacing=0>
+	<tr><td height=5></td></tr>
+	<!--{ ? goodscd }--><tr height><th>제품코드 :</th><td>{goodscd}</td></tr><!--{ / }-->
+	<!--{ ? origin }--><tr><th>원산지 :</th><td>{origin}</td></tr><!--{ / }-->
+	<!--{ ? brand }--><tr><th>브랜드 :</th><td>{brand} <a href="../goods/goods_brand.php?brand={brandno}">[브랜드바로가기]</a></td></tr><!--{ / }-->
+	<!--{ @ ex }--><tr><th>{.key_} :</th><td>{.value_}</td></tr><!--{ / }-->
+	<tr><th>구매수량 :</th>
+	<td>
+	<!--{ ? !runout }-->
+	<div style="float:left;"><input type=text name=ea size=2 value=1 class=line style="text-align:right;height:18px"></div>
+	<div style="float:left;padding-left:3">
+	<div style="padding:1 0 2 0"><img src="../img/common/btn_plus.gif" onClick="chg_cart_ea(frmView.ea,'up')" style="cursor:pointer"></div>
+	<div><img src="../img/common/btn_minus.gif" onClick="chg_cart_ea(frmView.ea,'dn')" style="cursor:pointer"></div>
+	</div>
+	<div style="padding-top:3; float:left">개</div>
+	<!--{ : }-->
+	품절된 상품입니다
+	<!--{ / }-->
+	</td></tr>
+	<!--{ ? chk_point}-->
+	<tr><th>고객선호도 :</th><td><!--{ @ array_fill(0,chk_point,'') }-->★<!--{ / }--></td></tr>
+	<!--{ / }-->
+	<!--{ ? icon }--><tr><th>제품상태 :</th><td>{icon}</td></tr><!--{ / }-->
+</table>
+
+<!--{ ? !strprice }-->
+
+<!-- 필수 옵션 일체형 -->
+<!--{ ? _opt && _typeOption=="single" }-->
+<table border=0 cellpadding=0 cellspacing=0 class=top>
+	<tr><th>{optnm} :</th>
+	<td>
+	<select name="opt[]" onchange="chkOption(this)" required msgR="{optnm} 선택을 해주세요">
+	<option value="">== 옵션선택 ==
+	<!--{ @ _opt }--><!--{ @ .value_ }-->
+	<option value="{..opt1}{?..opt2}|{..opt2}{/}" {?usestock&&!..stock} disabled class=disabled{/}>{..opt1}{?..opt2}/{..opt2}{/} {?..price!=price}({=number_format(..price)}원){/}
+	<!--{ ? usestock && !..stock }--> [품절]<!--{ / }-->
+	<!--{ / }--><!--{ / }-->
+	</select>
+	</td></tr>
+</table>
+<!--{ / }-->
+
+<!-- 필수 옵션 분리형 -->
+<!--{ ? _opt && _typeOption=="double" }-->
+<table border=0 cellpadding=0 cellspacing=0 class=top>
+	<!--{ @ _optnm }-->
+	<tr><th>{.value_} :</th>
+	<td>
+	<!--{ ? !.index_ }-->
+	<select name="opt[]" onchange="subOption(this)" required msgR="{.value_} 선택을 해주세요">
+	<option value="">== 옵션선택 ==
+	<!--{ @ (_opt) }--><option value="{..key_}">{..key_}<!--{ / }-->
+	</select>
+	<!--{ : }-->
+	<select name="opt[]" onchange="chkOption(this)" required msgR="{.value_} 선택을 해주세요"><option value="">==선택==</select>
+	<!--{ / }-->
+	</td></tr>
+	<!--{ / }-->
+</table>
+<script>subOption(document.getElementsByName('opt[]')[0])</script>
+<!--{ / }-->
+
+<!-- 추가 옵션 -->
+<table border=0 cellpadding=0 cellspacing=0 class=sub>
+	<!--{ @ _addopt }-->
+	<tr><th>{.key_} :</th>
+	<td>
+	<select name="addopt[]"{ ? _addoptreq[.index_] } required label="{.key_}"{ / }>
+	<option value="">=={.key_} 선택==
+	<!--{ @ .value_ }-->
+	<option value="{..sno}^{.key_}^{..opt}^{..addprice}">{..opt}
+	<!--{ ? ..addprice }-->({=number_format(..addprice)}원 추가)<!--{ / }-->
+	<!--{ / }-->
+	</select>
+	</td></tr>
+	<!--{ / }-->
+</table>
+
+<!--{ / }-->
+
+<!-- 각종 버튼 -->
+<div style="width:330px;">
+<!--{ ? !strprice && !runout }-->
+<a href="javascript:act('../order/order')"><img src="../img/common/btn_direct_buy.gif"></a>
+<a href="javascript:act('goods_cart')"><img src="../img/common/btn_cart.gif"></a>
+<a href="javascript:act('../mypage/mypage_wishlist')"><img src="../img/common/btn_wish_m_un.gif"></a>
+<!--{ / }-->
+<a href="goods_list.php?category={_GET.category}"><img src="../img/common/btn_list.gif"></a>
+</div>
+
+</form>
+</div><p>
+
+<table style="clear:both" border=0 cellpadding=0 cellspacing=0>
+<tr>
+	<td>
+
+	<div style="height:26px"><img src="../img/common/bar_detail_01.gif"></div>
+
+	<!--{ ? coupon || coupon_emoney }-->
+	<!-- 할인쿠폰 다운받기 -->
+	<div style="padding:10px 0">
+	<table>
+	<tr>
+		<td><img src="../img/common/coupon_txt.gif"></td>
+		<td>
+		<table border=0 cellpadding=0 cellspacing=0>
+		<tr>
+		<!--{ @ a_coupon }-->
+		<!--{ ? .index_ % 3 == 0 }-->
+		</tr><tr>
+		<!--{ / }-->
+
+		<td onclick="ifrmHidden.location.href='../proc/dn_coupon_goods.php?goodsno={goodsno}&couponcd={.couponcd}'" class=hand>
+
+		<div style="font:bold 12px tahoma;color:#FF0000;text-align:center;padding:19px 40px 0 0;width:140px;height:54px;background:url('../img/common/coupon0{=(.coupon_img +1)}.gif');">{_r_couponAbility[.ability]}{?substr(.price,-1)!="%"}{=number_format(.price)}원{:}{.price}{/}</div></td>
+
+		<!--{ / }-->
+		</tr>
+		</table>
+		</td>
+	</tr>
+	</table>
+	</div>
+	<!--{ / }-->
+
+	<!-- 상세 설명 -->
+	<div id=contents style="width:100%;padding:10 10 10 10;overflow:hidden;"><table width=100%>
+	<tr><td>
+	{longdesc}</td></table>
+	</div>
+
+	<!-- 관련상품 -->
+	<div style="height:26px; padding-top:10"><img src="../img/common/bar_detail_02.gif"></div>
+	<div style="padding:10 10 10 10;overflow:hidden">
+	<table width=100% border=0 cellpadding=0 cellspacing=0>
+	<tr><td height=10></td></tr>
+	<tr>
+		<!--{ @ dataGoodsRelation( goodsno, 5 ) }-->
+		<!--{ ? .index_ && .index_%5==0 }--></tr><tr><td height=10></td></tr><tr><!--{ / }-->
+		<td align=center valign=top width="{100/5}%">
+
+		<div><a href="goods_view.php?goodsno={.goodsno}">{=goodsimg(.img_s,80)}</a></div>
+		<div style="padding:5"><a href="goods_view.php?goodsno={.goodsno}">{.goodsnm}</a></div>
+		<div><!--{ ? .strprice }-->{.strprice}<!--{ : }--><b>{=number_format(.price)}원<!--{ / }--></b></div>
+		<!--{ ? .icon }--><div style="padding:5">{.icon}</div><!--{ / }-->
+
+		</td>
+		<!--{ / }-->
+	</tr>
+	</table>
+	</div>
+
+	<!-- 배송안내 -->
+	<div style="height:26px; padding-top:10"><img src="../img/common/bar_detail_06.gif"></div>
+	<div style="width:100%;padding:10 10 10 10;overflow:hidden">
+
+	<table cellspacing=0 cellpadding=0>
+	<col valign=top width=14>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>배송비 : 기본배송료는 {?_set.delivery.default}{=number_format(_set.delivery.default)}원{:}무료{/} 입니다. (도서,산간,오지 일부지역은 배송비가 추가될 수 있습니다) {?_set.delivery.free}&nbsp;{=number_format(_set.delivery.free)}원 이상 구매시 무료배송입니다.{/}</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>본 상품의 평균 배송일은 일입니다.(입금 확인 후) 설치 상품의 경우 다소 늦어질수 있습니다.[배송예정일은 주문시점(주문순서)에 따른 유동성이 발생하므로 평균 배송일과는 차이가 발생할 수 있습니다.] </td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>본 상품의 배송 가능일은 일 입니다.
+			배송 가능일이란 본 상품을 주문 하신 고객님들께 상품 배송이 가능한 기간을 의미합니다. (단, 연휴 및 공휴일은 기간 계산시 제외하며 현금 주문일 경우 입금일 기준 입니다.)</td></tr>
+	</table>
+
+	</div>
+
+	<!-- 교환및반품안내 -->
+	<div style="height:26px; padding-top:10"><img src="../img/common/bar_detail_05.gif"></div>
+	<div style="width:100%;padding:10 10 10 10;overflow:hidden">
+
+	<table cellspacing=0 cellpadding=0>
+	<col valign=top width=14>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>상품 청약철회 가능기간은 상품 수령일로 부터 일 이내 입니다.</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>상품 택(tag)제거 또는 개봉으로 상품 가치 훼손 시에는 일 이내라도 교환 및 반품이 불가능합니다.</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>저단가 상품, 일부 특가 상품은 고객 변심에 의한 교환, 반품은 고객께서 배송비를 부담하셔야 합니다(제품의 하자,배송오류는 제외)</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>일부 상품은 신모델 출시, 부품가격 변동 등 제조사 사정으로 가격이 변동될 수 있습니다.</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>신발의 경우, 실외에서 착화하였거나 사용흔적이 있는 경우에는 교환/반품 기간내라도 교환 및 반품이 불가능 합니다.</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>수제화 중 개별 주문제작상품(굽높이,발볼,사이즈 변경)의 경우에는 제작완료, 인수 후에는 교환/반품기간내라도 교환 및 반품이 불가능 합니다. </td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>수입,명품 제품의 경우, 제품 및 본 상품의 박스 훼손, 분실 등으로 인한 상품 가치 훼손 시 교환 및 반품이 불가능 하오니, 양해 바랍니다.</td></tr>
+	<tr>
+		<td><img src="../img/dot.gif"></td>
+		<td>일부 특가 상품의 경우, 인수 후에는 제품 하자나 오배송의 경우를 제외한 고객님의 단순변심에 의한 교환, 반품이 불가능할 수 있사오니, 각 상품의 상품상세정보를 꼭 참조하십시오. </td></tr>
+	</table>
+
+	</div>
+
+	<!-- 결제안내
+	<div style="height:26px; padding-top:10"><img src="../img/common/bar_detail_07.gif"></div>
+	<div style="width:100%;padding:10 10 10 10;overflow:hidden"></div>
+	-->
+
+	<!-- 상품 사용기 -->
+	<iframe id="inreview" src="./goods_review_list.php?goodsno={goodsno}" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="10" scrolling="no"></iframe>
+
+	<!-- 상품 질문과답변 -->
+	<iframe id="inqna" src="./goods_qna_list.php?goodsno={goodsno}" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="10" scrolling="no"></iframe>
+
+	</td>
+</tr>
+
+</table>
+
+</div><!-- End indiv -->
+
+
+<script>
+chkCoupon({realprice});
+//innerImgResize();
+</script>
+
+{ # footer }

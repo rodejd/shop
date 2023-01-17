@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wepinit.wepinit_shop.batch.dao.BatchMemberMapper">
+	<!-- 최종 로그인 시점이 1년이 지난 유저 목록 -->
+	<select id="getLastLoginExceedPeriodMembers" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT 
+			m_no,			
+			m_id,			
+			k_level,		
+			name,			
+			nickname,		
+			password,		
+			status,			
+			resno1,			
+			resno2,			
+			sex,			
+			birth_year,		
+			birth,			
+			calendar,		
+			email,			
+			zipcode,		
+			address,		
+			address_sub,	
+			phone,			
+			mobile,			
+			fax,			
+			company,		
+			service,		
+			item,			
+			busino,			
+			emoney,			
+			point,			
+			mailling,		
+			sms,			
+			marriyn,		
+			marridate,		
+			job,			
+			interest,		
+			regdt,			
+			last_login,		
+			last_login_ip,	
+			last_sale,		
+			cnt_login,		
+			cnt_sale,		
+			sum_sale,		
+			memo,			
+			recommid,		
+			ex1,			
+			ex2,			
+			ex3,			
+			ex4,			
+			ex5,			
+			ex6,			
+			LPINFO,			
+			profile		
+		FROM gd_member
+		WHERE last_login <![CDATA[<]]> DATE_ADD(NOW(), INTERVAL -1 YEAR);
+	</select>
+</mapper>

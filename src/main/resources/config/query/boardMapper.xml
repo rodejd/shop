@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http${//mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper  namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.BoardMapper">
+<select id="getboardListJoinBDINF" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.BoardBoardinf">
+	SELECT board.sno, board.id, inf.num  FROM gd_board as board LEFT OUTER JOIN gd_board_inf as inf 
+	on board.id = inf.id 
+	order by sno desc 
+	limit ${rowStart}, ${pageSize} 
+</select>
+
+<select id="getBoardCONFIG" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmBoardSetup">
+	SELECT * from xm_board_setup 
+	<if test="id !=null and id != ''">
+		where id= '${id}'
+	</if>
+</select>
+<select id="getBoardCount" resultType="int">
+	select count(id) from gd_board
+</select>
+
+<select id ="getBoardINFSEARCH" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO" resultType="java.util.List">
+	SELECT id
+	FROM gd_board_inf 
+		where id = '${id}'
+</select>
+<select id="getBoardSEARCHCORRECT1" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmBoardSetup">
+	select id from xm_board_setup 
+		where id = '${id}'
+	
+</select>
+
+<select id="getBoardSEARCHCORRECT2" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmBoardSetup">
+	select id from gd_bd_${id} 
+		where id = '${id}'
+</select>
+<insert id="setBoardLISTADD" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO">
+INSERT INTO gd_board (id) VALUES ('${id}') 
+</insert>
+<insert id="setBoardXMBOARDSETADD" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO">
+INSERT INTO xm_board_setup 
+	(
+		id, bdName, bdGroup, bdSkin, bdAlign, bdWidth, bdStrlen, bdPageNum, bdNew,bdHot,
+		bdNoticeList, bdLvlL, bdLvlR, bdLvlC, bdLvlW, bdIp, bdIpAsterisk, bdTypeView, bdUseLink, bdUseFile,
+		bdMaxSize, bdTypeMail, bdHeader, bdFooter, bdUseSubSpeech, bdSubSpeechTitle, bdSubSpeech, bdUseComment, bdSearchMode, bdField, 
+		bdImg, bdColor, bdPrnType, bdListImgCntW, bdListImgCntH, bdListImgSizeW, bdListImgSizeH, bdListImg, bdUserDsp, bdAdminDsp, 
+		bdSpamComment, bdSpamBoard, bdSecretChk, bdTitleCChk, bdTitleSChk, bdTitleBChk, bdEmailNo, bdHomepageNo
+	) 
+	VALUES 
+	(
+		'${id}', '${bdName}', '${bdGroup}', '${bdSkin}', '${bdAlign}', '${bdWidth}', '${bdStrlen}', 
+		<if test="bdPageNum == 0">
+		20,
+		</if> 
+		<if test="bdPageNum != 0">
+		${bdPageNum},
+		</if>
+		'${bdNew}', '${bdHot}',
+		'${bdNoticeList}', '${bdLvlL}', '${bdLvlR}', '${bdLvlC}', '${bdLvlW}', '${bdIp}', '${bdIpAsterisk}', ${bdTypeView}, '${bdUseLink}', '${bdUseFile}',
+		'${bdMaxSize}', '${bdTypeMail}', '${bdHeader}', '${bdFooter}', '${bdUseSubSpeech}', '${bdSubSpeechTitle}', '${bdSubSpeech}', '${bdUseComment}', ${bdSearchMode}, '${bdField}', 
+		'${bdImg}', '${bdColor}', ${bdPrnType}, ${bdListImgCntW}, ${bdListImgCntH}, ${bdListImgSizeW}, ${bdListImgSizeH}, ${bdListImg}, ${bdUserDsp}, ${bdAdminDsp}, 
+		'${bdSpamComment}', '${bdSpamBoard}', ${bdSecretChk}, '${bdTitleCChk}', '${bdTitleSChk}', '${bdTitleBChk}', '${bdEmailNo}', '${bdHomepageNo}'
+	)
+</insert>
+<update id="setBoardXMBOARDSETUPDATE" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.BoardVO">
+UPDATE xm_board_setup SET 
+		bdName = '${bdName}', bdGroup = '${bdGroup}', bdSkin = '${bdSkin}', bdAlign = '${bdAlign}' , bdWidth = '${bdWidth}', bdStrlen = '${bdStrlen}', bdPageNum = ${bdPageNum}, bdNew = '${bdNew}', bdHot = '${bdHot}',
+		bdNoticeList='${bdNoticeList}', bdLvlL='${bdLvlL}', bdLvlR='${bdLvlR}', bdLvlC='${bdLvlC}', bdLvlW='${bdLvlW}', bdIp='${bdIp}', bdIpAsterisk='${bdIpAsterisk}', bdTypeView=${bdTypeView}, bdUseLink='${bdUseLink}', bdUseFile='${bdUseFile}',
+		bdMaxSize='${bdMaxSize}', bdTypeMail='${bdTypeMail}', bdHeader='${bdHeader}', bdFooter='${bdFooter}', bdUseSubSpeech='${bdUseSubSpeech}', bdSubSpeechTitle='${bdSubSpeechTitle}', bdSubSpeech='${bdSubSpeech}', bdUseComment='${bdUseComment}', bdSearchMode=${bdSearchMode}, bdField='${bdField}', 
+		bdImg='${bdImg}', bdColor='${bdColor}', bdPrnType=${bdPrnType}, bdListImgCntW=${bdListImgCntW}, bdListImgCntH=${bdListImgCntH}, bdListImgSizeW=${bdListImgSizeW}, bdListImgSizeH=${bdListImgSizeH}, bdListImg=${bdListImg}, bdUserDsp=${bdUserDsp}, bdAdminDsp=${bdAdminDsp}, 
+		bdSpamComment='${bdSpamComment}', bdSpamBoard='${bdSpamBoard}', bdSecretChk=${bdSecretChk}, bdTitleCChk='${bdTitleCChk}', bdTitleSChk='${bdTitleSChk}', bdTitleBChk='${bdTitleBChk}', bdEmailNo='${bdEmailNo}', bdHomepageNo='${bdHomepageNo}'
+	WHERE id='${id}'
+</update>
+<update id="setBoardCREATE">
+CREATE TABLE gd_bd_${id} (
+		no int(10) unsigned NOT NULL auto_increment,
+		idx varchar(4) NOT NULL default '',
+		main int(11) NOT NULL default '0',
+		sub varchar(10) binary NOT NULL default '',
+		name varchar(20) default NULL,
+		email varchar(50) default NULL,
+		homepage varchar(100) default NULL,
+		titleStyle varchar(50) default NULL,
+		subject varchar(100) default NULL,
+		contents text,
+		urlLink varchar(255) default NULL,
+		old_file varchar(255) default NULL,
+		new_file varchar(255) default NULL,
+		password varchar(32) default NULL,
+		m_no int(10) unsigned default NULL,
+		_pass varchar(32) default NULL,
+		_member int(11) default NULL,
+		ip varchar(15) NOT NULL default '',
+		notice char(1) default NULL,
+		secret char(1) default NULL,
+		html tinyint(4) default NULL,
+		hit int(10) unsigned NOT NULL default '0',
+		comment smallint(5) unsigned NOT NULL default '0',
+		category varchar(50) binary NOT NULL default '',
+		regdt datetime default NULL,
+		PRIMARY KEY  (no),
+		KEY idx (idx,main,sub),
+		KEY idx2 (category,idx,main,sub)
+	) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+</update>
+
+
+
+<delete id="setBoardLISTDELETE">
+	delete from gd_board where id= '${id}'
+</delete>
+
+<delete id="setBoardLISTNFDELETE">
+	delete from gd_board_inf where id='${id}'
+</delete>
+<delete id="setBoardXMBOARDDELETE">
+	delete from xm_board_setup  where id='${id}'
+</delete>
+
+<delete id="setBoardDROP">
+	drop table gd_bd_${id}
+</delete>
+
+	<!-- 게시판 ID 증복확인 추가 -->
+	<select id="getBoardCheckId" resultType="int">
+		SELECT count(id) FROM xm_board_setup
+		where id=#{id}
+	</select>
+
+
+
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wepinit.wepinit_shop.batch.dao.BatchAccountMapper">
+
+	<insert id="batchInsert" parameterType="list">
+		INSERT INTO gd_account_info(ordno,goodsno,goodsnm,goodsnmKR,goodsnmCN,sellerCd,orddt,ea,price,addopt,deliveryPrice,addDeliveryPrice,fees,coupon,accountDate)
+		VALUES
+		<foreach item="item" collection="list" separator=",">
+			(#{item.ordno},#{item.goodsno},#{item.goodsnm},#{item.goodsnmKR},#{item.goodsnmCN},#{item.sellerCd},#{item.orddt},#{item.ea},#{item.price},#{item.addopt},#{item.deliveryPrice},#{item.addDeliveryPrice},#{item.fees},#{item.coupon},now())
+		</foreach>;
+	</insert>
+	
+	<select id="sellerInfo" resultType="com.wepinit.wepinit_shop.batch.vo.BatchAccountVO">
+		SELECT sellerCd,fees FROM gd_seller WHERE status = 'S' AND settlementCycle = #{flag}
+	</select>
+
+	<select id="sellerAccountInfo" resultType="com.wepinit.wepinit_shop.batch.vo.BatchAccountVO" parameterType="com.wepinit.wepinit_shop.batch.vo.BatchAccountVO">
+		SELECT T1.ordno, T1.goodsno,T1.goodsnm,T1.goodsnmKR,T1.goodsnmCN,T1.price,T1.ea, T1.addopt, T1.coupon, T2.orddt
+		     , T3.sellerCd, T4.deliveryPrice, T4.addDeliveryPrice
+		     , (select fees from gd_seller T0 where T0.sellerCd = #{sellerCd}) as fees
+		  FROM gd_order_item T1 
+	 LEFT JOIN gd_order T2 ON T1.ordno = T2.ordno
+	 LEFT JOIN gd_goods T3 ON T1.goodsno = T3.goodsno
+	 LEFT JOIN gd_order_delivery T4 ON T1.ordno = T4.ordno and T1.goodsno = T4.goodsno
+		 WHERE T1.istep = 4 AND T1.accountFlag = 'N'
+		   AND T3.sellerCd = #{sellerCd}			
+	</select>
+	
+	<update id="AccountGoodsUpdate" parameterType="java.util.List">
+	    <foreach collection="list" item="item" separator=";">
+	    UPDATE gd_order_item
+	       SET accountFlag = 'Y'
+	     WHERE ordno = #{item.ordno}
+	       AND goodsno = #{item.goodsno}
+	    </foreach>
+	</update>	
+	
+	
+</mapper>

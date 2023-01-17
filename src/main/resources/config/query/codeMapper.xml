@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.log.CodeMapper">
+	
+	<!-- #####################기타관리(각종코드관리)################################## -->
+	
+	<select id="getDataCodeList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.DataCodeOutVO">
+		select 
+			sno, groupcd, itemcd, itemnm, sort
+			,sort+1 as uprow , sort-1 as downrow, (select MAX(sort) from gd_code) as lastsort
+		from gd_code 
+		where 1 = 1
+		<if test=" null != groupcd and '' != groupcd"> 
+		and groupcd=#{groupcd}
+		</if>
+		<if test=" null == groupcd or '' == groupcd">
+		and groupcd = ''
+		</if>
+		
+		order by sort asc
+	</select>
+	
+	<select id="getDataSortUpDownSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT 
+			sno, groupcd, itemcd, itemnm, sort 
+			FROM gd_code
+			WHERE 
+			GROUPCD = #{groupcd}
+			AND SNO = #{sno}
+	</select>
+	
+	<select id="getDataSortUpDownSelect2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT 
+			sno, groupcd, itemcd, itemnm, sort 
+			FROM gd_code
+			WHERE 
+			GROUPCD = #{groupcd}
+			<if test="mode == 'sort_up'">
+				and sort &lt; #{sort} order by sort desc limit 1
+			</if>
+			<if test="mode == 'sort_down'">
+				and sort &gt; #{sort} order by sort asc limit 1
+			</if>
+	</select>
+	
+	<update id="updateCodeSortUpDown" >
+		UPDATE gd_code
+			SET
+		SORT = #{sort}
+		WHERE GROUPCD = #{groupcd}
+		AND SNO = #{sno}
+	</update>
+	
+	<!-- 코드 수정 -->
+	<update id="updateGroupcd" >
+		UPDATE gd_code
+		SET
+			GROUPCD = #{groupcd}
+			,ITEMCD = #{itemcd}
+			,ITEMNM = #{itemnm}
+		WHERE SNO = #{sno}
+	</update>
+	
+	<!-- 코드 등록 -->
+	<insert id="insertGroupcd">
+		INSERT INTO gd_code(
+			groupcd, itemcd, itemnm
+		)VALUES(
+			#{groupcd}, #{itemcd}, #{itemnm}
+		)
+	</insert>
+	
+	<select id="getGroupcdSnoListSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT 
+			SNO 
+		FROM gd_code 
+		WHERE GROUPCD=#{groupcd}
+			ORDER BY SORT ASC ,ITEMCD ASC
+	</select>
+	
+	<!-- 코드 수정(순서) -->
+	<update id="updateGroupcdSort" >
+		UPDATE gd_code
+			SET SORT = #{sort}
+		WHERE 
+			GROUPCD = #{groupcd}
+			AND SNO = #{sno}
+	</update>
+	
+	<!-- 코드 삭제 -->
+	<delete id="deleteGroupcd">
+		DELETE FROM gd_code
+		WHERE SNO in ( ${nolist} )
+	</delete>
+	
+	<!-- 코드 수정(ALL) -->
+	<update id="updateGroupcdSortAll" >
+		UPDATE gd_code
+			SET SORT = #{sort}
+		WHERE 
+			SNO = #{sno}
+	</update>
+
+</mapper>
+

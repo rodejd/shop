@@ -1,0 +1,59 @@
+﻿<script language=JavaScript src="https://tx.allatpay.com/common/allatpayX.js"></script>
+<script language=javascript>
+function ftn_cashapp(dfm)
+{
+  var ret;
+  ret = invisible_CashApp(dfm);//Function 내부에서 submit을 하게 되어있음.
+  if( ret.substring(0,4)!="0000" && ret.substring(0,4)!="9999"){ // 오류 코드 : 0001~9998 의 오류에 대해서 적절한 처리를 해주시기 바랍니다.
+    alert(ret.substring(4,ret.length));     // Message 가져오기
+  }
+  if( ret.substring(0,4)=="9999" ){ // 오류 코드 : 9999 의 오류에 대해서 적절한 처리를 해주시기 바랍니다.
+    alert(ret.substring(8,ret.length));     // Message 가져오기
+  }
+}
+function popup_receipt()
+{
+	window.open("https://www.allatpay.com/servlet/AllatBizPop/member/pop_cash_receipt.jsp?receipt_seq_no={=trim(cashreceipt)}&cert_no={=str_replace("-","",mobileOrder)}","","top=10,left=10,width=410,height=628,scrollbars=0");
+}
+</script>
+
+<table width=100% style="border:1px solid #DEDEDE" cellpadding=0 cellspacing=0>
+<tr>
+	<td width=150 valign=top align=right bgcolor="#F3F3F3"></td>
+	<td id="orderbox">
+
+	<table>
+	<col width=100>
+	<tr>
+		<td>현금영수증</td>
+		<td>
+		<!--{ ? cashreceipt }-->
+		<a href="javascript:popup_receipt()">현금영수증출력</a>
+		<!--{ : step==4 && step2==0 }-->
+		<form name="fm"  method=POST action="../order/card/allat/allat_cashapproval.php" style="display:none" target="ifrmHidden"> <!--승인요청 및 결과수신페이지 지정 //-->
+		<input type=text name=ordno value="{ordno}">
+		<input type=text name=allat_shop_id value="{_pg.id}">
+		<input type=text name="allat_apply_ymdhms" value="{=date('YmdHis')}" size=26 maxlength=14>
+		<input type=text name="allat_shop_member_id" value="{?_sess.m_id}{_sess.m_id}{:email}{email}{:}guest{/}" size=26 maxlength=100>
+		<input type=text name="allat_cert_no" value="{mobileOrder}" size=26 maxlength=13>
+		<input type=text name="allat_supply_amt" value="{_cashReceipt.supply}" size=26 maxlength=10>
+		<input type=text name="allat_vat_amt" value="{_cashReceipt.vat}" size=26 maxlength=20>
+		<input type=text name="allat_product_nm" value="{_item[0]['goodsnm']}" size=26 maxlength=100>
+		<input type=text name="allat_receipt_type" value="{_cashReceipt.type}" size=26 maxlength=10>
+		<!-- 올앳거래 일련번호 : 현금영수증구분 계좌이체(allat_receipt_type=ABANK)일 때 필수 필드임 -->
+		<input type=text name="allat_seq_no" value="" size=26 maxlength=10>
+		<input type=hidden name=allat_enc_data value=''>
+		<input type=hidden name=allat_opt_pin value="NOVIEW">
+		<input type=hidden name=allat_opt_mod value="WEB">
+		<input type=text name="allat_reg_business_no" value="" size=26 maxlength=10>
+		<input type=text name="allat_test_yn" value="N" size=26 maxlength=1>
+		</form>
+		<input type=button value="현금영수증발급요청" name=app_btn onClick="javascript:ftn_cashapp(document.fm);">
+		<!--{ / }-->
+		</td>
+	</tr>
+	</table>
+
+	</td>
+</tr>
+</table>

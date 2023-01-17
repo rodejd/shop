@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.common.CommonMapper">
+
+	<!-- header 목록 select -->
+	<select id="getHeaderMenuList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.common.MenuVO">
+		SELECT * 
+		FROM gd_admin_menu
+		WHERE menuLevel = 1 
+		  AND useMenu = 'y'
+		ORDER BY menuKey
+	</select>
+	
+	<!-- left 목록 select -->
+	<select id="getLeftMenuList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.common.MenuVO">
+		SELECT * 
+		FROM gd_admin_menu 
+		WHERE parentKey = #{menuKey} 
+		  AND useMenu = 'y'
+		ORDER BY menuNum
+	</select>
+ 
+ 	<!-- 네비게이션(현재위치) select -->
+ 	<select id="getNavi" resultType="map">
+ 		SELECT menuName
+ 			 , menuLevel 
+ 		FROM gd_admin_menu
+ 		WHERE (link LIKE CONCAT('%', #{url}) AND menuLevel > 1 AND usemenu = 'y')
+ 		   OR CONCAT(',', link, ',') LIKE CONCAT('%,', (SELECT menuKey FROM gd_admin_menu WHERE link LIKE CONCAT('%', #{url}) AND menuLevel > 1 AND usemenu = 'y'), ',%')
+		ORDER BY menuLevel
+ 	</select>
+ 	
+ 	<!-- conf_set select -->
+ 	<select id="getConfSet" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdConfSet">
+ 		SELECT * 
+ 		FROM gd_conf_set
+ 		WHERE conf_cd = #{confCd} 
+ 		  AND dim_set = #{dimSet} 
+ 		  AND dim1_var = #{dim1Var}
+ 	</select>
+ 	
+ 	<!-- 엑셀다운로드 rownum -->
+ 	<select id="selectRownum" resultType="int">
+ 		SELECT (@rownum:=0)=0
+ 	</select>
+ 
+</mapper>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.promotion.FrontPromotionMapper">
+	
+	<!-- 기획전 목록 -->
+	<select id="selectFrontPromotionList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotion">
+		SELECT pmno
+			 , skin
+			 , loccd
+			 , title
+			 , DATE_FORMAT(sdt, '%Y%m%d') sdt
+			 , DATE_FORMAT(sdt, '%H:%i:%S') stm
+			 , DATE_FORMAT(edt, '%Y%m%d') edt
+			 , DATE_FORMAT(edt, '%H:%i:%S') etm
+			 , pc_img
+			 , mobile_img
+			 , copy1
+			 , copy2
+			 , use_yn
+			 , regid
+			 , regdt
+			 , modid
+			 , moddt
+			 , (SELECT COUNT(*) FROM gd_promotion_goods WHERE pmno = gd_promotion.pmno) goods_cnt
+		  FROM gd_promotion 
+		  WHERE skin = #{skin}
+		    AND SYSDATE() BETWEEN sdt AND edt
+		    AND use_yn = 'Y'
+		ORDER BY pmno DESC
+	</select>
+	
+	<!-- 기획전 상세조회 -->
+	<select id="selectFrontPromotion" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotion">
+		SELECT pmno
+			 , skin
+			 , loccd
+			 , title
+			 , DATE_FORMAT(sdt, '%Y%m%d') sdt
+			 , DATE_FORMAT(sdt, '%H:%i:%S') stm
+			 , DATE_FORMAT(edt, '%Y%m%d') edt
+			 , DATE_FORMAT(edt, '%H:%i:%S') etm
+			 , pc_img
+			 , mobile_img
+			 , copy1
+			 , copy2
+			 , use_yn
+			 , regid
+			 , regdt
+			 , modid
+			 , moddt
+		  FROM gd_promotion 
+		  WHERE skin = #{skin}
+		    AND SYSDATE() BETWEEN sdt AND edt
+		    AND use_yn = 'Y'
+		<if test="loccd != null and loccd != '' ">
+			AND loccd = #{loccd}
+		</if>
+		<if test="loccd == null or loccd == '' ">
+			AND pmno = #{pmno}
+		</if>
+		ORDER BY pmno DESC
+		LIMIT 1
+	</select>
+	
+	<!-- 기획전 구분 리스트 -->
+	<select id="selectFrontPromotionGrpList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotionGrp">
+		SELECT grno
+			 , pmno
+			 , grnm
+			 , sort
+			 , use_yn
+		  FROM gd_promotion_grp 
+		 WHERE pmno = #{pmno}
+		   AND use_yn = 'Y'
+		 ORDER BY sort
+	</select>
+	
+	<!-- 기획전 상품 카운트 -->
+	<select id="selectFrontPromotionGoodsCount" resultType="int">
+		SELECT COUNT(r.goodsno)
+		FROM (
+			SELECT DISTINCT a.goodsno
+			  FROM gd_goods a
+			  INNER JOIN gd_promotion_goods i ON i.goodscd = a.goodscd
+			  LEFT JOIN gd_promotion_grp j ON j.grno = i.grno
+			  INNER JOIN gd_goods_option b ON a.goodsno = b.goodsno AND parent = 0
+			  LEFT OUTER JOIN gd_goods_link c ON a.goodsno = c.goodsno
+			  LEFT OUTER JOIN gd_seller e ON a.sellerCd = e.sellerCd
+			  LEFT OUTER JOIN gd_seller_goods f ON a.goodsno = f.goodsno
+			  LEFT JOIN gd_goods_brand h ON a.brandno = h.sno
+			 WHERE i.pmno = #{pmno}
+			<if test="grno != null and grno != ''">
+				AND i.grno = #{grno}
+			</if>
+		) r
+	</select>
+	
+	<!-- 기획전 상품 리스트 -->
+	<select id="selectFrontPromotionGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPromotionGoods">
+		SELECT DISTINCT b.goodsno
+			 , b.goodscd 
+			 , b.sellerCd 
+			 , b.goodsnm 
+			 , b.goodsnmKR
+			 , b.goodsnmCN
+			 , b.brandno 
+			 , b.origin 
+			 , b.binCd 
+			 , b.simnCd 
+			 , b.seasonNm 
+			 , b.euYn 
+			 , b.shippingOrigin
+			 , b.meta_title AS metatitle 
+			 , b.keyword 
+			 , b.open 
+			 , b.ex_title AS extitle
+			 , b.ex1 
+			 , b.ex2 
+			 , b.ex3 
+			 , b.ex4 
+			 , b.ex5 
+			 , b.ex6 
+			 , b.use_emoney AS useemoney 
+			 , b.usestock 
+			 , b.runout 
+			 , b.tax 
+			 , b.strprice 
+			 , b.delivery_type AS deliverytype 
+			 , b.goods_delivery AS goodsdelivery 
+			 , b.usegoodsadd  
+			 , b.optnm 
+			 , b.opttype 
+			 , b.useadd  
+			 , b.addoptnm 
+			 , b.relationis 
+			 , b.relation 
+			 , b.img_i AS imgi 
+			 , b.img_s AS imgs
+			 , b.img_l AS imgl
+			 , b.img_m AS imgm 
+			 , b.shortdesc 
+			 , b.longdesc 
+			 , b.memo 
+			 , b.m_id AS mid 
+			 , b.regdt 
+			 , b.moddt 
+			 , b.coupon 
+			 , b.coupon_ea AS couponea 
+			 , b.coupon_usecnt AS couponusecnt
+			 , b.coupon_date AS coupondate
+			 , c.sno AS optno
+			 , c.opt1
+			 , c.opt2
+			 , c.consumer
+			 , c.price
+			 , c.priceRate
+			 , c.stock
+			 , d.brandnm
+			 , (SELECT e.category FROM gd_goods_link e WHERE b.goodsno = e.goodsno ORDER BY e.sort LIMIT 1) AS category
+			 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = b.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+			<if test ="m_no != null and m_no != 0" >
+			 , (SELECT COUNT(f.goodsno) FROM gd_goods_like f WHERE m_no = #{m_no} AND f.goodsno = b.goodsno) AS likes	<!-- 찜한상품 체크 -->
+			</if>
+			 , b.hot_yn
+			 , b.vip_yn
+			 , i.grno
+		FROM gd_goods b
+		INNER JOIN gd_promotion_goods i ON i.goodscd = b.goodscd
+		LEFT JOIN gd_promotion_grp j ON j.grno = i.grno
+		INNER JOIN gd_goods_option c ON b.goodsno = c.goodsno AND c.parent = 0
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		LEFT JOIN gd_goods_link e ON b.goodsno = e.goodsno
+		WHERE b.open = 1 
+		  AND b.approvalStatus = '2'
+		  AND i.pmno = #{pmno}
+		  AND (j.grno IS NULL OR j.use_yn = 'Y')
+		ORDER BY j.sort ASC, i.sort ASC, i.pgno ASC 
+	</select>
+	
+</mapper>
+

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.login.LoginMapper">
+
+	<!-- // front_login_check_ID (로그인 아이디체크)-->
+	<select id="front_login_check_ID" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * FROM gd_member WHERE m_id = #{m_id}
+			<if test=" null != admin_level and '' != admin_level">
+				AND ${admin_level}
+			</if>
+	</select>
+	
+	<!-- // front_login_check_password(로그인 비밀번호체크) -->
+	<select id="front_login_check_password" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * FROM gd_member WHERE m_id = #{m_id} AND password = PASSWORD( #{password} )
+	</select>
+	
+	<!-- // member_last_login(최근 로그인 업데이트) -->
+	<update id="member_last_login">
+		UPDATE gd_member SET last_login=now(), cnt_login=cnt_login+1 WHERE m_id = #{m_id}
+	</update>
+	
+	<!-- // front_my_Box_List_1 (mypage 적립금, 총구매액 조회)-->
+	<select id="front_my_Box_List_1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+		SELECT a.emoney
+			 , a.sum_sale
+			 , a.cnt_sale
+			 , a.k_level
+			 , b.sno
+			 , b.grpnm
+			 , b.add_emoney
+		  FROM gd_member a
+		  LEFT JOIN gd_member_grp b ON a.k_level = b.k_level
+		 WHERE m_no = #{mno}
+	</select>
+	
+	<!-- // front_mypage_coupon_list_count (mypage 쿠폰갯수 조회)-->
+	<select id="front_mypage_coupon_list_count" resultType="int">
+		SELECT count(*) FROM
+		(
+		SELECT distinct a.sno,c.*,a.goodsno 
+		FROM
+			gd_coupon_apply a
+			LEFT JOIN gd_coupon_applymember b ON a.sno=b.applysno
+			LEFT JOIN gd_coupon c ON a.couponcd = c.couponcd
+			LEFT JOIN gd_coupon_category d ON c.couponcd = d.couponcd
+			LEFT JOIN gd_coupon_goodsno e ON c.couponcd = e.couponcd
+		WHERE
+		b.m_no = #{mno}
+		AND ((c.sdate &lt;= now() AND c.edate &gt;= now() AND c.priodtype='0') OR (c.priodtype='1' AND ADDDATE(a.regdt,INTERVAL c.sdate DAY) &gt;= curdate()))
+		AND (a.status = 1)
+		ORDER BY couponcd
+		) as coupon
+	</select>
+	
+	<!-- // 판매사 로그인 프로세스 -->
+	<select id="getSellerLoginCheck" resultType="com.wepinit.wepinit_shop.xmall.seller.login.vo.SellerLoginProcVO" >
+		/** com.wepinit.wepinit_shop.xmall.admin.dao.login.LoginMapper.getSellerLoginCheck */
+		SELECT 
+			a.sellerCd
+			, a.id
+			, a.status
+			, a.sellerNm
+			, a.companyRegNo
+			, a.agentNm
+			, a.businessConditions
+			, a.event
+			, a.homepage
+			, a.zipcode
+			, a.sellerAddr
+			, a.sellerAddrSub
+			, a.etc
+			, a.settlementCycle
+			, a.fees
+			, b.managerNm
+			, b.managerPosition
+			, b.managerTel
+			, b.managerHp
+			, b.managerFax
+			, b.managerEmail
+		 FROM gd_seller     a
+    	 left outer join 
+    		  gd_seller_mng b
+    	   on a.sellerCd = b.sellerCd
+		WHERE a.id = #{m_id} 
+			<if test=" null != password and '' != password ">
+				AND a.pwd = #{password}
+			</if>
+	</select>
+	
+	<select id="getGdSellerMngCount" resultType="int">
+		select count(*)
+		  from gd_seller_mng
+		 where sellerCd = #{sellerCd}	
+	</select>
+	
+	<select id="getGdSellerAccCount" resultType="int">
+		select count(*)
+		  from gd_seller_acc
+		 where sellerCd = #{sellerCd}
+	</select>
+	
+</mapper>
+

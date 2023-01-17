@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.event.FrontEventMapper">
+	<!-- 진행중인 이벤트 총카운트 -->
+	<select id="getFrontEventCount" resultType="int">
+		/* FrontEventMapper / getFrontEventCount */
+		SELECT 
+			count(*)
+		FROM gd_event
+		WHERE 1=1
+		AND edate >= CURDATE()+0
+		AND open = '1'
+		AND approvalStatus = '2'     /*승인코드 2 */
+		AND wview = 'y'
+		ORDER BY sno desc
+		
+
+	</select>
+	
+	
+	<!-- 진행중인 이벤트 리스트 -->
+	<select id="getFrontEventList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+		/* FrontEventMapper / getFrontEventList */
+		SELECT *
+		FROM gd_event
+		WHERE 1=1
+		AND edate >= CURDATE()+0
+		AND open = '1'
+		AND approvalStatus = '2'     /*승인코드 2 */
+		AND wview = 'y'
+		ORDER BY sno desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 진행중인 이벤트 상세 -->
+	<select id="getFrontEventObj" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+		/* FrontEventMapper / getFrontEventObj */
+		SELECT 
+			sno,subject,body,
+			date_format(sdate,"%Y.%m.%d") as sdate,
+			date_format(edate,"%Y.%m.%d") as edate,
+			tpl,size,page_num,cols,category,r_category,r_brand,wview,win,attach
+		FROM gd_event
+		WHERE sno = #{sno}
+	</select>
+	
+	
+	<!-- 종료된 이벤트 총카운트 -->
+	<select id="getFrontEventEndCount" resultType="int">
+		/* FrontEventMapper / getFrontEventEndCount */
+		SELECT 
+			count(*)
+		FROM 
+			gd_event
+		WHERE 1=1
+		AND edate &lt; CURDATE()+0
+		AND open = '1'
+		AND approvalStatus = '2'     /*승인코드 2 */
+	</select>
+	
+	<!-- 종료된 이벤트 리스트 -->
+	<select id="getFrontEventEndList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+		/* FrontGooFrontEventMapperdsMapper / getFrontEventEndList */
+		SELECT *
+		FROM gd_event
+		WHERE 1=1
+		AND edate &lt; CURDATE()+0
+		AND open = '1'
+		AND approvalStatus = '2'     /*승인코드 2 */
+		ORDER BY sno desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>	
+	
+	<!-- 이벤트메모 총카운트 -->
+	<select id="getFrontEventMemoCount" resultType="int">
+		/* FrontEventMapper / getFrontEventMemoCount */
+		SELECT count(*)
+		FROM gd_event_memo
+		WHERE sno = #{sno}
+	</select>
+	
+	<!-- 이벤트메모 리스트 -->
+	<select id="getFrontEventMemoList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEventMemo">
+		/* FrontEventMapper / getFrontEventMemoList */
+		SELECT eno, sno, id, body, date_format(regdt,"%Y.%m.%d") as regdt, pic
+		FROM gd_event_memo
+		WHERE sno = #{sno}
+		ORDER by eno desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>	
+	
+	
+	<!-- 이벤트메모 삭제 -->
+	<delete id="deleteEventMemo">
+		/* FrontEventMapper / deleteEventMemo */
+		DELETE from gd_event_memo
+		WHERE eno = #{eno}
+	</delete>	
+	
+	<!-- 이벤트메모 등록 -->
+	<insert id="insertEventMemo">
+		/* FrontEventMapper / insertEventMemo */
+		INSERT INTO gd_event_memo SET
+		sno = #{sno},
+		id = #{mid},
+		body = #{body},
+		regdt = now()
+	</insert>	
+	
+	<!-- 이벤트메모 수정 -->
+	<update id="updateEventMemo" >
+		UPDATE gd_event_memo SET
+		body = #{body1}
+		WHERE eno = #{eno}
+	</update>
+	
+	<select id="getFrontSurveyList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		/* FrontEventMapper / getFrontSurveyList */
+		SELECT surveySno
+			  ,surveyTitle
+			  ,sdate
+			  ,edate
+	 	  FROM gd_survey
+	 	 WHERE 1=1
+	 	   AND open='1'
+	 	   <![CDATA[
+	 	   AND (sdate <= CURDATE()+0 AND edate >= CURDATE()+0)
+	 	   ]]>
+	 	 ORDER BY surveySno desc
+		 LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<select id="getFrontSurveyEndList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.event.SurveyVO">
+		/* FrontEventMapper / getFrontSurveyEndList */
+		SELECT surveySno
+			  ,surveyTitle
+			  ,sdate
+			  ,edate
+		  FROM gd_survey
+		 WHERE 1=1
+		   AND open='1'
+		   <![CDATA[ 
+		   AND edate < CURDATE()+0
+		   ]]>
+		 ORDER BY surveySno desc
+		 LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 설문조사 투표 업데이트  -->
+	<update id="updateSurveyCnt" parameterType="map">
+		/* FrontEventMapper / updateSurveyCnt */
+		UPDATE gd_survey_question
+		   SET surveyCount = surveyCount + 1
+		 WHERE surveySno = #{surveySno} AND surveyNum = #{surveyNum}
+	</update>
+	
+	<!-- 투표한 회원정보 -->
+	<update id="updateSurveyMember" parameterType="map">
+		/* FrontEventMapper / updateSurveyMember */
+		INSERT gd_survey_member(surveySno ,surveyNum ,member ,regdt)
+		VALUES(#{surveySno} ,#{surveyNum} ,#{userNo} ,now())
+	</update>
+	
+	<!-- 설문조사 중복체크 확인 -->
+	<select id="surveyOnOff" resultType="int">
+		SELECT count(*)
+		  FROM gd_survey_member
+		 WHERE member = #{m_no} AND surveySno = #{surveySno}
+	</select> 
+	
+	
+	<!-- 설문조사 댓글 리스트 -->
+	<select id="getFrontSurveyCommentList" resultType="com.wepinit.wepinit_shop.xmall.front.vo.event.FrontSurveyCommentVO" parameterType="string">
+		/* FrontEventMapper / getFrontSurveyCommentLsit */
+		SELECT sno  
+			  ,surveySno
+			  ,id
+			  ,memo
+			  ,regdt
+		  FROM gd_survey_memo
+		 WHERE surveySno = #{sno}
+		 ORDER BY regdt DESC 	  
+	</select>
+	
+	<!-- 설문조사 댓글 삽입 -->
+	<insert id="insertSurveyMemo" parameterType="map">
+		/* FrontEventMapper / insertSurveyMemo */
+		INSERT gd_survey_memo(surveySno ,id ,memo ,regdt)
+		VALUES(#{surveySno} ,#{id} ,#{memo} ,now())
+	</insert>
+	
+	<!-- 설문조사 댓글 삭제 -->
+	<delete id="deleteSurveyMemo" parameterType="string">
+		/* FrontEventMapper / deleteSurveyMemo */
+		DELETE FROM gd_survey_memo
+		 WHERE sno = #{sno}
+	</delete> 
+	
+	<!-- 설문조사 댓글 수정 -->
+	<update id="updateSurveyMemo" parameterType="map">
+		/* FrontEventMapper / updateSurveyMemo */		
+		UPDATE gd_survey_memo
+		   SET memo = #{memo} , regdt = now()
+		 WHERE sno = #{sno} AND id = #{id}
+	</update>
+</mapper>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee  http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+
+<!--<taglib xmlns="http://java.sun.com/xml/ns/j2ee"-->
+<!--    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">-->
+
+    <tlib-version>1.1</tlib-version>
+<!--    <uri>ShopLibFunction</uri>-->
+    <short-name>ShopLibFunction</short-name>
+    
+    <function>
+    	<description>[설명] 상품이미지 설정</description>
+        <name>goodsimg</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String goodsimg(java.lang.String, java.lang.String, java.lang.String, int)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:goodsimg("","50,50","",4)}
+        </example>
+    </function> 
+    
+     <function>
+    	<description>코드반환</description>
+        <name>codeitem</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.util.List codeitem(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:codeitem("str")}
+        </example>
+    </function>
+      <function>
+    	<description>코드반환(Map)</description>
+        <name>codeitemMap</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.util.List codeitemMap(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:codeitemMap("str")}
+        </example>
+    </function>   
+    <function>
+    	<description>카테고리 단계</description>
+        <name>cateStep</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	int cateStep()
+        </function-signature>
+        <example>
+        	${shopLibFunction:cateStep()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>스텝별 주문 단계 가져오기</description>
+        <name>getStepMsg</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getStepMsg(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:getStepMsg("step", "step2", "orderno","itemsno")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>스텝별 주문 단계 가져오기2</description>
+        <name>r_stepi</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String r_stepi(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:r_stepi("step", "step2")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>프론트 스텝별 주문 단계 가져오기2</description>
+        <name>front_r_stepi</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String front_r_stepi(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:front_r_stepi("step", "step2")}
+        </example>
+    </function>
+    
+    <!-- 20191126 이현빈 주문상태 상세 값 문자형태출력 -->
+    <function>
+    	<description>제품 상세 상태 값</description>
+    	<name>r_istep</name>
+    	<function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+    	<function-signature>
+    		java.lang.String r_istep(java.lang.String)
+    	</function-signature>
+    	<example>
+    		${ShopLibFunction:r_istep("istep")}
+    	</example>
+    </function>
+    
+    
+<!-- whpark 20191108 -->    
+	<!-- <function>
+    	<description>제품 상세 상태 값</description>
+        <name>r_stepi_detail</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String r_stepi_detail(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:r_stepi_detail("istep", "invoice", "deliveryCompCd", "addDeliveryPrice")}
+        </example>
+    </function> -->
+    <function>
+    	<description>결제수단 한글명</description>
+        <name>r_settlekind</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String r_settlekind(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:r_settlekind("settlekind")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>gd_conf_set dim_val 반환</description>
+        <name>getProperty</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopConfig</function-class>
+        <function-signature>
+        	java.lang.String getProperty(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:getProperty("ecCode")}
+        </example>
+    </function>
+    
+     <function>
+    	<description>상품카테고리별 게시여부</description>
+        <name>getCateHideCnt</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	int getCateHideCnt(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:getCateHideCnt("001002")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>WEB_SKIN</description>
+        <name>wskin</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String wskin(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:wskin("http://kr.ritzmall.com/shop/main/index")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>WEB_SKIN</description>
+        <name>webSkin</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String webSkin(java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:webSkin("http://kr.ritzmall.com/shop/main/index")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>MOB_SKIN</description>
+        <name>mskin</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String mskin(java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:mskin()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>MOB_SKIN</description>
+        <name>mobSkin</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String mobSkin(java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:mobSkin()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>FRONT_GOODS_IMG_PATH</description>
+        <name>goodsImgPath</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String goodsImgPath()
+        </function-signature>
+        <example>
+        	/resources${shopLibFunction:goodsImgPath()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>Category Navi</description>
+        <name>getCurrPosition</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getCurrPosition(java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:getCurrPosition("001","1","en")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>Properties getProperties</description>
+        <name>getProperties</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getProperties(java.util.Properties, java.lang.String)
+        </function-signature>
+        <example>
+        	${ShopLibFunction:getProperties(Object,"1")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>addoptStr</description>
+        <name>addoptStr</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopUtil</function-class>
+        <function-signature>
+        	java.lang.String addoptStr(java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:addoptStr("1")}
+        </example>
+    </function>
+    
+	<function>
+    	<description>addopt</description>
+        <name>addopt</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopUtil</function-class>
+        <function-signature>
+        	java.lang.String addopt(java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:addoptStr("1")}
+        </example>
+    </function>
+
+	<function>
+    	<description>getDcprice</description>
+        <name>getDcprice</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	int getDcprice(java.lang.String, java.lang.String, int)
+        </function-signature>
+        <example>
+        	${shopLibFunction:addoptStr("100", "1", 100)}
+        </example>
+    </function>    
+    
+	<function>
+    	<description>상품 브랜드명 추출</description>
+        <name>getGoodsBrandName</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getGoodsBrandName(int)
+        </function-signature>
+        <example>
+        	${shopLibFunction:getGoodsBrandName(1)}
+        </example>
+    </function> 
+    
+	<function>
+    	<description>상품 카테고리 타이틀 반환</description>
+        <name>getGoodsDisplayTitle</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getGoodsDisplayTitle(int)
+        </function-signature>
+        <example>
+        	${shopLibFunction:getGoodsDisplayTitle(1)}
+        </example>
+    </function> 
+    
+	<function>
+    	<description>적립금 반환</description>
+        <name>getReserve</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	int getReserve(int)
+        </function-signature>
+        <example>
+        	${shopLibFunction:getReserve(1)}
+        </example>
+    </function>     
+    
+    <function>
+    	<description>통화/환율 적용 반환</description>
+        <name>getExchange</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	java.lang.String getExchange(int, java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:getExchange(149.99, "kr")}
+        </example>
+    </function>   
+    
+    <function>
+    	<description>배열값 확인</description>
+        <name>isContains</name>
+        <function-class>com.wepinit.wepinit_shop.xmall.common.ShopLibFunction</function-class>
+        <function-signature>
+        	boolean isContains(java.lang.String[], java.lang.String)
+        </function-signature>
+        <example>
+        	${shopLibFunction:isContains(brands, "gucci")}
+        </example>
+    </function>
+</taglib>

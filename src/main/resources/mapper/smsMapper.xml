@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.member.SmsMapper">
+	
+	<!-- SMS자동발송설정 -->
+	<select id="getGdSmsAutoSetList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAutoSet">
+		SELECT  *  FROM gd_sms_auto_set
+	</select>
+	
+	<!-- Config 정보 저장  -->
+	<update id="updateSmsAutoSet" >
+		UPDATE   
+			gd_sms_auto_set
+	   SET	msg_c		= #{msgC},
+			send_c	= #{sendC},
+			msg_a		= #{msgA},
+			send_a	= #{sendA},
+			send_m	= #{sendM}, 
+			regdt		= now()
+	  WHERE sms_type = #{smsType}
+	 </update>
+	 
+	 <!-- SMS자동발송설정 -->
+	<select id="getGdMemberGrpList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT 
+			grpnm, k_level, dc 
+			, ( SELECT count(*) sum FROM gd_member WHERE sms='y' AND mobile!='' AND a.k_level = k_level ) as smsCnt
+		FROM gd_member_grp a
+		order by k_level
+	</select>
+	 
+	 <!-- 2. SMS주소록 -->
+	 
+	 <!-- SMS주소록 그룹리스트 -->
+	<select id="getSmsAddressGroupList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAddress">
+		SELECT  /* smsMapper/getSmsAddressGroupList */
+			sms_grp 
+		FROM gd_sms_address  
+		GROUP BY sms_grp 
+		ORDER BY sms_grp ASC
+	</select>
+	
+	<!-- <select id="getSmsAddressCount" resultType="int">
+	SELECT /* smsMapper/getSmsAddressCount */
+		COUNT(sno) 
+	FROM gd_sms_address
+	WHERE 1 =1 
+	<include refid="getSmsAddressInclude"></include>
+	</select>
+	
+	<select id="getSmsAddressList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAddress">
+	SELECT  /* smsMapper/getSmsAddressList */
+			* 
+	FROM gd_sms_address
+	WHERE 1 =1 
+	<include refid="getSmsAddressInclude"></include>
+	<if test=" null != sort and '' != sort ">
+		ORDER BY ${sort}
+	</if>
+	LIMIT #{rowStart}, #{pageSize}
+	</select> -->
+	
+	<!-- 회원관리 >  SMS설정 > SMS주소록 > SMS주소록조회 -->
+	<select id="getGdSmsAddressInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAddress">
+	SELECT  /* smsMapper/getGdSmsAddressInfo */
+			* 
+	  FROM gd_sms_address
+	 WHERE sno= #{sno}
+	</select>
+	
+	<!-- 회원관리 > SMS설정 >  SMS주소록 > SMS주소록등록 -->
+	<insert id="insertSmsAddress">
+	INSERT INTO  /* smsMapper/insertSmsAddress */ 
+		   gd_sms_address 
+		   (sms_grp,sms_name,sms_mobile,sms_etc,sex,regdt) 
+	VALUES (#{smsGrp}, #{smsName}, #{smsMobile}, #{smsEtc}, #{sex}, NOW())
+	</insert>
+	
+	<!-- 회원관리 > 회원일괄관리 >  SMS주소록 > SMS주소록수정 -->
+	<update id="updateSmsAddress" >
+	UPDATE  /* smsMapper/updateSmsAddress */ 
+			gd_sms_address
+	   SET	sms_grp		= #{smsGrp},
+			sms_name	= #{smsName},
+			sms_mobile	= #{smsMobile},
+			sms_etc		= #{smsEtc},
+			sex			= #{sex},
+			moddt		= now()
+	  WHERE sno = #{sno}	
+	</update>
+	
+	<update id="deleteSmsAddress" >
+	DELETE  /* smsMapper/deleteSmsAddress */ 
+	  FROM gd_sms_address 
+	 WHERE sno in ( ${sno} )
+	</update>
+	
+	<!-- 회원관리 >  SMS설정 > SMS주소록 > 주소록조회 -->
+	<select id="getSmsAddressList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAddress">
+	SELECT  /* smsMapper/getSmsAddressList */
+			* 
+	  FROM gd_sms_address
+	 WHERE 1 =1 
+	 <choose>
+		<when test=" type == 6 ">
+			AND sno  IN 
+			<foreach item="item" index="index" collection="sno" open="(" separator="," close=")">
+        		#{item}
+  			</foreach>
+		</when>
+		<when test=" type == 7 ">
+			<include refid="getGdSmsAddressInclude"></include>
+		</when>
+		<otherwise></otherwise>
+	</choose>
+	 
+	</select>
+	
+	
+	 <!-- 3. SMS보내기 -->
+	<select id="getGdSmsAddressCount" resultType="int">
+	SELECT /* smsMapper/getSmsAddressCount */
+		COUNT(sno) 
+	FROM gd_sms_address
+	WHERE 1 =1 
+	<include refid="getGdSmsAddressInclude"></include>
+	</select>
+	
+	<select id="getGdSmsAddressList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsAddress">
+	SELECT  /* smsMapper/member_sms_adress_LIST */
+			* 
+	FROM gd_sms_address
+	WHERE 1 =1 
+	<include refid="getGdSmsAddressInclude"></include>
+	<choose>
+		<when test=" null != sort and '' != sort ">
+      		ORDER BY ${sort}
+    	</when>
+    	<otherwise>
+      		ORDER BY sno desc
+    	</otherwise>
+  	</choose>
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<sql id="getGdSmsAddressInclude">
+		<if test="skey != null and skey != '' and sword != null and sword != '' ">
+			<if test="skey == 'name' ">
+				AND sms_name LIKE concat('%', #{sword}, '%')
+			</if>	
+			<if test="skey == 'm_id' ">
+				AND sno LIKE concat('%', #{sword}, '%')
+			</if>
+			<if test="skey == 'all' ">
+				AND concat( sms_name , sms_mobile ) LIKE concat('%', #{sword}, '%')
+			</if>
+			<if test="skey == 'smsName' ">
+				AND sms_name LIKE concat('%', #{sword}, '%')
+			</if>
+			<if test="skey == 'smsMobile' ">
+				AND sms_mobile LIKE concat('%', #{sword}, '%')
+			</if>
+		</if>
+		<if test="slevel != null and slevel != '' ">
+			AND sms_grp = #{slevel}
+		</if>
+		<if test="sregdt_0 != null and sregdt_0 != '' and sregdt_1 != null and sregdt_1 != '' ">
+			AND regdt between date_format(#{sregdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test=" null != sex and '' != sex ">
+			AND sex = #{sex}
+		</if>
+	</sql>
+	
+	
+	
+	<select id="getGdSmsSampleCount" resultType="int">
+	SELECT  /* smsMapper/getGdSmsSampleCount */
+		COUNT(sno) 
+		  FROM gd_sms_sample
+	WHERE 1 =1 
+	<if test=" null != category and '' != category ">
+		AND category = #{category}
+	</if>
+	</select>
+	
+	<select id="getGdSmsSampleList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsSample">
+	SELECT  /* smsMapper/getGdSmsSampleList */
+			* 
+	FROM gd_sms_sample
+	WHERE 1 =1 
+	<if test=" null != category and '' != category ">
+		AND category = #{category}
+	</if>
+	ORDER BY sort
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- SMS문자예제조회-->
+	<select id="getSmsSampleInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdSmsSample">
+	SELECT /* smsMapper/getSmsSampleInfo */ 
+		   * 
+	FROM gd_sms_sample 
+	WHERE sno = #{sno}
+	</select>
+	
+	<!-- SMS문자예제 등록 -->
+	<insert id="insertSmsSample">
+	INSERT INTO /* smsMapper/insertSmsSample */  
+		gd_sms_sample
+	SET 
+		category	= #{category},
+		subject	= #{subject},
+		msg		= #{msg},
+		sort		= -unix_timestamp()
+	</insert>
+	
+	<!-- SMS문자예제 수정 -->
+	<update id="updateSmsSample" >
+	UPDATE  /* smsMapper/updateSmsSample */ 
+		gd_sms_sample
+	SET category		= #{category},
+		subject		= #{subject},
+		msg			= #{msg}
+	WHERE sno = #{sno}
+	</update>
+	
+	<!-- 회원그룹정보조회 -->
+	<select id="getGdMemberGrpInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT 
+			*
+		FROM gd_member_grp
+		WHERE k_level = #{klevel}
+	</select>
+	
+	<!-- SMS 발송 -->
+	<insert id="smsSend">
+		INSERT INTO MSG_DATA 
+			set 
+			CUR_STAT = 0, 
+			SENT_DATE	= now(), 
+			RSLT_CODE2 = '0', 
+			CALL_TO = #{callTo}, 
+			CALL_FROM = #{callFrom}, 
+			SMS_TXT = #{smsTxt}, 
+			MSG_TYPE = #{smsType}
+	</insert>
+	
+	<!-- SMS 발송 히스토리 -->
+	<insert id="smsLog">
+		INSERT INTO gd_sms_log 
+			set msg = #{msg}, 
+			type	= #{type}, 
+			to_tran = #{toTran}, 
+			cnt = #{cnt}, 
+			regdt	= now(),
+			sellerCd = #{sellerCd}
+	</insert>
+	 
+	 <!-- 판매사 리스트 -->
+	<select id="getSellerAddressGroupListCount" resultType="int">
+	select /* smsMapper/getSellerAddressGroupListCount */
+		count(*) 
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	 	    on a.sellerCd = b.sellerCd
+	 left join gd_seller_acc c
+			on a.sellerCd = c.sellerCd
+		 where 1 = 1
+	<if test="schType == 'sellerNm' ">
+		and a.sellerNm LIKE concat('%', #{schWord}, '%')
+	</if>	
+	<if test="schType == 'managerNm' ">
+		and b.managerNm LIKE concat('%', #{schWord}, '%')
+	</if>
+	</select>
+	 
+	<select id="getSellerAddressGroupList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementVO">
+		select  /* smsMapper/getSellerAddressGroupList */
+			* 
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	 	    on a.sellerCd = b.sellerCd
+	 left join gd_seller_acc c
+			on a.sellerCd = c.sellerCd
+		 where 1 = 1
+	<if test="schType == 'sellerNm' ">
+		and a.sellerNm LIKE concat('%', #{schWord}, '%')
+	</if>	
+	<if test="schType == 'managerNm' ">
+		and b.managerNm LIKE concat('%', #{schWord}, '%')
+	</if>
+		 order by a.regdt desc
+	     LIMIT #{rowStart}, #{pageSize}
+	</select>
+	 
+</mapper>
+

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.member.dao.SellerEmailMapper">
+
+	<!-- SMS발송리스트(Count)-->
+	<select id="getSellerEmailListCount" resultType="int">
+		select count(*) 
+	  	  from gd_emailer
+	  	 where 1 = 1
+		<if test="sword != null and sword != '' and skey == 'all'">
+	   		and ( to_name like concat('%',#{sword},'%')
+	   		 or  to_email like concat('%',#{sword},'%')
+	   		 or from_name like concat('%',#{sword},'%')
+	   		 or from_email like concat('%',#{sword},'%')
+	   		 or subject like concat('%',#{sword},'%')
+	   		 or contents like concat('%',#{sword},'%')
+	       		)
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sToName'">
+			and to_name like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sToEmail'">
+			and to_email like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sFromName'">
+			and from_name like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sFromEmail'">
+			and from_email like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sSubject'">
+			and subject like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sContents'">
+			and contents like concat('%',#{sword},'%')
+		</if>
+	</select>
+
+	<!-- SMS발송리스트-->
+	<select id="getSellerEmailList" resultType="com.wepinit.wepinit_shop.xmall.seller.member.vo.SellerEmailVO">
+		select mno
+		     , to_name
+		     , to_email
+		     , from_name
+		     , from_email
+		     , subject
+		     , etc1
+		     , etc2
+		     , etc3
+		     , contents
+		     , tran_yn
+		     , tran_dt
+		     , reg_dt
+		     , recv_yn
+		     , recv_dt
+		  from gd_emailer
+		 where 1 = 1
+		<if test="sword != null and sword != '' and skey == 'all'">
+	   		and ( to_name like concat('%',#{sword},'%')
+	   		 or  to_email like concat('%',#{sword},'%')
+	   		 or from_name like concat('%',#{sword},'%')
+	   		 or from_email like concat('%',#{sword},'%')
+	   		 or subject like concat('%',#{sword},'%')
+	   		 or contents like concat('%',#{sword},'%')
+	       		)
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sToName'">
+			and to_name like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sToEmail'">
+			and to_email like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sFromName'">
+			and from_name like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sFromEmail'">
+			and from_email like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sSubject'">
+			and subject like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and sword != '' and skey == 'sContents'">
+			and contents like concat('%',#{sword},'%')
+		</if>
+		 order by reg_dt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	 
+	<!-- 파워 메일 - 보낸 메일 등록  -->
+	<insert id="insertGdEmailer">
+	INSERT INTO gd_emailer(
+		to_name,
+		to_email,
+		from_name,
+		from_email,
+		subject, 
+		<if test="contents != null and contents != '' ">
+		contents,
+		</if>
+		reg_dt,
+		tran_dt,
+		recv_dt
+		) VALUES (
+		#{toname},
+		#{toemail},
+		#{fromname},
+		#{fromemail},
+		#{subject},
+		<if test="contents != null and contents != '' ">
+		#{contents},
+		</if>
+		NOW(),
+		NOW(),
+		NOW()
+		)
+	</insert>
+	 
+</mapper>
+

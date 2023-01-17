@@ -1,0 +1,50 @@
+﻿{*** 카테고리메뉴 | proc/menuCategory.php ***}
+
+<div style="font-color:red">
+<!--{ ? _cfg.subCategory != 2 // 1단 또는 서브레이어 출력 유형 }-->
+<div style="padding:5 10">
+<table width="100%" cellpadding=0 cellpadding=0 border=0 id=menuLayer>
+<!--{ @ dataCategory( _cfg.subCategory, 1 ) }-->
+<tr>
+<td width=100% height=25><a href="../goods/goods_list.php?category={.category}">{.catnm}</a></td>
+<td>
+<!--{ ? .sub }-->
+<div style="position:relative"><div class=subLayer><table width=100% cellspacing=1>
+<!--{ @ .sub }-->
+<tr><td nowrap style="padding-top:3Px"><a href="../goods/goods_list.php?category={..category}">{..catnm}</a></td></tr>
+<!--{ ? ..index_!=..size_-1 }--><tr><td height=1 bgcolor=#efefef></td></tr><!--{ / }-->
+<!--{ / }-->
+</table></div></div>
+<!--{ / }-->
+</td>
+</tr>
+<!--{ / }-->
+</table>
+<!--{ ? _cfg.subCategory }-->
+<script>execSubLayer();</script>
+<!--{ / }-->
+</div>	
+<!--{ : // 1,2단 동시 메뉴 출력 유형 }-->	
+<table width=100% cellpadding=0 cellspacing=0>
+<!--{ @ dataCategory( _cfg.subCategory, 1 ) }-->
+<tr>
+<td height=25 style="padding-left:10px;font-weight:bold"><a href="../goods/goods_list.php?category={.category}">{.catnm}</a></td>
+</tr>
+<!--{ ? .sub }-->
+<tr>
+<td bgcolor=#f7f7f7 style="padding:5px">
+
+<table>
+<!--{ @ .sub }-->
+<tr><td>- <a href="../goods/goods_list.php?category={..category}">{..catnm}</a></td></tr>
+<!--{ / }-->
+</table>
+
+</td>
+</tr>
+<!--{ / }-->
+<!--{ / }-->
+<tr><td height=10></td></tr>
+</table>
+<!--{ / }-->
+</div>

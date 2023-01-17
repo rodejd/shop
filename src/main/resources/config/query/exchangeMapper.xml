@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.basic.ExchangeMapper">
+	
+	<!-- 통화/환율 History 목록 select -->
+	<select id="getExchangeList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.ExchangeVO">
+		SELECT sno, kr, en, cn, regdt
+		FROM gd_log_exchange
+		WHERE 1=1
+		<if test="sregdt0 != null and sregdt0 != ''">
+		    <![CDATA[AND CAST(LEFT(DATE_FORMAT(regdt,'%Y%m%d%H%i%s'), 8) AS UNSIGNED) >= #{sregdt0}]]>
+		</if>
+		<if test="sregdt1 != null and sregdt1 != ''">
+		    <![CDATA[AND CAST(LEFT(DATE_FORMAT(regdt,'%Y%m%d%H%i%s'), 8) AS UNSIGNED) <= #{sregdt1}]]>
+		</if>
+		ORDER BY sno DESC LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 통화/환율 History 카운트 -->
+	<select id="getExchangeCount" resultType="int">
+		SELECT COUNT(*)
+		FROM gd_log_exchange
+		WHERE 1=1
+		<if test="sregdt0 != null and sregdt0 != ''">
+		    <![CDATA[AND CAST(LEFT(DATE_FORMAT(regdt,'%Y%m%d%H%i%s'), 8) AS UNSIGNED) >= #{sregdt0}]]>
+		</if>
+		<if test="sregdt1 != null and sregdt1 != ''">
+		    <![CDATA[AND CAST(LEFT(DATE_FORMAT(regdt,'%Y%m%d%H%i%s'), 8) AS UNSIGNED) <= #{sregdt1}]]>
+		</if>
+	</select>
+	
+	<!-- 통화/환율 History 등록 -->
+	<insert id="insertExchange">
+		INSERT INTO gd_log_exchange
+		SET kr = #{kr},
+			en = ${en},
+			cn = #{cn},
+			regdt = now()
+	</insert>	
+	
+</mapper>
+

@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.member.MemberMapper">
+
+	<!-- 회원관리_회원리스트_선택학회원정보삭제 -->
+	<delete id="deleteMember">
+		DELETE FROM gd_member WHERE m_id = #{m_id}
+	</delete>
+	
+	<!-- 회원리스트 총 건수 -->	
+	<select id="getMemberTotalCount" resultType="int">
+		SELECT count(*) 
+		  FROM gd_member a
+		  LEFT JOIN( SELECT m_no
+						  , COUNT(*) orddt_cnt
+					   FROM gd_order
+					  WHERE 1=1
+						<if test=" ( null != sorderdt_0 and '' != sorderdt_0 ) or ( null != sorderdt_1 and '' != sorderdt_1 ) ">
+							<choose>
+								<when test=" ( null != sorderdt_0 and '' != sorderdt_0 ) and ( null != sorderdt_1 and '' != sorderdt_1 )  ">
+						      		AND date_format(orddt,"%Y%m%d") between #{sorderdt_0} AND #{sorderdt_1} 
+						    	</when>
+						    	<when test=" '' == sorderdt_1 ">
+						      		AND date_format(orddt,"%Y%m%d") &gt;= #{sorderdt_0}
+						    	</when>
+						    	<otherwise>
+						      		AND date_format(orddt,"%Y%m%d") &lt;= #{sorderdt_1}
+						    	</otherwise>
+						  	</choose>			
+						</if>
+					  GROUP BY m_no
+				)b ON a.m_no = b.m_no
+		  LEFT JOIN( SELECT m_no
+						  , agent
+						  , sum(case when agent = 'W' then cnt ELSE 0 END) wcnt
+						  , sum(case when agent = 'M' then cnt ELSE 0 END) mcnt
+						  , sum(case when agent = 'A' then cnt ELSE 0 END) acnt
+						  , sum(cnt) tcnt
+						FROM (
+						SELECT m_no
+							  , agent
+							  , COUNT(*) cnt
+						   FROM gd_member_log
+						  WHERE 1=1
+						GROUP BY m_no, agent
+					)z
+			)c ON a.m_no = b.m_no
+		WHERE a.m_id != 'admin'
+	</select>
+	
+	<!-- 회원관리 회원정보 조회(mid) -->
+	<select id="getMemberInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	  SELECT * 
+		FROM gd_member a
+		LEFT JOIN (
+			SELECT l.m_no
+				 , l.lwdt
+				 , l.lmdt
+				 , l.ladt
+				 , o.owdt
+				 , o.omdt
+				 , o.oadt
+			  FROM (
+				SELECT m_no
+					 , MAX(CASE WHEN agent = 'W' THEN regdt ELSE NULL END) lwdt
+					 , MAX(CASE WHEN agent = 'M' THEN regdt ELSE NULL END) lmdt
+					 , MAX(CASE WHEN agent = 'A' THEN regdt ELSE NULL END) ladt
+				FROM(
+					SELECT m_no
+						  , agent
+						  , MAX(regdt) regdt
+					  FROM gd_member_log
+					 WHERE m_no = (SELECT m_no FROM gd_member WHERE m_id = #{mid})
+					GROUP BY m_no,agent
+				)t
+			)l,
+			(
+				SELECT m_no
+					 , MAX(CASE WHEN agent = 'W' THEN orddt ELSE NULL END) owdt
+					 , MAX(CASE WHEN agent = 'M' THEN orddt ELSE NULL END) omdt
+					 , MAX(CASE WHEN agent = 'A' THEN orddt ELSE NULL END) oadt
+				FROM(
+					SELECT m_no
+						  , agent
+						  , MAX(orddt) orddt
+					  FROM gd_order
+					 WHERE m_no = (SELECT m_no FROM gd_member WHERE m_id = #{mid})
+					GROUP BY m_no,agent
+				)t
+			)o
+		)b ON a.m_no = b.m_no 
+		WHERE a.m_id = #{mid}
+	</select>
+	
+	<!-- 회원관리 회원정보 조회(mno) -->
+	<select id="getMemberInfoMno" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * FROM gd_member
+		WHERE m_no = #{mno}
+	</select>
+	
+	<!-- 회원관리 회원정보 수정 -->
+	<update id="updateMemberInfo">
+		UPDATE gd_member SET 
+					status = #{status},
+					name		= #{name},
+					<if test='modpass == "Y" '>
+					password = password(#{password}),
+					</if>
+					<if test="nickname != null and nickname != '' ">
+						nickname	= #{nickname},
+					</if>
+					<if test='modsex == "Y"  '>
+						sex = #{chgsex},
+					</if>			
+					k_level		= #{klevel},
+					<if test="birthyear != null and birthyear != '' ">
+						birth_year	= #{birthyear},
+					</if>
+					<if test="birth != null and birth != '' ">
+						birth		= #{strbirth},
+					</if>
+					<if test="email != null and email != '' ">
+						email		= #{email},
+					</if>
+					mailling	= #{mailling},
+					<if test="zipcode != null and zipcode != '' ">
+						zipcode		= #{zipcode},
+					</if>
+					<if test="address != null and address != '' ">
+						address		= #{address},
+					</if>
+					<if test="addresssub != null and addresssub != '' ">
+						address_sub	= #{addresssub},
+					</if>
+					<if test="mobilec != null and mobilec != '' ">
+						mobilec		= #{mobilec},
+					</if>
+					<if test="strmobile != null and strmobile != '' ">
+						mobile		= #{strmobile},
+					</if>
+					marriyn		= #{marriyn},
+					<if test='marridates != null '>
+						marridate	= #{marridates},
+					</if>
+					<if test="valinterest != null">
+						interest		= #{valinterest},
+					</if>
+					<if test="diszipcode != null and diszipcode != '' ">
+						diszipcode		= #{diszipcode},
+					</if>
+					<if test="disaddress != null and disaddress != '' ">
+						disaddress		= #{disaddress},
+					</if>
+					<if test="disaddresssub != null and disaddresssub != '' ">
+						disaddresssub	= #{disaddresssub},
+					</if>
+					sms			= #{sms},
+					customs_num	= #{customsnum}
+		WHERE m_id = #{mid}
+	</update>
+	
+	<!-- 회원관리 회원 단건 삭제 -->
+	<delete id="deleteMemberInfo">
+		DELETE FROM gd_member
+		WHERE m_no = #{mno}
+	</delete>
+	
+	<!-- 회원관리 삭제회원정보 로그 등록 -->
+	<insert id="insertLogHackMember">
+		INSERT INTO gd_log_hack (
+			m_id, 
+			name, 
+			actor, 
+			reason,
+			ip, 
+			regdt, 
+			adminMemo,
+			skin,
+			k_level,
+			customs_num
+		) VALUES (
+			#{mid}, 
+			#{name}, 
+			'0', 
+			'',
+			#{ip}, 
+			now(), 
+			'',
+			#{skin},
+			#{klevel},
+			#{customsnum}
+			)
+	</insert>
+	
+	<!-- 회원관리 적립금 조회(gd_member 테이블)  -->
+	<select id="getMemberEmoneyInfo" resultType="map">
+		SELECT * 
+		  FROM gd_member a
+		  LEFT JOIN gd_member_grp b ON a.k_level=b.k_level
+		WHERE a.m_no=#{mno}
+	</select>
+	
+	<!-- 회원관리 적립금 내역 건수 -->
+	<select id="getMemberLogEmoneyCount" resultType="int">
+		SELECT count(*)
+		FROM gd_log_emoney
+		WHERE m_no=#{mno}
+	</select>	
+
+	<!-- 회원관리 적립금 내역 조회 -->
+	<select id="getMemberLogEmoney" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdLogEmoney">
+		SELECT *
+		FROM gd_log_emoney
+		WHERE m_no=#{mno}
+		ORDER BY regdt DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 회원조회 적립 내역 INSERT -->
+	<insert id="insertMemberLogEmoney">
+		INSERT 
+		  INTO gd_log_emoney
+			 ( m_no
+			 , gbn
+			 , emoney
+			 , memo
+			 , regdt
+			 )
+		VALUES
+			 ( #{mno}
+			 , #{gbn}
+			 , #{emoney}
+			 , #{memo}
+			 , sysdate()
+			 )
+	</insert>
+	
+	<!-- 회원조회 적립금 적립/차감 -->
+	<update id="updateMemberEmoney">
+		UPDATE /* memberMapper/updateMemberEmoney */ gd_member 
+ 			SET emoney = emoney + #{emoney}
+		WHERE m_no = #{mno}
+	</update>
+	
+	<!-- 회원 적립금 단건 조회(gd_log_emoney) -->
+	<select id="getMemberLogEmoneyInfo" resultType="map">
+		SELECT m_no as mno, emoney 	FROM gd_log_emoney
+		WHERE sno = #{sno}
+	</select>
+	
+	<!-- 회원 적립금 단건 삭제 -->
+	<delete id="deleteMemberLogEmoney">
+		DELETE FROM gd_log_emoney
+		WHERE sno = #{sno}
+	</delete>
+	
+	<!-- 회원조회 주문내역 건수 -->
+	<select id="getMemberOrderListCount" resultType="int">
+		SELECT count(*) FROM gd_order
+		WHERE m_no=#{mno}
+	</select>
+	
+	<!-- 회원조회 주문내역 조회 -->
+	<select id="getMemberOrderList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrder">
+		SELECT * FROM gd_order
+		WHERE m_no=#{mno}
+		ORDER BY ordno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 회원관리 > 회원탈퇴 > 회원탈퇴 리스트 총갯수 -->
+	<select id="memberHackTotalCnt" resultType="int">
+		SELECT count(sno) 
+		  FROM gd_log_hack 
+	</select>
+	
+	<!-- 회원관리 > 회원탈퇴 > 회원탈퇴 리스트 갯수 -->
+	<select id="memberHackCnt" resultType="int">
+		SELECT count(sno) 
+		  FROM gd_log_hack
+		 WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(m_id, name) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test="vo.schSkin != null and vo.schSkin != '' ">
+			AND skin = #{vo.schSkin}
+		</if>
+		<if test="vo.sactor != null and vo.sactor != '' ">
+			AND actor = #{vo.sactor}
+		</if>
+		<if test="vo.sactor != null and vo.sactor != '' ">
+			AND actor = #{vo.sactor}
+		</if>
+		<if test="vo.slevel != null and vo.slevel != '' ">
+			AND k_level = #{vo.slevel}
+		</if>
+		<if test="vo.sregdt1 != null and vo.sregdt1 != '' and vo.sregdt2 != null and vo.sregdt2 != '' ">
+			AND regdt between date_format(#{vo.sregdt1}, '%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt2},'%Y-%m-%d 23:59:59')
+		</if>
+	</select>
+	
+	<!-- 회원관리 > 회원탈퇴 > 회원탈퇴 리스트 검색  목록 -->
+	<select id="memberHackList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdLogHack">
+		SELECT *
+		  FROM gd_log_hack
+		 WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(m_id, name) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test="vo.schSkin != null and vo.schSkin != '' ">
+			AND skin = #{vo.schSkin}
+		</if>
+		<if test="vo.sactor != null and vo.sactor != '' ">
+			AND actor = #{vo.sactor}
+		</if>
+		<if test="vo.sactor != null and vo.sactor != '' ">
+			AND actor = #{vo.sactor}
+		</if>
+		<if test="vo.slevel != null and vo.slevel != '' ">
+			AND k_level = #{vo.slevel}
+		</if>
+		<if test="vo.sregdt1 != null and vo.sregdt1 != '' and vo.sregdt2 != null and vo.sregdt2 != '' ">
+			AND regdt between date_format(#{vo.sregdt1}, '%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt2},'%Y-%m-%d 23:59:59')
+		</if>
+		ORDER BY ${vo.sort} 
+		LIMIT #{vo.rowStart}, #{vo.pageSize}
+	</select>
+	
+	<!-- 회원관리 > 회원탈퇴 >  회원탈퇴내역 내용삭제 -->
+	<delete id="memberHackDelete">
+		DELETE FROM gd_log_hack WHERE sno = #{sno}
+	</delete>
+	
+	<!-- 회원관리 > 회원탈퇴 >  회원탈퇴내역 상세내용(팝업) 내용저장 -->
+	<update id="memberHackUpdate">
+		UPDATE 
+			gd_log_hack
+		SET reason		= #{reason},
+			adminMemo	= #{adminMemo}
+		WHERE sno = #{sno}
+	</update>
+
+	<!-- 회원관리 > 회원탈퇴 >  회원탈퇴내역 상세내용(팝업) -->
+	<select id="memberHackQuery" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdLogHack">
+		SELECT * FROM gd_log_hack WHERE sno = #{sno}
+	</select>
+	
+	<select id="getMemberSrchCount" resultType="int">
+	SELECT /* memberMapper/getMemberSrchCount */
+		COUNT(m_no) 
+	FROM gd_member
+	WHERE 1 =1 
+	<if test="schType == 'name' ">
+		AND name LIKE concat('%', #{schWord}, '%')
+	</if>	
+	<if test="schType == 'm_id' ">
+		AND m_id LIKE concat('%', #{schWord}, '%')
+	</if>
+	</select>
+	
+	<select id="getMemberSrchList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	SELECT  /* memberMapper/getMemberSrchCount */
+			* 
+	FROM gd_member
+	WHERE 1 =1 
+	<if test="schType == 'name' ">
+		AND name LIKE concat('%', #{schWord}, '%')
+	</if>	
+	<if test="schType == 'm_id' ">
+		AND m_id LIKE concat('%', #{schWord}, '%')
+	</if>
+	ORDER BY m_no desc
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 회원 그룹별 SMS 발송가능한 리스트조회 -->
+	<select id="getMemberSMSList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	SELECT /* memberMapper/getMemberSMSList */
+		*
+	FROM gd_member
+	WHERE 1 =1
+		AND  sms='y'
+		AND mobile!=''
+		<choose>
+		<when test=" type == 2 or type == 3 ">
+			<if test=" klevel != 0 ">
+				AND k_level = #{klevel}
+			</if>
+		</when>
+		<when test=" type == 4 ">
+			AND m_no  IN 
+			<foreach item="item" index="index" collection="chk" open="(" separator="," close=")">
+        		#{item}
+  			</foreach>
+		</when>
+		<when test=" type == 5 ">
+			<include refid="getMemberInclude"></include>
+		</when>
+		<otherwise></otherwise>
+		</choose>
+	</select>
+	
+	<!-- 회원일괄관리 > 적립금일괄지급/차감, 회원그룹일괄변경, 회원승인상태 (조회) -->
+	<select id="getMemberBatchList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	SELECT /* memberMapper/getMemberBatchList */
+		*
+	FROM gd_member
+	WHERE 1 =1
+		<choose>
+		<when test=" type == 4 ">
+			AND m_no  IN 
+			<foreach item="item" index="index" collection="chk" open="(" separator="," close=")">
+        		#{item}
+  			</foreach>
+		</when>
+		<when test=" type == 5 ">
+			<include refid="getMemberInclude"></include>
+		</when>
+		<otherwise></otherwise>
+		</choose>
+	</select>
+	
+	
+	<!-- 회원관리 > 회원일괄관리 > SMS일괄발송(공통) -->
+	<select id="getMemberCount" resultType="int">
+	SELECT /* memberMapper/getMemberCount */
+		COUNT(a.m_no) 
+	FROM gd_member a
+	LEFT JOIN( SELECT m_no
+					  , COUNT(*) orddt_cnt
+				   FROM gd_order
+				   WHERE 1=1
+					<if test=" ( null != sorderdt_0 and '' != sorderdt_0 ) or ( null != sorderdt_1 and '' != sorderdt_1 ) ">
+						<choose>
+							<when test=" ( null != sorderdt_0 and '' != sorderdt_0 ) and ( null != sorderdt_1 and '' != sorderdt_1 )  ">
+					      		AND date_format(orddt,"%Y%m%d") between #{sorderdt_0} AND #{sorderdt_1} 
+					    	</when>
+					    	<when test=" '' == sorderdt_1 ">
+					      		AND date_format(orddt,"%Y%m%d") &gt;= #{sorderdt_0}
+					    	</when>
+					    	<otherwise>
+					      		AND date_format(orddt,"%Y%m%d") &lt;= #{sorderdt_1}
+					    	</otherwise>
+					  	</choose>			
+					</if>
+				  GROUP BY m_no
+			)b ON a.m_no = b.m_no
+	  LEFT JOIN( SELECT m_no
+					  , agent
+					  , sum(case when agent = 'W' then cnt ELSE 0 END) wcnt
+					  , sum(case when agent = 'M' then cnt ELSE 0 END) mcnt
+					  , sum(case when agent = 'A' then cnt ELSE 0 END) acnt
+					  , sum(cnt) tcnt
+					FROM (
+					SELECT m_no
+						  , agent
+						  , COUNT(*) cnt
+					   FROM gd_member_log
+					  WHERE 1=1
+					GROUP BY m_no, agent
+				)z
+		)c ON a.m_no = b.m_no
+	WHERE 1 =1
+	<include refid="getMemberInclude"></include>
+		
+	</select>
+	
+	<select id="getMemberList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	SELECT  /* memberMapper/getMemberList */
+			a.* 
+		, IFNULL(c.wcnt,0) wcnt
+		, IFNULL(c.mcnt,0) mcnt
+		, IFNULL(c.acnt,0) acnt
+		, IFNULL(c.tcnt,0) tcnt
+	  FROM gd_member a
+	  LEFT JOIN( SELECT m_no
+					  , COUNT(*) orddt_cnt
+				   FROM gd_order
+				  WHERE 1=1
+					<if test=" ( null != sorderdt_0 and '' != sorderdt_0 ) or ( null != sorderdt_1 and '' != sorderdt_1 ) ">
+						<choose>
+							<when test=" ( null != sorderdt_0 and '' != sorderdt_0 ) and ( null != sorderdt_1 and '' != sorderdt_1 )  ">
+					      		AND date_format(orddt,"%Y%m%d") between #{sorderdt_0} AND #{sorderdt_1} 
+					    	</when>
+					    	<when test=" '' == sorderdt_1 ">
+					      		AND date_format(orddt,"%Y%m%d") &gt;= #{sorderdt_0}
+					    	</when>
+					    	<otherwise>
+					      		AND date_format(orddt,"%Y%m%d") &lt;= #{sorderdt_1}
+					    	</otherwise>
+					  	</choose>			
+					</if>
+				  GROUP BY m_no
+			)b ON a.m_no = b.m_no
+	  LEFT JOIN( SELECT m_no
+					  , agent
+					  , sum(case when agent = 'W' then cnt ELSE 0 END) wcnt
+					  , sum(case when agent = 'M' then cnt ELSE 0 END) mcnt
+					  , sum(case when agent = 'A' then cnt ELSE 0 END) acnt
+					  , sum(cnt) tcnt
+					FROM (
+					SELECT m_no
+						  , agent
+						  , COUNT(*) cnt
+					   FROM gd_member_log
+					  WHERE 1=1
+					GROUP BY m_no, agent
+				)z
+			)c ON a.m_no = b.m_no
+	WHERE 1 =1 
+	<include refid="getMemberInclude"></include>
+	<if test=" null != sort and '' != sort ">
+		ORDER BY ${sort}
+	</if>	
+	LIMIT #{rowStart}, #{pageSize}
+	</select>
+	<select id="getMemberListSendMail" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	SELECT  /* memberMapper/getMemberList */
+			* 
+	FROM gd_member
+	WHERE 1 =1 
+	<include refid="getMemberInclude"></include>
+	<if test=" null != sort and '' != sort ">
+		ORDER BY ${sort}
+	</if>	
+	</select>
+	
+	<select id="getEmailChkList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	select name, email from gd_member where email in (#{email})
+	</select>	
+	<select id="getEmailChkListMno" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+	select name, email from gd_member where m_no in (${toEmail})
+	</select>
+	
+	
+	<sql id="getMemberInclude">
+		AND m_id != 'admin'
+		<!-- 1줄 -->
+		<if test=" (null != skey and '' != skey) and (null != sword and '' != sword) ">
+			<choose>
+				<when test=" skey == 'resno' and ( null != resno1 and null != resno2 ) ">
+		      		AND resno1=md5( #{resno1} ) AND resno2=md5( #{resno2} )
+		    	</when>
+		    	<when test=" skey == 'all' ">
+		      		AND ( concat( m_id, name ) like concat('%', #{sword} , '%') )
+		    	</when>
+		    	<otherwise>
+		      		AND ${skey} = #{sword}
+		    	</otherwise>
+		  	</choose>
+		</if>
+		
+		<if test=" null != sstatus and '' != sstatus ">
+			AND status = #{sstatus}
+		</if>
+		<if test=" null != slevel and '' != slevel ">
+			AND k_level = #{slevel}
+		</if>
+		<!-- 2줄 -->
+		<if test=" (null != ssum_salemin and '' != ssum_salemin) or (null != ssum_salemax and '' != ssum_salemax) ">
+			<choose>
+				<when test=" ( null != ssum_salemin and '' != ssum_salemin ) and ( null != ssum_salemax and '' != ssum_salemax )  ">
+		      		AND sum_sale between #{ssum_salemin} and #{ssum_salemax} 
+		    	</when>
+		    	<when test=" '' == ssum_salemax ">
+		      		AND sum_sale &gt;= #{ssum_salemin}
+		    	</when>
+		    	<otherwise>
+		      		AND sum_sale &lt;= #{ssum_salemax}
+		    	</otherwise>
+		  	</choose>
+		</if>
+		<if test=" (null != semoneymin and '' != semoneymin) or (null != semoneymax and '' != semoneymax) ">
+			<choose>
+				<when test=" ( null != semoneymin and '' != semoneymin ) and ( null != semoneymax and '' != semoneymax )  ">
+		      		AND emoney between #{semoneymin} and #{semoneymax} 
+		    	</when>
+		    	<when test=" '' == semoneymax ">
+		      		AND emoney &gt;= #{semoneymin}
+		    	</when>
+		    	<otherwise>
+		      		AND emoney &lt;= #{semoneymax}
+		    	</otherwise>
+		  	</choose>
+		</if>
+		<!-- 3줄 -->
+		<if test="sregdt_0 != null and sregdt_0 != '' and sregdt_1 != null and sregdt_1 != '' ">
+			AND regdt between date_format(#{sregdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="slastdt_0 != null and slastdt_0 != '' and slastdt_1 != null and slastdt_1 != '' ">
+			AND last_login between date_format(#{slastdt_0}, '%Y-%m-%d 00:00:00') and date_format(#{slastdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<!-- 4줄 -->
+		<if test=" null != sex and '' != sex ">
+			AND sex = #{sex}
+		</if>
+		<if test=" null != sage and '' != sage ">
+			<if test=" sage == '60' ">
+				AND right(birth_year,2) &lt; #{age1}
+			</if>
+			<if test=" sage != '60' ">
+				AND right(birth_year,2) between #{age1} and #{age0}
+			</if>
+		</if>
+		<if test=" null != mailling and '' != mailling ">
+			AND mailling = #{mailling}
+		</if>
+		
+		<if test=" ( null != scnt_loginmin and '' != scnt_loginmin ) or ( null != scnt_loginmax and '' != scnt_loginmax ) ">
+			<choose>
+				<when test=" ( null != scnt_loginmin and '' != scnt_loginmin ) and ( null != scnt_loginmax and '' != scnt_loginmax )  ">
+		      		AND ${scnt_login} between #{scnt_loginmin} AND #{scnt_loginmax} 
+		    	</when>
+		    	<when test=" '' == scnt_loginmax ">
+		      		AND ${scnt_login} &gt;= #{scnt_loginmin}
+		    	</when>
+		    	<otherwise>
+		      		AND ${scnt_login} &lt;= #{scnt_loginmax}
+		    	</otherwise>
+		  	</choose>			
+		</if>
+		
+		<if test=" null != dormancy and '' != dormancy ">
+			AND date_format(last_login, '%Y%m%d') &lt;= #{dormancy}
+		</if>
+		
+		<if test=" null != birthtype and '' != birthtype ">
+			AND calendar = #{birthtype}
+		</if>
+		
+		<if test=" ( null != birthdatemin and '' != birthdatemin ) or ( null != birthdatemax and '' != birthdatemax ) ">
+			<choose>
+				<when test=" ( null != birthdatemin and '' != birthdatemin ) and ( null != birthdatemax and '' != birthdatemax )  ">
+		      		AND concat(birth_year, birth) between #{birthdatemin} AND #{birthdatemax} 
+		    	</when>
+		    	<when test=" '' == birthdatemax ">
+		      		AND concat(birth_year, birth) &gt;= #{birthdatemin}
+		    	</when>
+		    	<otherwise>
+		      		AND concat(birth_year, birth) &lt;= #{birthdatemax}
+		    	</otherwise>
+		  	</choose>			
+		</if>
+		
+		<if test=" null != marriyn and '' != marriyn ">
+			AND marriyn = #{marriyn}
+		</if>
+		
+		<if test=" ( null != marridatemin and '' != marridatemin ) or ( null != marridatemax and '' != marridatemax ) ">
+			<choose>
+				<when test=" ( null != marridatemin and '' != marridatemin ) and ( null != marridatemax and '' != marridatemax )  ">
+		      		AND marridate between #{marridatemin} AND #{marridatemax} 
+		    	</when>
+		    	<when test=" '' == marridatemax ">
+		      		AND marridate &gt;= #{marridatemin}
+		    	</when>
+		    	<otherwise>
+		      		AND marridate &lt;= #{marridatemax}
+		    	</otherwise>
+		  	</choose>			
+		</if>
+		
+		<if test=' null != scustomsnum and "" != scustomsnum '>
+			AND customs_num = #{scustomsnum}
+		</if>
+		<if test=' null != spush and "" != spush '>
+			AND push = #{spush}
+		</if>
+		<if test=' null != spush and "" != spush '>
+			AND push = #{spush}
+		</if>
+		<if test=' null != schSkin and "" != schSkin '>
+			AND skin = #{schSkin}
+		</if>
+		<if test=" ( null != sorderdt_0 and '' != sorderdt_0 ) or ( null != sorderdt_1 and '' != sorderdt_1 ) ">
+			AND orddt_cnt &gt;= 0
+		</if>
+	</sql>
+	
+	<!-- 회원관리 > 회원일괄관리 >  적립금일괄지급/차감 > 수정 적립금이력등록 -->
+	<insert id="insertEmoneyLog" >
+		INSERT INTO /* xmall_member/insertEmoneyLog */ gd_log_emoney
+	   SET m_no		= #{mno},
+	  	   gbn		= #{gbn},
+	  	   emoney	= ${emoney},
+		   memo		= #{memo},
+		   regdt	= now()
+	</insert>
+	
+	<!-- 회원관리 > 회원일괄관리 >  적립금일괄지급/차감 > 수정 적립금수정 -->
+	<!-- <update id="updateMemberEmoney" >
+		UPDATE /* xmall_member/updateMemberEmoney */ gd_member 
+	   		SET emoney 	= emoney + ${emoney}
+	 	WHERE m_no		= #{mno}
+	</update> -->
+	
+	<!-- 회원관리 > 회원일괄관리 >  회원그룹일괄변경 > 수정 회원그룹수정 -->
+	<update id="updateMemberGroup" >
+		UPDATE /* xmall_member/updateMemberGroup */ gd_member 
+	   SET k_level 	= #{level}
+	 WHERE m_no		= #{mno}
+	</update>
+	
+	<!-- 회원관리 > 회원일괄관리 >  회원승인상태 > 수정 상태수정 -->
+	<update id="updateMemberStatus">
+		UPDATE /* xmall_member/updateMemberStatus */ gd_member 
+		SET status 	= #{status}
+		WHERE m_no		= #{mno}
+	</update>
+	
+	<!-- 파워 메일 - 보낸 메일 등록  -->
+	<insert id="insertGdEmailer">
+	INSERT INTO gd_emailer(
+		to_name,
+		to_email,
+		from_name,
+		from_email,
+		subject, 
+		<if test="contents != null and contents != '' ">
+		contents,
+		</if>
+		reg_dt,
+		tran_dt,
+		recv_dt
+		) VALUES (
+		#{toname},
+		#{toemail},
+		#{fromname},
+		#{fromemail},
+		#{subject},
+		<if test="contents != null and contents != '' ">
+		#{contents},
+		</if>
+		NOW(),
+		NOW(),
+		NOW()
+		)
+	</insert>
+	
+	
+	<!-- 회원로그 -->
+	<insert id="insertMemberLog">
+		INSERT 
+		  INTO gd_member_log
+			 ( m_no
+			 , agent
+			 , gbn
+			 , regdt
+			 ) 
+		VALUES
+			 ( #{m_no}
+			 , #{agent}
+			 , #{gbn}
+			 , NOW()
+			 ) 
+	</insert>
+	
+</mapper>
+

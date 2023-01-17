@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wepinit.wepinit_shop.batch.dao.BatchOrderMapper">
+	<!-- 입금 기간 초과 주문 리스트 조회 -->
+	<select id="getDepositExceedPeriodOrderList" resultType="com.wepinit.wepinit_shop.batch.vo.BatchOrderVO">
+		SELECT 
+			order_list.ordno,
+			item.sno,
+			item.ea
+		FROM gd_order order_list
+		LEFT JOIN gd_order_item item on order_list.ordno = item.ordno
+		WHERE settlekind = 'a'
+		AND step = '0'
+		AND step2 = '0'
+		<!--AND NOW() > DATE_ADD(orddt, INTERVAL +1 HOUR); test 용 -->
+		AND  NOW() <![CDATA[>]]> DATE_ADD(orddt, INTERVAL +(select dim_val from gd_conf_set where dim1_var = 'autoCancel') DAY);
+	</select>
+	
+	<select id="selectBatchGoodsList" resultType="com.wepinit.wepinit_shop.batch.vo.BatchOrderVO">
+		   SELECT goodsno
+				, img_i imgI
+				, img_s imgS
+				, img_l imgL
+				, batchYn
+			 FROM gd_goods
+			WHERE batchYn = 'N'
+			  AND open = 1
+			  AND img_i  != ''
+			  AND img_s  != ''
+			  AND img_l  != ''
+	</select>
+	
+	<update id="updateBatchGoods">
+		UPDATE gd_goods
+		   SET batchYn = #{batchYn}
+		     , open = #{open}
+		 WHERE goodsno = #{goodsno}
+	</update>
+	
+	<update id="insertBatchGoodsImgLog">
+		INSERT
+		  INTO gd_batch_goodsimg_log
+		     ( goodsno
+		     , img_i
+		     , img_s
+		     , img_l
+		     , batch_dt
+		     )
+		VALUES
+		     ( #{goodsno}
+		     , #{imgI}
+		     , #{imgS}
+		     , #{imgL}
+		     , NOW()
+		     )
+	</update>
+	
+	<select id="selectBatchGoodsListByLog" resultType="com.wepinit.wepinit_shop.batch.vo.BatchOrderVO">
+	   SELECT goodsno
+			, img_i imgI
+			, img_s imgS
+			, img_l imgL
+			, batchYn
+		 FROM gd_goods
+		WHERE goodsno in(
+			select goodsno
+			from gd_batch_goodsimg_log
+			where DATE_FORMAT(batch_dt, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+		)
+	</select>
+	
+</mapper>

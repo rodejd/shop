@@ -1,0 +1,54 @@
+project:
+  name: WEPINIT-SHOP
+
+spring:
+  profiles:
+    active: default
+
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+
+  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://13.209.132.5:3306/wepinit?autoReconnect=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
+    username: wepinit
+    password: wepinit7812
+    sql-script-encoding: UTF-8
+
+  thymeleaf:
+    enabled: false
+
+  messages:
+    basename: /messages/message
+    encoding: UTF-8
+
+mybatis:
+  mapper-locations: mapper/**/*.xml
+  configuration:
+    aggressive-lazy-loading: false
+    cache-enabled: true
+    lazy-loading-enabled: false
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    use-generated-keys: false
+    default-executor-type: simple
+    default-statement-timeout: 25000
+    map-underscore-to-camel-case: true
+
+shop-upload:
+  upload-path: c:/test
+
+#server:
+#  error:
+#    path: /error/exception/error
+
+---
+spring:
+  profiles: default
+
+---
+spring:
+  profiles: production

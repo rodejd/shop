@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.DispMainMapper">
+
+	<!-- 상품출력 메인페이지 상품진열 -->
+	<select id="getGoodsDisplayList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GoodsdisplayGoodsGoodsoption">
+		select 
+			distinct a.mode,a.goodsno,b.goodsnm,b.goodsnmKR,b.goodsnmCN,b.img_s,c.price
+		from 
+			gd_goods_display a, gd_goods b, gd_goods_option c
+		where
+			a.goodsno=b.goodsno
+			and a.goodsno=c.goodsno and c.parent = 0
+		order by sort
+	</select>
+	<!-- 상품출력순서 삭제" -->
+	<delete id="deleteGoodsDisplay">
+		DELETE FROM gd_goods_display WHERE mode = ${mode}
+	</delete>
+	<!-- 상품출력순서 등록 -->
+	<insert id="insertGoodsDisplay">
+		INSERT INTO gd_goods_display ( 
+			goodsno, mode, sort 
+		) VALUES (
+			${goodsno}, ${mode}, ${sort}
+		)
+	</insert>	
+</mapper>

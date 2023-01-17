@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.basic.SweetTrackerMapper">
+	
+	<insert id="insertOrUpdateDeliveryCompanyList" parameterType="hashmap">
+		INSERT INTO gd_list_delivery (deliveryurl, deliverycomp, deliveryno) 
+		VALUES 
+		<foreach collection="companies" item="company" separator=",">
+			(
+				'http://www.sweettracker.co.kr/', 
+				#{company.Name}, 
+				#{company.Code}
+			)
+		</foreach>
+		ON DUPLICATE KEY UPDATE 
+			deliverycomp=values(deliverycomp), 
+			deliveryno=values(deliveryno);
+	</insert>
+
+	<update id="updateDeliveryStatus">
+		UPDATE gd_order_delivery 
+		SET 
+			level = #{level},
+			deliveryStatus = #{deliveryStatus}, 
+			<if test="deliveryEdt != null or deliveryEdt != ''">
+				deliveryEdt = #{deliveryEdt}
+			</if>
+		WHERE deliveryCompCd = #{deliveryCompCd}
+		AND invoice = #{invoice}; 
+	</update>
+</mapper>

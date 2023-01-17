@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.GoodsManageMapper">
+
+	<!-- 관리상품 리스트-->
+	<select id="selectGoodsManageList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsManage">
+		SELECT sno
+			 , binCd  
+			 , goodsnm
+			 , goodsnmKR
+			 , goodsnmCN
+			 , price  
+			 , m_id   
+			 , regdt  
+		  FROM gd_goods_manage
+		 ORDER BY sno DESC 
+	</select>
+	
+	<!-- 관리상품 카운트 -->
+	<select id="selectGoodsListCount" resultType="int">
+		SELECT COUNT(a.sno) cnt
+		 FROM gd_goods_manage a
+		 LEFT JOIN gd_goods b on b.binCd like CONCAT('%',a.binCd,'%')
+		 LEFT JOIN ( SELECT *
+					  FROM gd_goods_option
+					 WHERE parent = 0
+			)c on b.goodsno = c.goodsno
+		 LEFT JOIN ( SELECT gl.goodsno
+						  , CONCAT (
+									CASE 
+										WHEN length(gl.category) >= 3 
+										THEN (select catnm from gd_category where category = substring(gl.category, 1, 3))
+										ELSE ''
+									END
+								  , CASE
+										WHEN length(gl.category) >= 6
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 6)))
+										ELSE ''
+									END
+								  , CASE
+										WHEN length(gl.category) >= 9
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 9)))
+										ELSE ''
+									END
+								  , CASE 
+										WHEN length(gl.category) >= 12
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 12)))
+										ELSE '' 
+									END ) categoryNm
+					FROM gd_goods_link gl
+					LEFT JOIN gd_category gc ON gl.category = gc.category
+		 )d ON d.goodsno = c.goodsno
+	</select>
+	
+	<!-- 상품 리스트 -->
+	<select id="selectGoodsDataList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.goods.GoodsManageVO">
+		SELECT a.sno
+		     , a.binCd
+		     , a.price
+		     , a.regdt
+		     , b.goodsno
+		     , b.img_s as imgs
+		     , b.binCd optionBinCd
+		     , b.goodscd
+		     , b.goodsnm
+		     , b.goodsnmKR
+		     , b.goodsnmCN
+		     , b.sellerCd
+		     , c.price optionPrice
+		     , c.stock
+		     , b.open
+		     , IFNULL(b.manage_yn,'N') manageYn
+		     , d.categoryNm
+		 FROM gd_goods_manage a
+		 LEFT JOIN gd_goods b on b.binCd like CONCAT('%',a.binCd,'%')
+		 LEFT JOIN ( SELECT *
+					  FROM gd_goods_option
+					 WHERE parent = 0
+			)c on b.goodsno = c.goodsno
+		 LEFT JOIN ( SELECT gl.goodsno
+						  , CONCAT (
+									CASE 
+										WHEN length(gl.category) >= 3 
+										THEN (select catnm from gd_category where category = substring(gl.category, 1, 3))
+										ELSE ''
+									END
+								  , CASE
+										WHEN length(gl.category) >= 6
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 6)))
+										ELSE ''
+									END
+								  , CASE
+										WHEN length(gl.category) >= 9
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 9)))
+										ELSE ''
+									END
+								  , CASE 
+										WHEN length(gl.category) >= 12
+										THEN CONCAT (' > ', (select catnm from gd_category where category = substring(gl.category, 1, 12)))
+										ELSE '' 
+									END ) categoryNm
+					FROM gd_goods_link gl
+					LEFT JOIN gd_category gc ON gl.category = gc.category
+		 )d ON d.goodsno = c.goodsno
+		ORDER BY a.sno DESC
+		limit #{rowStart}, #{pageSize}
+	</select>
+	
+	<select id="selectGoodsManageCountByBinCd" resultType="int">
+		SELECT COUNT(*) cnt
+		  FROM gd_goods_manage
+		 WHERE binCd = #{binCd}
+	</select>
+	
+	<insert id="insertGoodsManage">
+		INSERT 
+		  INTO gd_goods_manage
+		     ( binCd
+		     , goodsnm
+		     , goodsnmKR
+		     , goodsnmCN
+		     , price
+		     , m_id
+		     , regdt
+		    )
+	   VALUES
+		    ( #{binCd}
+		    , #{goodsnm}
+		    , #{goodsnmKR}
+		    , #{goodsnmCN}
+		    , #{price}
+		    , #{m_id}
+		    , NOW()
+		    )
+	    <selectKey resultType="int" keyProperty="sno" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+	<update id="updateGoodsManage">
+		UPDATE gd_goods_manage
+		   SET binCd = #{binCd}
+		     , goodsnm = #{goodsnm}
+		     , goodsnmKR = #{goodsnmKR}
+		     , goodsnmCN = #{goodsnmCN}
+		     , price = #{price}
+		 WHERE sno = #{sno}
+	</update>
+	
+	<delete id="deleteGoodsManage">
+		DELETE
+		  FROM gd_goods_manage
+		 WHERE sno = #{sno}
+	</delete>
+	
+	<update id="updateGoodsManageBymanageYn" >
+		UPDATE gd_goods 
+		   SET manage_yn = #{manageYn}
+		WHERE goodsno = #{goodsno}
+	</update>
+
+</mapper>
+

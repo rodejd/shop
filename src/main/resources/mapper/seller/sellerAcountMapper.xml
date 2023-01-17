@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.basic.dao.SellerAcountMapper">
+
+<sql id="sellerAcountInfo">
+	SELECT *
+	FROM gd_account_info
+	WHERE sellerCd = #{sellerCd}
+		<if test="sflag != null and sflag != '' ">
+			AND accountFlag = #{sflag}
+		</if> 
+		<if test="search != null and skey == 'ordno' ">
+			AND ordno like concat('%' ,#{search}, '%')
+		</if>
+		<if test="search != null and skey == 'goodsnm' ">
+			AND CONCAT(goodsnm, goodsnmKR, goodsnmCN) like concat('%' ,#{search}, '%')
+		</if>
+		<if test="s_ord0 != null and s_ord0 !='' and s_ord1 != null and s_ord1 !='' ">
+			and orddt between date_format(#{s_ord0},'%Y-%m-%d 00:00:00') and date_format(#{s_ord1},'%Y-%m-%d 23:59:59')
+		</if>
+</sql>
+
+	<select id="getSellerAcountInfo" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.acount.AcountVO">
+		<include refid="sellerAcountInfo" />
+		limit #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 정산 검색  -->
+	<select id="getSellerAcountListCount" resultType="int">
+		SELECT COUNT(goodsno)
+		FROM(
+			<include refid="sellerAcountInfo" />
+		) cnt
+		
+	</select>
+	
+	<!--  -->
+	<select id="getSellerAcountListData" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.acount.AcountVO">
+		<include refid="sellerAcountInfo" />
+	</select>
+	
+	
+	<select id="getSellerAcountListTotalCount" resultType="int">
+		SELECT count(goodsno)
+		FROM gd_account_info
+		where sellerCd = #{sellerCd}
+	</select>
+	
+</mapper>

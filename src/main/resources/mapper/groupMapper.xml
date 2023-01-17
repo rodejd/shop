@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.member.GroupMapper">
+
+	<!-- 그룹 목록 select -->
+	<select id="getMemberAdminGroupList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT a.sno
+			 , a.grpnm
+			 , a.k_level AS kLevel
+			 , a.dc
+			 , a.add_emoney AS addEmoney
+			 , a.free_deliveryfee AS freeDeliveryfee
+			 , a.regdt
+			 , a.moddt
+			 , IFNULL(b.cnt, 0) AS cnt
+		  FROM gd_member_grp a 
+		  LEFT OUTER JOIN (SELECT k_level, count(*) AS cnt FROM gd_member GROUP BY k_level) b ON a.k_level = b.k_level 
+		 WHERE a.k_level <![CDATA[ >= ]]> 80
+		 ORDER BY a.sno 
+	</select>
+	
+	<select id="getMemberGroupList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT a.sno
+			 , a.grpnm
+			 , a.k_level AS kLevel
+			 , a.dc
+			 , a.add_emoney AS addEmoney
+			 , a.free_deliveryfee AS freeDeliveryfee
+			 , a.k_amount AS kAmount
+			 , a.regdt
+			 , a.moddt
+			 , IFNULL(b.cnt, 0) AS cnt
+		  FROM gd_member_grp a 
+		  LEFT OUTER JOIN (SELECT k_level, COUNT(*) AS cnt FROM gd_member GROUP BY k_level) b ON a.k_level = b.k_level 
+		 WHERE a.k_level <![CDATA[ < ]]> 80			
+		 ORDER BY a.sno 
+	</select>
+	
+	<select id="getMemberPopupGroupList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT * 
+		  FROM gd_member_grp 
+		 WHERE sno = #{sno}
+	</select>
+	
+	<select id="getMemberPopupSelectBoxList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT DISTINCT k_level
+			 , grpnm 
+		  FROM gd_member_grp 
+		 ORDER BY k_level DESC
+	</select>
+	
+	<select id="getMemberLevelCount" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT k_level
+			 , count(*) AS cnt 
+		  FROM gd_member 
+		 WHERE k_level = #{k_level} 
+		 GROUP BY k_level 
+		 ORDER BY k_level
+	</select>
+	
+	<select id="getCodeGroupItemLIST" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT groupcd
+			 , itemcd
+			 , itemnm
+			 , sort 
+		  FROM gd_code 
+		 WHERE 1=1
+		<if test="groupCd != null and groupCd != ''">
+		   AND groupcd = #{groupCd}
+		</if>
+		<if test="itemCd != null and itemCd != ''">
+		   AND itemcd = ${itemCd}
+		</if>
+		<if test="orderBy != null and orderBy != ''">
+		 ORDER BY ${orderBy}
+		</if>
+	</select>
+	
+	<insert id="insertGroup" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.member.GroupVO">
+		INSERT 
+		  INTO gd_member_grp 
+		   SET grpnm			= #{grpnm}
+			 , k_level			= #{kLevel}
+			 , dc				= #{dc}
+			 , add_emoney		= #{addEmoney}
+			 , free_deliveryfee	= #{freeDeliveryfee}
+			 , k_amount			= #{kAmount}
+			 , regdt			= now()
+			 , moddt			= now()
+	</insert>
+	
+	<update id="updateGroup" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.member.GroupVO">
+		UPDATE gd_member_grp 
+		   SET dc				= ${dc}
+			 , add_emoney		= ${addEmoney}
+			 , moddt			= now()
+		<if test="grpnm !=null and grpnm != ''">
+			 , grpnm			= #{grpnm}
+		</if>
+		<if test="kLevel != null and kLevel != ''"> 
+			 , k_level			= #{kLevel}
+		</if>
+		<if test="freeDeliveryfee != null and freeDeliveryfee != ''">
+			 , free_deliveryfee	= #{freeDeliveryfee}
+		</if>
+		<if test="kAmount != null and kAmount != ''"> 
+			 , k_amount			= #{kAmount}
+		</if>
+		 WHERE sno = #{sno}
+	</update>
+	
+	<delete id="deleteGroup">
+		DELETE FROM gd_member_grp WHERE sno = #{sno}
+	</delete>
+	
+
+</mapper>
+

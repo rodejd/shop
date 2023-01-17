@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.CooperationMapper">
+
+	<!-- 광고제휴문의 게시판 총 건수 -->
+	<select id="getCooperationTotalCount" resultType="int">
+		SELECT count(*)
+		FROM gd_cooperation
+	</select>
+
+	<!-- 광고제휴문의 게시판 검색 총 건수 -->
+	<select id="getCooperationCount" resultType="int">
+		SELECT count(*) FROM gd_cooperation
+		WHERE 1=1
+		<!-- 조건문 -->
+		<if
+			test="vo.skey != null and vo.sword != null and vo.skey == 'all' and vo.sword != '' ">
+			AND concat( name, title, content, ifnull(reply, '') ) like
+			concat('%',#{vo.sword},'%')
+		</if>
+		<if
+			test="vo.skey != null and vo.sword != null and vo.skey != 'all' and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sitemcd != null and vo.sitemcd != '' ">
+			AND itemcd = #{vo.sitemcd}
+		</if>
+		<if test='vo.sreplyyn != null and vo.sreplyyn == "Y"  '>
+			AND reply != ''
+		</if>
+		<if test='vo.sreplyyn != null and vo.sreplyyn == "N" '>
+			AND ( reply = '' OR reply IS NULL )
+		</if>
+		<if test='vo.smailyn != null and vo.smailyn == "Y" '>
+			AND unix_timestamp(maildt) != 0
+		</if>
+		<if test='vo.smailyn != null and vo.smailyn == "N" '>
+			AND unix_timestamp(maildt) = 0
+		</if>
+		<if
+			test="vo.sregdt_0 != null and vo.sregdt_0 != '' and vo.sregdt_1 != null and vo.sregdt_1 != '' ">
+			AND regdt between date_format(#{vo.sregdt_0}, '%Y-%m-%d
+			00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if
+			test="vo.sreplydt_0 != null and vo.sreplydt_0 != '' and vo.sreplydt_1 != null and vo.sreplydt_1 != '' ">
+			AND replydt between date_format(#{vo.sreplydt_0},'%Y-%m-%d') and
+			date_format(#{vo.sreplydt_1},'%Y-%m-%d')
+		</if>
+		<if
+			test="vo.smaildt_0 != null and vo.smaildt_0 != '' and vo.smaildt_1 != null and vo.smaildt_1 != '' ">
+			AND maildt between date_format(#{vo.smaildt_0},'%Y-%m-%d
+			00:00:00') and date_format(#{vo.smaildt_1},'%Y-%m-%d 23:59:59')
+		</if>
+
+	</select>
+
+	<!-- 광고제휴문의 게시판 리스트 가져오기 -->
+	<select id="getCooperList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCooperation">
+		SELECT * FROM gd_cooperation
+		WHERE 1=1
+		<!-- 조건문 -->
+		<if
+			test="vo.skey != null and vo.sword != null and vo.skey == 'all' and vo.sword != '' ">
+			AND concat( name, title, content, ifnull(reply, '') ) like
+			concat('%',#{vo.sword},'%')
+		</if>
+		<if
+			test="vo.skey != null and vo.sword != null and vo.skey != 'all' and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sitemcd != null and vo.sitemcd != '' ">
+			AND itemcd = #{vo.sitemcd}
+		</if>
+		<if test='vo.sreplyyn != null and vo.sreplyyn == "Y"  '>
+			AND reply != ''
+		</if>
+		<if test='vo.sreplyyn != null and vo.sreplyyn == "N" '>
+			AND ( reply = '' OR reply IS NULL )
+		</if>
+		<if test='vo.smailyn != null and vo.smailyn == "Y" '>
+			AND unix_timestamp(maildt) != 0
+		</if>
+		<if test='vo.smailyn != null and vo.smailyn == "N" '>
+			AND unix_timestamp(maildt) = 0
+		</if>
+		<if
+			test="vo.sregdt_0 != null and vo.sregdt_0 != '' and vo.sregdt_1 != null and vo.sregdt_1 != '' ">
+			AND regdt between date_format(#{vo.sregdt_0}, '%Y-%m-%d
+			00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if
+			test="vo.sreplydt_0 != null and vo.sreplydt_0 != '' and vo.sreplydt_1 != null and vo.sreplydt_1 != '' ">
+			AND replydt between date_format(#{vo.sreplydt_0},'%Y-%m-%d') and
+			date_format(#{vo.sreplydt_1},'%Y-%m-%d')
+		</if>
+		<if
+			test="vo.smaildt_0 != null and vo.smaildt_0 != '' and vo.smaildt_1 != null and vo.smaildt_1 != '' ">
+			AND maildt between date_format(#{vo.smaildt_0},'%Y-%m-%d
+			00:00:00') and date_format(#{vo.smaildt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<!-- 정렬 -->
+		<if test="vo.sort == null || vo.sort == '' || vo.sort == 'regdt desc' ">
+			ORDER BY regdt desc
+		</if>
+		<if test="vo.sort != null and vo.sort != ''  and vo.sort != 'regdt desc'">
+			ORDER BY ${vo.sort}
+		</if>
+		LIMIT #{vo.rowStart}, #{vo.pageSize}
+	</select>
+
+	<!-- 광고제휴문의 글 가져오기 -->
+	<select id="getCooperView" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCooperation">
+		SELECT * FROM
+		gd_cooperation
+		WHERE sno = #{sno}
+		LIMIT 1
+	</select>
+
+	<!-- 광고제휴문의관리 단건 삭제 -->
+	<delete id="deleteCooperation">
+		DELETE FROM gd_cooperation
+		WHERE sno= #{sno}
+	</delete>
+
+	<!-- 광고제휴문의 수정 -->
+	<update id="updateCooperModify">
+		UPDATE gd_cooperation
+		SET itemcd=#{itemcd}, name=#{name}, email=#{email}, reply=#{reply}
+		WHERE sno = #{sno}
+	</update>
+
+	<!-- 광고제휴문의 날짜 수정 -->
+	<update id="updateCooperDateModify">
+		UPDATE gd_cooperation
+		SET
+		<if test='vo.reply != null and vo.replydt == null || vo.replydt == "000000" || vo.replydt == "" '>
+			replydt=sysdate()
+		</if>
+		<if test='vo.reply != null and vo.replydt != null and vo.replydt != "000000" and vo.replydt != "" '>
+			replydt = date_format(#{vo.replydt}, '%Y-%m-%d')
+		</if>
+		<if test="vo.reply == null and vo.reply == '' ">
+			replydt = 0000-00-00
+		</if>
+		WHERE sno = #{vo.sno}
+	</update>
+
+	<!-- 광고제휴문의 Allmodify mode 수정 -->
+	<update id="updateCooperAllModify">
+		UPDATE gd_cooperation
+		SET itemcd = #{itemcd}
+		WHERE sno
+		= #{sno}
+	</update>
+
+</mapper>

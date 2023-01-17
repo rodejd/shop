@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+    <!-- seller default layout -->
+    <definition name="seller_default_layout" template="/WEB-INF/views/shop/template/seller/default_template.jsp">
+        <put-attribute name="title" value="판매사모드" />
+        <put-attribute name="header" value="/WEB-INF/views/shop/template/seller/layout/header.jsp" />
+        <put-attribute name="left" value="/WEB-INF/views/shop/template/seller/layout/left.jsp"/>
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <!-- seller popup default layout -->
+    <definition name="seller_default_popup_layout" template="/WEB-INF/views/shop/template/seller/default_popup_template.jsp">
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <!-- 판매사 엑셀다운로드 defaul layout -->
+    <definition name="seller_default_excel_layout" template="/WEB-INF/views/shop/template/seller/default_excel_template.jsp">
+        <put-attribute name="body" value="" />
+    </definition>
+
+    <definition name="seller/*/*/popup" extends="seller_default_popup_layout">
+        <put-attribute name="body" 	value="/WEB-INF/views/shop/seller/{1}/{2}.jsp" />
+    </definition>
+
+    <definition name="seller/*/*" extends="seller_default_layout">
+        <put-attribute name="body" 	value="/WEB-INF/views/shop/seller/{1}/{2}.jsp" />
+    </definition>
+
+    <definition name="seller/*/excel/*" extends="seller_default_excel_layout">
+        <put-attribute name="body" 	value="/WEB-INF/views/shop/seller/{1}/excel/{2}.jsp" />
+    </definition>
+
+</tiles-definitions>

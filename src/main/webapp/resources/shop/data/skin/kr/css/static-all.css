@@ -1,0 +1,22 @@
+@import 'static-bootstrap.css';
+@import 'static-style.css';
+@import 'static-mystyles.css';
+
+/* 웹 기본 너비 설정 */
+body{min-width:1170px;}
+.container.navbar-container{width:1170px;}
+#navbar-collapse.collapse.navbar-collapse{min-width:1170px;}
+.container{width:1170px;} 
+.gnb .container{width:1170px;}
+.section-common.x-goods-grp-01{min-width:1170px;}
+.global-wrapper{min-width:1170px;}
+.navbar-collapse.collapse {display: block !important;}
+.navbar-nav {float: left;margin: 0;}
+.navbar-nav > li {float: left;}
+.nav > li.dropdown.open .dropdown-menu {position:absolute;width: 100%;}
+.owl-carousel {min-width:1170px;}
+.gnb ul{position:relative;}
+.navbar-nav > li > .dropdown-menu{position:absolute;left:0;top:0;}
+.dropdown-menu.dropdownhover-bottom.custom-menu{left:-15px!important;top:41px;}
+.navbar-collapse{-webkit-box-shadow:none;}
+.dropdown-menu.dropdownhover-bottom.custom-menu{border:none;box-shadow:none;}

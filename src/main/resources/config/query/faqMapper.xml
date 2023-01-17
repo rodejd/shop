@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.FaqMapper">
+
+	<!-- ########### 상품문의관리 관련 ########## -->
+	<!-- Faq게시판 총 갯수 -->
+	<select id="getFaqTotalCount" resultType="int">
+		SELECT count(*) FROM gd_faq
+	</select>
+	
+	<!-- 리스트 검색해서 나온 총 갯수  -->
+	<select id="getFaqSearchCount" resultType="int" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.FaqVO">
+		SELECT count(*) FROM gd_faq
+		WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(question, descant, answer) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test=" vo.skey != 'all' and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sitemcd != 'all' ">
+			AND itemcd=#{vo.sitemcd}
+		</if>
+		<if test="vo.sbest != null">
+			AND best=#{vo.sbest}
+		</if>
+		<if test="vo.sregdt_0 != '' and vo.sregdt_1 != '' and vo.sregdt_0 != null and vo.sregdt_1 != null ">
+			AND regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+	</select>
+	
+	<!-- Faq 게시판 리스트 -->
+	<select id="getFaqList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdFaq">
+		SELECT 
+			*,sort+1 as uprow , sort-1 as downrow, 
+			(select MAX(sort) from gd_faq) as lastsort 
+		FROM gd_faq
+		WHERE 1=1
+		<if test="vo.skey == 'all' and vo.sword != null and vo.sword != '' ">
+			AND concat(question, descant, answer) like concat('%',#{vo.sword},'%')
+		</if> 
+		<if test=" vo.skey != 'all' and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sitemcd != 'all' ">
+			AND itemcd=#{vo.sitemcd}
+		</if>
+		<if test="vo.sbest != null">
+			AND best=#{vo.sbest}
+		</if>
+		<if test="vo.sregdt_0 != '' and vo.sregdt_1 != '' and vo.sregdt_0 != null and vo.sregdt_1 != null ">
+			AND regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="vo.searchsort == 'ask desc' ||  vo.searchsort == 'sort asc' ">
+			ORDER BY sort asc
+		</if>
+		<if test="vo.searchsort == null || vo.searchsort =='' ">
+			ORDER BY regdt desc
+		</if>
+		<if test="vo.searchsort != 'ask desc' and vo.searchsort != null and vo.searchsort != 'sort asc'  and vo.searchsort !='' ">
+			ORDER BY ${vo.searchsort}
+		</if>
+		LIMIT #{vo.rowStart}, #{vo.pageSize}
+	</select>
+	
+	<!-- sort MAX값 -->
+	<select id="getSortMax" resultType="int">
+		SELECT MAX(sort) as lastsort FROM gd_faq
+		WHERE itemcd=#{itemcd}
+	</select>
+	
+	<!-- FAQ 등록 -->
+	<insert id="insertFapReply">
+		INSERT INTO gd_faq(itemcd,question,descant,answer,best,regdt,bestsort,sort,skin)
+		VALUES (#{faqVO.itemcd}, #{faqVO.question}, #{faqVO.descant}, #{faqVO.answer}, #{faqVO.best}, SYSDATE(), #{faqVO.bestsort}, #{sort}, #{faqVO.skin})
+	</insert>
+	
+	<!-- sno MAX값 -->
+	<select id="getSnoMax" resultType="int">
+		SELECT MAX(sno) as mysno FROM gd_faq 
+		WHERE itemcd=#{itemcd}
+	</select>
+	
+	<!-- FAQ 수정 -->
+	<update id="updateFaqModify">
+		UPDATE gd_faq
+		SET 
+			itemcd=#{itemcd}, 
+			question=#{question}, 
+			descant=#{descant}, 
+			answer=#{answer},
+			best=#{best}, 
+			bestsort=#{bestsort},
+			regdt = SYSDATE(),
+			skin = #{skin}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- FAQ Detail VIEW -->
+	<select id="getFaqDetail" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdFaq">
+		SELECT *
+		FROM gd_faq
+		WHERE sno=#{sno}
+		LIMIT 1
+	</select>
+	
+	<!-- FAQ ALL 수정 -->
+	<update id="updateAllFaqModify">
+		UPDATE gd_faq SET
+			sort=#{sort}, itemcd=#{itemcd}, best=#{best}, bestsort=#{bestsort} 
+		WHERE sno=#{sno}
+	</update>
+	
+	<!-- FAQ관리 순서 변경 -->
+	<update id="updateFaqSortModify">
+		UPDATE gd_faq SET 
+			sort=#{sort} 
+		WHERE itemcd=#{itemcd} AND sno = #{sno}
+	</update>
+	
+	<!-- FAQ관리 GET SNO -->
+	<select id="getFaqSortSno" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdFaq">
+		SELECT sno FROM gd_faq 
+		WHERE itemcd = #{itemcd} 
+		ORDER BY sort asc, regdt desc
+	</select>	
+	
+	<!-- FAQ관리 단건 삭제 -->
+	<delete id="deleteFaqRegister">
+		DELETE FROM gd_faq WHERE sno= #{sno}
+	</delete>
+	
+	<!-- FAQ관리 목록 순서 수정 -->
+	<update id="updateFaqListSort">
+		UPDATE gd_faq SET
+			sort = #{sort}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- FAQ 순서(sort) 중복값 조회 -->
+	<select id="getFaqExistingSort" resultType="int">
+		SELECT sort
+		 FROM gd_faq
+		WHERE sort IN 
+		<foreach item="item" index="index" collection="sort"
+		open="(" separator="," close=")">
+		#{item}
+		</foreach>
+		AND sno NOT IN
+		<foreach item="item" index="index" collection="sno"
+		open="(" separator="," close=")">
+		#{item}
+		</foreach>
+	</select>
+	
+
+</mapper>

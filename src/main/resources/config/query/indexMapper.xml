@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.basic.IndexMapper">
+
+	<!-- // getIndexSlaepr -->
+	<select id="getIndexSalepr" resultType="com.wepinit.wepinit_shop.xmall.common.vo.IndexSalepr">
+		<![CDATA[
+			SELECT
+			    ifnull(sum( case when step > 0 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(now(), '%Y%m%d') then prn_settleprice end), 0) as sales1  
+			    , ifnull(sum( case when step > 0 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') then prn_settleprice end), 0) as sales2  
+			    , ifnull(sum( case when step > 0 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') then prn_settleprice end), 0) as sales3  
+			    , ifnull(sum( case when step > 0 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') then prn_settleprice end), 0) as sales4 
+			    , ifnull(sum( case when step > 0 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') then prn_settleprice end), 0) as sales5 
+			    , ifnull(sum( case when step > 0 and step2 = 0 then prn_settleprice end), 0) as salesT 
+			    , count( date_format(orddt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as order1  
+			    , count( date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as order2  
+			    , count( date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as order3  
+			    , count( date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as order4 
+			    , count( date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as order5 
+			    , count(*) as orderT 
+			    , count( step = 1 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as deposit1  
+			    , count( step = 1 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as deposit2  
+			    , count( step = 1 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as deposit3  
+			    , count( step = 1 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as deposit4 
+			    , count( step = 1 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as deposit5 
+			    , count( step = 1 and step2 = 0 or null ) as depositT 
+			    , count( step = 4 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as delivery1  
+			    , count( step = 4 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as delivery2  
+			    , count( step = 4 and step2 = 0 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as delivery3  
+			    , count( step = 4 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as delivery4 
+			    , count( step = 4 and step2 = 0 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as delivery5 
+			    , count( step = 4 and step2 = 0 or null ) as deliveryT 
+			    , count( step2 >= 40 and step2 < 50 and date_format(orddt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as cancel1  
+			    , count( step2 >= 40 and step2 < 50 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as cancel2  
+			    , count( step2 >= 40 and step2 < 50 and date_format(orddt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as cancel3  
+			    , count( step2 >= 40 and step2 < 50 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as cancel4 
+			    , count( step2 >= 40 and step2 < 50 and date_format(orddt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as cancel5 
+			    , count( step2 >= 40 and step2 < 50 or null ) as cancelT 
+			FROM gd_order
+		]]>
+	</select>
+	
+	<!-- // getIndexReview -->
+	<select id="getIndexReview" resultType="com.wepinit.wepinit_shop.xmall.common.vo.IndexReview">
+		<![CDATA[
+			SELECT 
+			    count( date_format(regdt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as review1  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as review2  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as review3  
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as review4 
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as review5 
+			    , count( * ) as reviewT 
+			FROM gd_goods_review
+			WHERE sno=parent
+		]]>
+	</select>
+	
+	<!-- // getIndexQna -->
+	<select id="getIndexQna" resultType="com.wepinit.wepinit_shop.xmall.common.vo.IndexQna">
+		<![CDATA[
+			SELECT 
+			    count( date_format(regdt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as qna1  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as qna2  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as qna3  
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as qna4 
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as qna5 
+			    , count( * ) as qnaT 
+			FROM gd_goods_qna 
+			WHERE sno=parent
+		]]>
+	</select>
+	
+	<!-- // getIndexMqna -->
+	<select id="getIndexMqna" resultType="com.wepinit.wepinit_shop.xmall.common.vo.IndexMqna">
+		<![CDATA[
+			SELECT
+			    count( date_format(regdt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as mqna1  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as mqna2  
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as mqna3  
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as mqna4 
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as mqna5 
+			    , count( * ) as mqnaT 
+			FROM gd_member_qna 
+			WHERE sno=parent 
+		]]>
+	</select>
+	
+	<!-- // getIndexMember -->
+	<select id="getIndexMember" resultType="com.wepinit.wepinit_shop.xmall.common.vo.IndexMember">
+		<![CDATA[
+			SELECT
+			    count( date_format(regdt, '%Y%m%d') = date_format(now(), '%Y%m%d') or null) as member1
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -1 DAY), '%Y%m%d') or null) as member2
+			    , count( date_format(regdt, '%Y%m%d') = date_format(DATE_ADD(now(), INTERVAL -2 DAY), '%Y%m%d') or null) as member3
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -7 DAY), '%Y%m%d') or null) as member4
+			    , count( date_format(regdt, '%Y%m%d') >= date_format(DATE_ADD(now(), INTERVAL -30 DAY), '%Y%m%d') or null) as member5
+			    , count( * ) as memberT
+			FROM gd_member
+		]]>
+	</select>
+	
+	<!-- // getIndexMqnaList -->
+	<select id="getIndexMqnaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+			SELECT sno, subject FROM gd_member_qna ORDER BY sno DESC LIMIT 5
+	</select>
+	
+	<!-- // getIndexCooperationList -->
+	<select id="getIndexCooperationList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCooperation">
+			SELECT sno, itemcd, name, email, title, content, reply, regdt, replydt, maildt FROM gd_cooperation <!-- WHERE replydt='0000-00-00' --> ORDER BY regdt DESC
+	</select>
+	
+	<!-- // getIndexGoodsReviewList -->
+	<select id="getIndexGoodsReviewList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsReview">
+			SELECT sno, goodsno, subject, contents, point, emoney, m_no, regdt, ip, name, password, parent, regdt FROM gd_goods_review ORDER BY regdt DESC LIMIT 5
+	</select>
+	
+	<!-- // getIndexRecentGoodsRegList -->
+	<select id="getIndexRecentGoodsRegList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.IndexRecentGoodsReg">
+			SELECT	
+				a.goodsno, a.goodsnm, a.goodsnmKR, a.goodsnmCN, a.RNUM, a.cate 
+			FROM(
+					SELECT 
+						goods.goodsno AS goodsno, goods.goodsnm, goods.goodsnmKR, goods.goodsnmCN, RNUM, left(category,3) AS cate 
+					FROM(
+							SELECT 
+								goodsno, goodsnm, goodsnmKR, goodsnmCN, @RNUM := @RNUM + 1 AS RNUM 
+							FROM 
+								gd_goods, (SELECT @RNUM := 0) goodsIdx ORDER BY regdt DESC LIMIT 5
+						) goods LEFT OUTER JOIN gd_goods_link link ON goods.goodsno = link.goodsno
+				) a GROUP BY a.RNUM
+	</select>
+	
+	<!-- // getIndexEventList -->
+	<select id="getIndexEventList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdEvent">
+			SELECT sno, subject FROM gd_event ORDER BY sno DESC LIMIT 5
+	</select>
+	
+	<!-- // getIndexWeekSoldGoodsList -->
+	<select id="getIndexWeekSoldGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.IndexWeekSoldGoods">
+		<![CDATA[
+			SELECT 
+				a.goodsno, count(a.goodsno) as cnt, b.*
+			FROM 
+				gd_order_item a LEFT JOIN gd_goods b ON b.goodsno = a.goodsno 
+			WHERE 
+				istep in (1,2,3,4) and a.ordno > #{ordno}
+			GROUP BY a.goodsno ORDER BY cnt DESC LIMIT 3
+		]]>
+	</select>
+	
+	<!-- // getIndexRegularMemberList -->
+	<select id="getIndexRegularMemberList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.IndexRegularMember">
+		<![CDATA[
+			SELECT 
+				a.m_no, count(a.m_no) as cnt, sum(a.prn_settleprice) as price, b.name, b.m_id 
+			FROM 
+				gd_order a INNER JOIN gd_member b ON a.m_no = b.m_no 
+			WHERE 
+				a.step in (1,2,3,4) and a.ordno > #{ordno} GROUP BY a.m_no ORDER BY cnt DESC LIMIT 5
+		]]>
+	</select>
+	
+	<!-- // getAutoCancel -->
+	<select id="getAutoCancel" resultType="int">
+		<![CDATA[
+			SELECT count(*) FROM gd_order WHERE date_format(orddt,'%Y%m%d') <= date_format(now(),'%Y%m%d') and step='0' and step2='0'
+		]]>
+	</select>
+	
+</mapper>
+

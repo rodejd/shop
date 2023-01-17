@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.BoutiqueMapper">
+	
+	<sql id="getBoutiqueIncludeWhere">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			<if test="schSkin != null and schSkin !=''">
+				AND skin = #{schSkin}
+			</if>
+			<if test="schWord != null and schWord !=''">
+				AND title LIKE CONCAT('%', #{schWord}, '%')
+			</if>
+			<if test="schUsed != null and schUsed !=''">
+				AND used = #{schUsed}
+			</if>
+		</trim>
+	</sql>
+	
+	<!-- 배너목록 select -->
+	<select id="getBoutiqueList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBoutique">
+		SELECT * FROM gd_boutique
+		<include refid="getBoutiqueIncludeWhere" /> 
+		<choose>
+			<when test="schSort == 'sortDESC'">
+				ORDER BY sort DESC
+			</when>
+			<when test="schSort == 'sortASC'">
+				ORDER BY sort ASC
+			</when>
+			<when test="schSort == 'regdtASC'">
+				ORDER BY regdt ASC
+			</when>
+			<otherwise>
+				ORDER BY regdt DESC
+			</otherwise>
+		</choose>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 배너 카운트 -->
+	<select id="getBoutiqueCount" resultType="int">
+		SELECT COUNT(sno) FROM gd_boutique
+		<include refid="getBoutiqueIncludeWhere" />
+	</select>
+	
+	<!-- 배너등록 -->
+	<insert id="insertBoutique">
+		INSERT INTO gd_boutique (
+			skin
+		  , title
+		  , content
+		  , linkaddr
+		  , target
+		  , sort
+		  , used
+			 , regid
+		  , regdt
+		) VALUES (
+			#{skin}
+		  , #{title}
+		  , #{content}
+		  , #{linkaddr}
+		  , #{target}
+		  , #{sort}
+		  , #{used}
+		  , #{regid}
+		  , SYSDATE()
+		)
+		<selectKey resultType="int" keyProperty="sno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>	
+	
+	<!-- 배너 detail select -->
+	<select id="getBoutiqueView" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBoutique">
+		SELECT * FROM gd_boutique WHERE sno = #{sno}
+	</select>
+	
+	<!-- 배너 수정 -->
+	<update id="updateBoutique">
+		UPDATE gd_boutique 
+		   SET skin = #{skin}
+		     , title = #{title}
+		     , content = #{content}
+		     , linkaddr = #{linkaddr}
+		     , target = #{target}
+		     , sort = #{sort}
+		     , used = #{used}  
+		     , modid = #{modid}
+		     , moddt = NOW()
+		 WHERE sno = #{sno}
+	</update>
+	
+	<!-- 배너 이미지수정 -->
+	<update id="updateBoutiqueByImage">
+		UPDATE gd_boutique 
+		   SET img = #{img}
+		     , imgm = #{imgm}
+		 WHERE sno = #{sno}
+	</update>
+	
+	<!-- 배너 삭제 -->
+	<delete id="deleteBoutique">
+		DELETE FROM gd_boutique WHERE sno = #{sno}
+	</delete>
+
+</mapper>
+

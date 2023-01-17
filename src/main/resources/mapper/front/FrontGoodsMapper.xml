@@ -1,0 +1,1564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.goods.FrontGoodsMapper">
+	
+	<!-- 브랜드목록 총 건수 -->
+	<select id="getGdGoodsBrandListCount" resultType="int">
+		/* getGdGoodsBrandListCount */
+		SELECT COUNT(sno)
+		FROM gd_goods_brand
+		WHERE approvalStatus = '2'
+		<if test="sword != null and sword != '' ">
+		  AND brandnm LIKE CONCAT('%', #{sword}, '%')
+		</if>
+	</select>
+	
+	<!-- 브랜드목록 -->
+	<select id="getGdGoodsBrandList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		/* getGdGoodsBrandList */
+		SELECT *
+		FROM gd_goods_brand
+		WHERE approvalStatus = '2'
+		<if test="sword != null and sword != '' ">
+		  AND brandnm LIKE CONCAT('%', #{sword}, '%')
+		</if>
+		<if test="sbest != null and sbest != '' ">
+		  AND bestYn = #{sbest}
+		</if>
+		ORDER BY brandnm
+		<!-- LIMIT #{rowStart}, #{pageSize} -->
+	</select>
+	
+	<!-- 브랜드별 기본정보 조회 -->
+	<select id="getGdGoodsBrandObj" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		/* getGdGoodsBrandObj */
+		SELECT sno
+			 , brandnm
+			 , brandnmKR
+			 , brandnmCN
+			 , sort
+			 , imgPC
+			 , imgMO
+		FROM gd_goods_brand
+		WHERE sno = #{brandno}
+	</select>
+	
+	<!-- 브랜드별 브랜드상세정보 조회 -->
+	<select id="getXmCategoryBrandInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmCategoryBrandInfo">
+		/* getXmCategoryBrandInfo */
+		SELECT category
+			 , brand_no
+			 , rtpl
+			 , rpage_num
+			 , rcols
+			 , body
+			 , rsize
+			 , page_num
+			 , cols
+			 , tpl
+			 , size
+		FROM xm_category_brand_info
+		WHERE category = ''
+		  <!-- AND 1 = 2 -->
+		  AND brand_no = #{brandno}
+	</select>
+	
+	<!-- 브랜드별 상품목록 총카운트 -->
+	<select id="getFrontGoodsBrandCount" resultType="int">
+		/* getFrontGoodsBrandCount */
+		SELECT COUNT(*) AS TOTCNT
+		FROM (
+			SELECT DISTINCT b.*
+			FROM gd_goods_link a 
+			INNER JOIN gd_goods b ON a.goodsno = b.goodsno
+			WHERE b.brandno = #{brandno} 
+			  AND b.open = 1 
+			  AND b.approvalStatus = '2'
+			  AND b.stock > 0 
+			  AND b.runout = 0
+			<if test="category != null and category != ''">
+			  AND a.category LIKE CONCAT(#{category}, '%')
+			</if>
+			<if test="options != null and options != ''">
+				AND 
+				<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+					CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+				</foreach>
+			</if>
+		) AA
+	</select>
+	
+	<!-- 브랜드별 상품목록 리스트 -->
+	<select id="getFrontGoodsBrandList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		/* getFrontGoodsBrandList */
+		SELECT DISTINCT b.*
+       		 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = a.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+			<if test ="m_no != null and m_no != 0" >
+       		 , (SELECT COUNT(f.goodsno) FROM gd_goods_like f WHERE m_no = #{m_no} AND f.goodsno = a.goodsno) AS likes	<!-- 찜한상품 체크 -->
+			</if>
+			<if test ='sort == "ordCnt desc"' >
+			 , (SELECT IFNULL(SUM(ea), 0) FROM gd_order_item WHERE goodsno = a.goodsno) AS ordCnt
+			</if>
+		FROM gd_goods_link a
+		INNER JOIN gd_goods b ON a.goodsno = b.goodsno 
+		WHERE b.brandno = #{brandno} 
+		  AND b.open = 1
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		<if test="category != null and category != ''">
+		  AND a.category LIKE CONCAT(#{category}, '%')
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+		ORDER BY ${sort}
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 카테고리별 상품목록 총카운트 -->
+	<select id="getFrontGoodsGoodsCount" resultType="int">
+		/* getFrontGoodsGoodsCount */
+		SELECT COUNT(a.goodsno)
+		FROM gd_goods_link a 
+		LEFT OUTER JOIN gd_goods_brand d ON d.sno = a.brandno
+		WHERE a.category LIKE CONCAT(#{category}, '%')
+		  AND a.open = 1
+		  AND a.approvalStatus = '2'
+		  AND a.stock > 0 
+		  AND a.runout = 0
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', a.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 카테고리별 상품목록 리스트 -->
+	<select id="getFrontGoodsGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslinkGoodsbrand">
+		/* getFrontGoodsGoodsList */
+		SELECT a.category
+       		 , b.*
+       		 , d.brandnm
+       		 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = a.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+       		<if test ="m_no != null and m_no != 0" >
+       		 , (SELECT COUNT(f.goodsno) FROM gd_goods_like f WHERE m_no = #{m_no} AND f.goodsno = a.goodsno) AS likes	<!-- 찜한상품 체크 -->
+       		</if>
+			<if test ='sort == "ordCnt desc"' >
+			 , (SELECT IFNULL(SUM(ea), 0) FROM gd_order_item WHERE goodsno = a.goodsno) AS ordCnt
+			</if>
+		FROM gd_goods_link a 
+		INNER JOIN gd_goods b ON a.goodsno = b.goodsno 
+		LEFT OUTER JOIN gd_goods_brand d ON d.sno = b.brandno
+		WHERE a.category LIKE CONCAT(#{category}, '%')
+		  AND b.open = 1
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+		/* GROUP BY a.goodsno */ 
+		ORDER BY ${sort}
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 선택된 카테고리의 하위카테고리리스트 -->
+	<select id="getFrontGoodsGoodsCategoryList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		/* getFrontGoodsGoodsCategoryList */
+		SELECT c.sno
+			 , c.catnm
+			 , c.catnmKR
+			 , c.catnmCN
+			 , c.category
+			 , c.sort
+			 , c.hidden
+			 , c.k_level
+			 , c.useimg 
+			 , SUM(r.goodsCnt) goodsCnt
+		FROM gd_category c 
+		INNER JOIN (
+			SELECT l.category, COUNT(l.goodsno) goodsCnt
+			FROM gd_goods_link l
+			INNER JOIN gd_category t ON t.category = l.category
+			LEFT OUTER JOIN gd_goods_brand d ON l.brandno = d.sno
+			WHERE l.open = 1
+			  AND l.approvalStatus = '2'
+			  AND l.runout = 0
+			  AND l.stock > 0
+			<if test="brandno != null and brandno != ''">
+			  AND l.brandno = #{brandno}
+			</if>
+			<if test="schSpec != null and schSpec != ''">
+				<choose>
+					<when test='schSpec == "H"'>
+						AND l.hot_yn = 'Y'
+					</when>
+					<when test='schSpec == "V"'>
+						AND l.vip_yn = 'Y'
+					</when>
+					<when test='schSpec == "N"'>
+						AND l.scmRegdt BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+					</when>
+					<otherwise>
+						AND l.seasonNm = #{schSpec}
+					</otherwise>
+				</choose>
+			</if>
+			
+			<if test="swords != null">
+				<foreach item="item" index="index" collection="swords">
+					<if test="skey=='all'">
+					  AND CONCAT(l.keyword, l.goodsnm, l.goodsnmKR, l.goodsnmCN, l.goodscd, l.binCd, 
+					  			IF(d.brandnm IS NULL, '', d.brandnm), IF(d.brandnmKR IS NULL, '', d.brandnmKR), IF(d.brandnmCN IS NULL, '', d.brandnmCN), IF(d.brandMemo IS NULL, '', d.brandMemo),
+					  			IF(t.catnm IS NULL, '', t.catnm), IF(t.catnmKR IS NULL, '', t.catnmKR), IF(t.catnmCN IS NULL, '', t.catnmCN), IF(t.catMemo IS NULL, '', t.catMemo)
+					  	) LIKE CONCAT('%', #{item}, '%')
+					</if>
+					<if test="skey=='brand'">
+					  AND brandnm LIKE CONCAT('%', #{item}, '%')
+					</if>
+					<if test="skey=='goodsnm'">
+					  AND CONCAT(goodsnm, goodsnmKR, goodsnmCN) Like CONCAT('%', #{item}, '%')
+					</if>
+				</foreach>
+			</if>
+			GROUP BY l.category
+		) r ON r.category LIKE CONCAT(c.category, '%')
+		WHERE c.category LIKE CONCAT(#{category}, '%') 
+		  AND LENGTH(c.category) > LENGTH(#{category})
+		  AND LENGTH(c.category) <![CDATA[ < ]]> 12
+		  AND c.hidden = '0'
+		GROUP BY c.sno
+		ORDER BY c.category
+	</select>
+	
+	<!-- 선택된 카테고리 정보 -->
+	<select id="getFrontGoodsGoodsCategoryInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		/* getFrontGoodsGoodsCategoryInfo */
+		SELECT sno
+			 , catnm
+			 , catnmKR
+			 , catnmCN
+			 , category
+			 , sort
+			 , hidden
+			 , k_level
+			 , (SELECT COUNT(l.goodsno)
+				FROM gd_goods_link l
+				WHERE l.category LIKE CONCAT(c.category, '%') 
+				  AND l.open = 1
+				  AND l.approvalStatus = '2'
+				  AND l.stock > 0 
+		  		  AND l.runout = 0
+		  		<if test="schSpec != null and schSpec != ''">
+					<choose>
+						<when test='schSpec == "H"'>
+							AND l.hot_yn = 'Y'
+						</when>
+						<when test='schSpec == "V"'>
+							AND l.vip_yn = 'Y'
+						</when>
+						<when test='schSpec == "N"'>
+							AND l.scmRegdt BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+						</when>
+						<otherwise>
+							AND l.seasonNm = #{schSpec}
+						</otherwise>
+					</choose>
+				</if>
+				) AS goodsCnt
+		FROM gd_category c
+		WHERE category = #{category}
+	</select>
+	
+	<!-- 상품번호로 대표카테고리 조회 -->
+	<select id="getFrontGoodsGoodsCategoryByGoodsno" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		/* getFrontGoodsGoodsCategoryByGoodsno */
+		SELECT a.*
+		FROM gd_category a
+		INNER JOIN gd_goods_link b ON b.category = a.category
+		WHERE a.hidden = '0'
+		  AND b.goodsno = #{goodsno}
+		ORDER BY b.sort
+		LIMIT 1
+	</select>
+	
+	<select id="getFrontGoodsGoodsBrandList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		SELECT d.*
+			 , IF(d.brandnm REGEXP '^[a-z]', LEFT(d.brandnm, 1), '0') AS spell
+			 , COUNT(a.goodsno) AS goodsCnt
+		FROM gd_goods_link a 
+		INNER JOIN gd_goods_brand d ON a.brandno = d.sno
+		LEFT OUTER JOIN gd_category f ON a.category = f.category
+		WHERE a.open = 1
+		  AND a.approvalStatus = '2'
+		  AND a.stock > 0 
+		  AND a.runout = 0
+		<if test="schSpec != null and schSpec != ''">
+			<choose>
+				<when test='schSpec == "H"'>
+					AND a.hot_yn = 'Y'
+				</when>
+				<when test='schSpec == "V"'>
+					AND a.vip_yn = 'Y'
+				</when>
+				<when test='schSpec == "N"'>
+					AND a.scmRegdt BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+				</when>
+				<otherwise>
+					AND a.seasonNm = #{schSpec}
+				</otherwise>
+			</choose>
+		</if>
+		
+		<if test="category != null and category != '' ">
+			AND a.category LIKE CONCAT(#{category}, '%')
+		</if>
+		
+		<if test='schType == "clothing"'>
+			AND (a.category LIKE '001003%' OR a.category LIKE '002003%' OR a.category LIKE '003001001%' OR a.category LIKE '003002001%')
+		</if>
+		<if test='schType == "shoes"'>
+			AND (a.category LIKE '001004%' OR a.category LIKE '002004%' OR a.category LIKE '003001002%' OR a.category LIKE '003002002%')
+		</if>
+		<if test='schType == "bags"'>
+			AND (a.category LIKE '001001%' OR a.category LIKE '002001%')
+		</if>
+		<if test='schType == "accessories"'>
+			AND (a.category LIKE '001005%' OR a.category LIKE '002005%' OR a.category LIKE '003001003%' OR a.category LIKE '003002003%')
+		</if>
+		
+		<choose>
+			<when test='sale == "50" '>
+				AND ROUND(a.priceRate) > 50
+			</when>
+			<when test='sale == "30" '>
+				AND ROUND(a.priceRate) BETWEEN 31 AND 49.99
+			</when>
+			<when test='sale == "10" '>
+				AND ROUND(a.priceRate) BETWEEN 0.01 AND 30.99
+			</when>
+		</choose>
+		
+		<if test="swords != null">
+			<foreach item="item" index="index" collection="swords">
+				<if test="skey=='all'">
+				  AND CONCAT(a.keyword, a.goodsnm, a.goodsnmKR, a.goodsnmCN, a.goodscd, a.binCd, 
+				  			IF(d.brandnm IS NULL, '', d.brandnm), IF(d.brandnmKR IS NULL, '', d.brandnmKR), IF(d.brandnmCN IS NULL, '', d.brandnmCN), IF(d.brandMemo IS NULL, '', d.brandMemo),
+				  			IF(f.catnm IS NULL, '', f.catnm), IF(f.catnmKR IS NULL, '', f.catnmKR), IF(f.catnmCN IS NULL, '', f.catnmCN), IF(f.catMemo IS NULL, '', f.catMemo)
+				  	) LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='brand'">
+				  AND brandnm LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='goodsnm'">
+				  AND CONCAT(goodsnm, goodsnmKR, goodsnmCN) Like CONCAT('%', #{item}, '%')
+				</if>
+			</foreach>
+		</if>
+		
+		GROUP BY d.sno
+		ORDER BY IF(d.brandnm REGEXP '^[a-z]', 1, 2), d.brandnm
+	</select>
+
+	<!-- 상품 총카운트 -->
+	<select id="getFrontGoodsTotCnt" resultType="int">
+		/* getFrontGoodsTotCnt */
+		SELECT COUNT(b.goodsno) AS TOTCNT
+		FROM gd_goods b
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		 WHERE b.open = 1 
+		   AND b.approvalStatus = '2'
+		   AND b.stock > 0 
+		   AND b.runout = 0
+		<if test="schSpec != null and schSpec != ''">
+			<choose>
+				<when test='schSpec == "H"'>
+					AND b.hot_yn = 'Y'
+				</when>
+				<when test='schSpec == "V"'>
+					AND b.vip_yn = 'Y'
+				</when>
+				<when test='schSpec == "N"'>
+					AND b.scmRegdt BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+				</when>
+				<otherwise>
+					AND b.seasonNm = #{schSpec}
+				</otherwise>
+			</choose>
+		</if>
+		
+		<if test="category != null and category != '' ">
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE category LIKE CONCAT(#{category}, '%'))
+		</if>
+		
+		<if test='schType == "clothing"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001003%' OR category LIKE '002003%' OR category LIKE '003001001%' OR category LIKE '003002001%'))
+		</if>
+		<if test='schType == "shoes"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001004%' OR category LIKE '002004%' OR category LIKE '003001002%' OR category LIKE '003002002%'))
+		</if>
+		<if test='schType == "bags"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001001%' OR category LIKE '002001%'))
+		</if>
+		<if test='schType == "accessories"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001005%' OR category LIKE '002005%' OR category LIKE '003001003%' OR category LIKE '003002003%'))
+		</if>
+		
+		<choose>
+			<when test='sale == "50" '>
+				AND ROUND(b.priceRate) > 50
+			</when>
+			<when test='sale == "30" '>
+				AND ROUND(b.priceRate) BETWEEN 31 AND 49.99
+			</when>
+			<when test='sale == "10" '>
+				AND ROUND(b.priceRate) BETWEEN 0.01 AND 30.99
+			</when>
+		</choose>
+				
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+	</select>
+			
+	<!-- 상품 목록 -->
+	<select id="getFrontGoodsList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		/* getFrontGoodsList */
+		SELECT b.goodsno
+			 , b.goodscd 
+			 , b.sellerCd 
+			 , b.goodsnm 
+			 , b.goodsnmKR
+			 , b.goodsnmCN
+			 , b.brandno 
+			 , b.origin 
+			 , b.binCd 
+			 , b.simnCd 
+			 , b.seasonNm 
+			 , b.euYn 
+			 , b.shippingOrigin
+			 , b.meta_title AS metatitle 
+			 , b.keyword 
+			 , b.open 
+			 , b.ex_title AS extitle
+			 , b.ex1 
+			 , b.ex2 
+			 , b.ex3 
+			 , b.ex4 
+			 , b.ex5 
+			 , b.ex6 
+			 , b.use_emoney AS useemoney 
+			 , b.usestock 
+			 , b.runout 
+			 , b.tax 
+			 , b.strprice 
+			 , b.delivery_type AS deliverytype 
+			 , b.goods_delivery AS goodsdelivery 
+			 , b.usegoodsadd  
+			 , b.optnm 
+			 , b.opttype 
+			 , b.useadd  
+			 , b.addoptnm 
+			 , b.relationis 
+			 , b.relation 
+			 , b.img_i AS imgi 
+			 , b.img_s AS imgs
+			 , b.img_l AS imgl
+			 , b.img_m AS imgm 
+			 , b.shortdesc 
+			 , b.longdesc 
+			 , b.memo 
+			 , b.m_id AS mid 
+			 , b.regdt 
+			 , b.moddt 
+			 , b.coupon 
+			 , b.coupon_ea AS couponea 
+			 , b.coupon_usecnt AS couponusecnt
+			 , b.coupon_date AS coupondate
+			 , b.optno
+			 , b.opt1
+			 , b.opt2
+			 , b.consumer
+			 , b.price
+			 , b.priceRate
+			 , b.stock
+			 , d.brandnm
+			 , (SELECT e.category FROM gd_goods_link e WHERE b.goodsno = e.goodsno ORDER BY e.sort LIMIT 1) AS category
+			 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = b.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+			<if test ="m_no != null and m_no != 0" >
+			 , (SELECT COUNT(f.goodsno) FROM gd_goods_like f WHERE m_no = #{m_no} AND f.goodsno = b.goodsno) AS likes	<!-- 찜한상품 체크 -->
+			</if>
+			 , b.hot_yn
+			 , b.vip_yn
+			<if test ='sort == "ordCnt desc"' >
+			 , (SELECT IFNULL(SUM(ea), 0) FROM gd_order_item WHERE goodsno = b.goodsno) AS ordCnt
+			</if>
+		FROM gd_goods b
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		WHERE b.open = 1
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		<if test="schSpec != null and schSpec != ''">
+			<choose>
+				<when test='schSpec == "H"'>
+					AND b.hot_yn = 'Y'
+				</when>
+				<when test='schSpec == "V"'>
+					AND b.vip_yn = 'Y'
+				</when>
+				<when test='schSpec == "N"'>
+					AND b.scmRegdt BETWEEN DATE_ADD(NOW(), INTERVAL -1 MONTH) AND NOW()
+				</when>
+				<otherwise>
+					AND b.seasonNm = #{schSpec}
+				</otherwise>
+			</choose>
+		</if>
+		
+		<if test="category != null and category != '' ">
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE category LIKE CONCAT(#{category}, '%'))
+		</if>
+		
+		<if test='schType == "clothing"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001003%' OR category LIKE '002003%' OR category LIKE '003001001%' OR category LIKE '003002001%'))
+		</if>
+		<if test='schType == "shoes"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001004%' OR category LIKE '002004%' OR category LIKE '003001002%' OR category LIKE '003002002%'))
+		</if>
+		<if test='schType == "bags"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001001%' OR category LIKE '002001%'))
+		</if>
+		<if test='schType == "accessories"'>
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE (category LIKE '001005%' OR category LIKE '002005%' OR category LIKE '003001003%' OR category LIKE '003002003%'))
+		</if>
+		
+		<choose>
+			<when test='sale == "50" '>
+				AND ROUND(b.priceRate) > 50
+			</when>
+			<when test='sale == "30" '>
+				AND ROUND(b.priceRate) BETWEEN 31 AND 49.99
+			</when>
+			<when test='sale == "10" '>
+				AND ROUND(b.priceRate) BETWEEN 0.01 AND 30.99
+			</when>
+		</choose>
+		
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+		ORDER BY ${sort}
+		LIMIT ${rowStart}, ${pageSize}
+	</select>
+	
+	<!-- 상품 상세정보 조회 -->
+	<select id="getFrontGoodsView" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		/* getFrontGoodsView */
+		SELECT DISTINCT a.goodsno
+			 , a.goodscd
+			 , a.sellerCd 
+			 , a.goodsnm
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , a.brandno
+			 , (SELECT brandnm FROM gd_goods_brand WHERE sno = a.brandno) AS brandnm
+			 , a.origin 
+			 , a.binCd 
+			 , a.simnCd 
+			 , a.seasonNm 
+			 , a.euYn 
+			 , a.shippingOrigin
+			 , a.meta_title AS metatitle 
+			 , a.keyword 
+			 , a.open 
+			 , a.ex_title AS extitle
+			 , a.ex1 
+			 , a.ex2 
+			 , a.ex3 
+			 , a.ex4 
+			 , a.ex5 
+			 , a.ex6 
+			 , a.use_emoney AS useemoney 
+			 , a.usestock 
+			 , a.runout 
+			 , a.tax 
+			 , a.strprice 
+			 , a.delivery_type AS deliverytype
+			 , a.goods_delivery AS goodsdelivery 
+			 , a.usegoodsadd  
+			 , a.optnm 
+			 , a.opttype 
+			 , a.useadd  
+			 , a.addoptnm 
+			 , a.relationis 
+			 , a.relation 
+			 , a.img_i AS imgi 
+			 , a.img_s AS imgs
+			 , a.img_l AS imgl
+			 , a.img_m AS imgm 
+			 , a.shortdesc 
+			 , a.longdesc 
+			 , a.memo 
+			 , a.m_id AS mid 
+			 , a.regdt 
+			 , DATE_FORMAT(a.regdt, '%Y%m%d') AS regDate
+			 , a.coupon 
+			 , a.coupon_ea AS couponea 
+			 , a.coupon_usecnt AS couponusecnt
+			 , a.coupon_date AS coupondate
+			 , a.vip_yn
+			 , (SELECT COUNT(*) FROM gd_order o INNER JOIN gd_order_item i ON i.ordno = o.ordno WHERE o.m_no = #{m_no} AND o.step IN (4, 6, 7) AND istep = 0 AND i.goodsno = a.goodsno) AS buycnt	<!-- 구매 여부 체크 -->
+			 , (SELECT o.ordno FROM gd_order o INNER JOIN gd_order_item i ON i.ordno = o.ordno WHERE o.m_no = #{m_no} AND o.step IN (4, 6, 7) AND istep = 0 AND i.goodsno = a.goodsno limit 1) AS ordno  	<!-- 구매 주문번호 -->
+			 , (SELECT COUNT(*) FROM gd_order o INNER JOIN gd_order_item i ON i.ordno = o.ordno INNER JOIN gd_goods_review r ON r.ordno = o.ordno WHERE o.m_no = 557 AND o.step IN (4, 6, 7) AND istep = 0 AND i.goodsno = a.goodsno) AS reviewcnt <!-- 구매 후 리뷰작성 카운트 -->
+		FROM gd_goods a
+		LEFT JOIN gd_goods_link b ON a.goodsno = b.goodsno
+		WHERE a.goodsno = #{goodsno}
+	</select>
+	
+	<!-- 메인진열상품 총카운트 -->
+	<select id="getFrontMainGoodsTotCnt" resultType="int">
+		SELECT COUNT(b.goodsno)
+		FROM gd_goods_display a
+		INNER JOIN gd_goods b ON a.goodsno = b.goodsno
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		WHERE a.mode = #{mode}
+		  AND b.open = 1 
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+	</select>
+
+	<!-- 메인진열상품 목록 -->
+	<select id="getFrontMainGoodsList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		/* getFrontMainGoodsList */
+		SELECT b.goodsno
+			 , b.goodscd 
+			 , b.sellerCd 
+			 , b.goodsnm 
+			 , b.goodsnmKR
+			 , b.goodsnmCN
+			 , b.brandno 
+			 , b.origin 
+			 , b.binCd 
+			 , b.simnCd 
+			 , b.seasonNm 
+			 , b.euYn 
+			 , b.shippingOrigin
+			 , b.meta_title AS metatitle 
+			 , b.keyword 
+			 , b.open 
+			 , b.ex_title AS extitle
+			 , b.ex1 
+			 , b.ex2 
+			 , b.ex3 
+			 , b.ex4 
+			 , b.ex5 
+			 , b.ex6 
+			 , b.use_emoney AS useemoney 
+			 , b.usestock 
+			 , b.runout 
+			 , b.tax 
+			 , b.strprice 
+			 , b.delivery_type AS deliverytype 
+			 , b.goods_delivery AS goodsdelivery 
+			 , b.usegoodsadd  
+			 , b.optnm 
+			 , b.opttype 
+			 , b.useadd  
+			 , b.addoptnm 
+			 , b.relationis 
+			 , b.relation 
+			 , b.img_i AS imgi 
+			 , b.img_s AS imgs
+			 , b.img_l AS imgl
+			 , b.img_m AS imgm 
+			 , b.shortdesc 
+			 , b.longdesc 
+			 , b.memo 
+			 , b.m_id AS mid 
+			 , b.regdt 
+			 , b.moddt 
+			 , b.coupon 
+			 , b.coupon_ea AS couponea 
+			 , b.coupon_usecnt AS couponusecnt
+			 , b.coupon_date AS coupondate
+			 , b.optno
+			 , b.opt1
+			 , b.opt2
+			 , b.consumer
+			 , b.price
+			 , b.priceRate
+			 , b.stock
+			 , d.brandnm
+			 , (SELECT e.category FROM gd_goods_link e WHERE b.goodsno = e.goodsno ORDER BY e.sort LIMIT 1) AS category
+			 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = b.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+		FROM gd_goods_display a 
+		INNER JOIN gd_goods b ON a.goodsno = b.goodsno
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		WHERE a.mode = #{mode}
+		  AND b.open = 1 
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		ORDER BY ${sort}
+		LIMIT ${rowStart}, ${pageSize}
+	</select>
+	
+	<!-- 상품 브랜드 목록 조회 -->
+	<select id="getFrontGoodsViewBrandList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsBrand">
+		/* getFrontGoodsViewBrandList */
+		SELECT * 
+		FROM gd_goods_brand
+		WHERE sno = #{brandno}  
+		ORDER BY sort
+	</select>
+	
+	<!-- 관련 상품 목록 조회 -->
+	<select id="getFrontGoodsRelationList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoods">
+		/* getFrontGoodsRelationList */
+		SELECT a.goodsno 
+			 , a.goodsnm 
+			 , a.goodsnmKR 
+			 , a.goodsnmCN
+			 , a.img_s AS imgs 
+			 , b.price
+			 , b.priceRate
+			 , b.consumer
+			 , c.category
+			 , (SELECT brandnm FROM gd_goods_brand WHERE sno = a.brandno) AS brandnm
+		FROM gd_goods a, gd_goods_option b, gd_goods_link c
+		WHERE a.goodsno = b.goodsno
+		  AND b.parent = 0
+		  AND a.goodsno = c.goodsno
+		  AND a.goodsno IN 
+			<foreach collection="relationArray" item="relation" open="(" close=")" separator=",">
+			  #{relation}
+			</foreach>
+		  AND a.approvalStatus = '2'
+		  AND a.stock > 0 
+		  AND a.runout = 0
+		ORDER BY sort LIMIT 12
+	</select>
+	
+	<!-- 관련 상품 목록 random 조회[관련상품 설정이 안되어 있을 경우 조회] -->
+	<select id="getFrontGoodsRelationRandomList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoods">
+		/* getFrontGoodsRelationList */
+		SELECT a.goodsno 
+			 , a.goodsnm 
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , a.img_s AS imgs 
+			 , b.price
+			 , b.priceRate
+			 , b.consumer
+			 , c.category
+			 , (SELECT brandnm FROM gd_goods_brand WHERE sno = a.brandno) AS brandnm
+		FROM gd_goods a, gd_goods_option b, gd_goods_link c
+		WHERE a.goodsno = b.goodsno
+		  AND b.parent = 0
+		  AND a.goodsno = c.goodsno
+		  AND a.open = 1
+		  AND a.approvalStatus = '2'
+		  AND a.stock > 0 
+		  AND a.runout = 0
+		  AND a.goodsno IN (
+			SELECT goodsno FROM gd_goods_link WHERE category IN (
+				SELECT category FROM gd_goods_link WHERE goodsno = #{goodsno}
+			) AND gd_goods_link.goodsno != #{goodsno}
+		  )
+		ORDER BY rand() LIMIT 12
+	</select>
+	
+	<!-- 상품평 POINT 평균 조회 -->
+	<select id="getFrontGoodsReviewPointAvg" resultType="int">
+		/* getFrontGoodsReviewPointAvg */
+		SELECT IFNULL(ROUND(AVG(point)), 0) AS avgPoint 
+		FROM gd_goods_review 
+		WHERE goodsno = #{goodsno}
+	</select>
+	
+	<!-- 상품평 임시 이미지 등록 -->
+	<insert id="insertReviewTempFile">
+		INSERT
+		  INTO gd_goods_review_temp_file
+		     ( img
+		     , reg_id
+		     , reg_dt
+		     )
+		VALUES
+		     ( #{img}
+		     , #{regid}
+		     , now()
+		     )
+		     
+		<selectKey resultType="int" keyProperty="fno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 상품평 임시 이미지 조회 -->
+	<select id="selectReviewTempFileList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO" resultType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO">
+		SELECT fno
+			 , img
+			 , reg_id
+		  FROM gd_goods_review_temp_file
+		 WHERE fno IN 
+		<foreach collection="fnoArr" item="fno" open="(" close=")" separator=",">
+			#{fno}
+		</foreach>
+	</select>
+	
+	<!-- 상품평 임시 이미지 삭제 -->
+	<delete id="deleteReviewTempFile">
+		DELETE
+		  FROM gd_goods_review_temp_file
+		 WHERE fno = #{fno}
+	</delete>
+	
+	<!-- 상품평 이미지 등록 -->
+	<insert id="insertReviewFile">
+		INSERT
+		  INTO gd_goods_review_file
+		     ( img
+		     , sno
+		     , reg_id
+		     , reg_dt
+		     )
+		VALUES
+		     ( #{img}
+		     , #{sno}
+		     , #{regid}
+		     , now()
+		     )
+		     
+		<selectKey resultType="int" keyProperty="fno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 상품평 총카운트 조회 -->
+	<select id="getFrontGoodsReviewTotCnt" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO" resultType="int">
+		/* getFrontGoodsReviewTotCnt */
+		SELECT COUNT(*) AS TOTCNT
+		FROM gd_goods_review a 
+		LEFT JOIN gd_member b on a.m_no = b.m_no 
+		LEFT JOIN gd_goods c ON a.goodsno = c.goodsno 
+		LEFT JOIN (SELECT sno
+							 , MAX(img) img
+					    FROM gd_goods_review_file
+					   GROUP BY sno
+		)d ON a.sno = d.sno
+		WHERE a.goodsno = #{goodsno}
+	</select>
+	
+	<!-- 상품평 목록 조회 -->
+	<select id="getFrontGoodsReviewList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberGoodsrevwGoods">
+		/* getFrontGoodsReviewList */
+		SELECT b.m_no AS mno
+			 , b.m_id AS mid
+			 , b.profile
+			 , a.sno
+			 , a.goodsno
+			 , a.ordno
+			 , a.subject
+			 , a.contents
+			 , a.point
+			 , DATE_FORMAT(a.regdt,'%Y-%m-%d') AS regdt
+			 , a.name
+			 , b.name AS mname
+			 , a.parent
+			 , c.img_s imgs
+			 , c.goodsnm
+			 , c.goodsnmKR
+			 , c.goodsnmCN
+ 			 , c.brandno
+ 			 , c.binCd
+			 , d.img reviewimg
+		FROM gd_goods_review a
+		LEFT JOIN gd_member b ON a.m_no = b.m_no
+		LEFT JOIN gd_goods c ON a.goodsno = c.goodsno 
+		LEFT JOIN (SELECT sno, MAX(img) img FROM gd_goods_review_file GROUP BY sno) d ON a.sno = d.sno
+		WHERE 1=1
+		<!-- 
+		WHERE a.goodsno = #{goodsno}
+		  AND a.point > 3
+		 -->
+		<choose>
+			<when test='sort == "point" '>
+				ORDER BY
+					CASE 
+			 			WHEN a.goodsno = #{goodsno} and b.m_no = #{mno}
+					 	THEN 1 
+						WHEN a.goodsno = #{goodsno} 
+					 	THEN 2
+					 	ELSE 3
+					END
+				, point DESC, reviewimg DESC, a.regdt DESC
+			</when>
+			<when test='sort == "regdt" '>
+				ORDER BY
+					CASE 
+			 			WHEN a.goodsno = #{goodsno} and b.m_no = #{mno}
+					 	THEN 1 
+						WHEN a.goodsno = #{goodsno} 
+					 	THEN 2
+					 	ELSE 3
+					END
+				,a.regdt DESC, point DESC, reviewimg DESC 
+			</when>
+			<otherwise>
+				ORDER BY 
+					CASE 
+			 			WHEN a.goodsno = #{goodsno} and b.m_no = #{mno}
+					 	THEN 1 
+						WHEN a.goodsno = #{goodsno} 
+					 	THEN 2
+					 	ELSE 3
+					END
+				, reviewimg DESC, point DESC, a.regdt DESC
+			</otherwise>
+		</choose>
+		LIMIT 30
+	</select>
+	
+	<!-- 상품평 포토 목록 조회 -->
+	<select id="getFrontGoodsReviewFileList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO" resultType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsReviewVO">
+		/* getFrontGoodsReviewFileList */
+		SELECT a.fno
+			 , a.img
+		FROM gd_goods_review_file a
+		WHERE a.sno = #{sno}
+		ORDER BY fno
+	</select>
+	
+	<!-- 상품 필수 옵션 리스트 조회 -->
+	<select id="getFrontGoodsOptionList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsOption">
+		/* getFrontGoodsOptionList */
+		SELECT sno
+			 , goodsno
+			 , opt1
+			 , opt2
+			 , consumer
+			 , price 
+			 , priceRate 
+			 , supply
+			 , supply2
+			 , stock
+			 , CONCAT(opt1, '|', opt2) AS optkey
+			 , parent
+			 , optexplain
+		FROM  gd_goods_option 
+		WHERE goodsno = #{goodsno}
+	</select>
+	
+	<!-- 상품 필수 추가 옵션 리스트 조회 -->
+	<select id="getFrontGoodsAddOptionList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsAdd">
+		/* getFrontGoodsAddOptionList */
+		SELECT *
+		FROM gd_goods_add 
+		WHERE goodsno = #{goodsno} 
+		ORDER BY sno
+	</select>
+	
+	<!-- 상품 QNA 총카운트 조회 -->
+	<select id="getFrontGoodsQnATotCnt" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsQnAVO" resultType="int">
+		/* getFrontGoodsQNATotCnt */
+		SELECT COUNT(*) AS TOTCNT
+		FROM gd_goods_qna a 
+		LEFT JOIN gd_member b ON a.m_no = b.m_no 
+		WHERE goodsno = #{goodsno}
+	</select>
+	
+	<!-- 상품 QNA 목록 조회 -->
+	<select id="getFrontGoodsQnAList" parameterType="com.wepinit.wepinit_shop.xmall.front.vo.goods.FrontGoodsQnAVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		/* getFrontGoodsQNAList */
+		SELECT b.m_no AS mno
+			 , b.m_id AS mid
+			 , a.sno
+			 , a.goodsno
+			 , a.parent
+			 , a.subject
+			 , a.contents
+			 , a.regdt
+			 , a.name
+			 , b.name AS mname
+			 , b.k_level AS klevel
+		FROM gd_goods_qna a
+		LEFT JOIN gd_member b ON a.m_no = b.m_no 
+		WHERE goodsno = #{goodsno}
+		ORDER BY parent DESC, (CASE WHEN parent = a.sno THEN 0 ELSE 1 END) ASC, regdt DESC 
+		LIMIT ${rowStart}, ${pageSize}
+	</select>
+	
+	<!-- 장바구니 목록 -->
+	<select id="frontCheckStock" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.FrontCheckStockVO">
+		/* frontCheckStock */
+		SELECT goodsnm
+			 , goodsnmKR
+			 , goodsnmCN
+			 , usestock
+			 , runout
+			 , b.stock
+		FROM gd_goods AS a 
+		INNER JOIN gd_goods_option AS b ON a.goodsno = b.goodsno AND b.parent = 0
+		WHERE a.goodsno = #{goodsno} 
+		  AND sno = #{opt1}
+	</select>
+	
+	<!-- 중복확인 -->
+	<select id="goodsMemberCartChkcnt" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsCart">
+		/* goodsMemberCartChkcnt */
+		SELECT sno
+			 , m_no
+			 , goodsno
+			 , opt1
+			 , opt2
+			 , addopt
+			 , regdt
+			 , ea
+		FROM gd_goods_cart 
+		WHERE m_no = #{m_no}
+		  AND goodsno = #{goodsno}
+		  AND opt1 = #{opt1}
+		  <!-- AND opt2 = #{opt2} -->
+		  AND addopt = #{addopt}
+		<if test="ukey != '' and m_no == 0">
+		  AND ukey = #{ukey}
+		</if>
+	</select>
+	
+	<!-- 아이템 수량 업데이트 -->
+	<update id="updateGoodsCartEA">
+		/* updateGoodsCartEA */
+		UPDATE gd_goods_cart
+		   SET ea = ea + #{ea}
+		 WHERE m_no = #{m_no} 
+		   AND goodsno = #{goodsno}
+		   AND opt1 = #{opt1} 
+		  <!-- AND opt2 = #{opt2} -->
+		   AND addopt = #{addopt}
+		<if test="ukey != '' and m_no == 0">
+		   AND ukey = #{ukey}
+		</if>
+	</update>
+	
+	<!-- 회원장바구니 인서트 -->
+	<insert id="goodsMemberCartInsert">
+		/* goodsMemberCartInsert */
+		INSERT INTO gd_goods_cart (
+			m_no
+		  , goodsno
+		  , opt1
+		  , opt2
+		  , addopt
+		  , regdt
+		  , ea
+		  , delivery_policy_no 
+		<if test="ukey != '' and m_no == 0">
+		  , ukey
+		</if>
+		) VALUES (
+			#{m_no}
+		  , #{goodsno}
+		  , #{opt1}
+		  , #{opt2}
+		  , #{addopt}
+		  , now()
+		  , #{ea}
+		  , #{no}
+		<if test="ukey != '' and m_no == 0">
+		  , #{ukey}
+		</if>
+		)
+	</insert>
+	
+	<!-- 장바구니 목록 -->
+	<select id="goodsMemberCartList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GoodsMemberCartListVO">
+		/* goodsMemberCartList */
+		SELECT good.goodsno 
+			 , good.goodsnm
+			 , good.goodsnmKR
+			 , good.goodsnmCN
+			 , good.img
+			 , good.consumer
+			 , good.price
+			 , good.priceRate
+			 , good.delivery_type
+			 , good.goods_delivery
+			 , good.use_emoney
+			 , good.usestock
+			 , good.sellerCd
+			 , good.opttype
+			 , CONCAT(opt1, ' ', opt2) AS optNm
+			 , good.brandnm
+			 , good.vip_yn
+		FROM (
+			SELECT a.goodsno
+				 , goodsnm
+				 , goodsnmKR
+				 , goodsnmCN
+				 , img_s AS img
+				 , b.consumer
+				 , b.price
+				 , b.priceRate
+				 , delivery_type
+				 , goods_delivery
+				 , use_emoney
+				 , usestock
+				 , a.sellerCd
+				 , a.opttype
+				 , b.opt1
+				 , b.opt2
+				 , (SELECT brandnm FROM gd_goods_brand WHERE sno = a.brandno) AS brandnm
+				 , a.vip_yn
+			FROM gd_goods AS a 
+			INNER JOIN gd_goods_option AS b ON a.goodsno = b.goodsno
+			LEFT JOIN gd_seller AS c ON a.sellerCd = c.sellerCd 
+			WHERE a.goodsno = #{goodsno} 
+			  AND b.sno = #{opt1}
+		) good 
+	</select>
+	
+	<!-- 장바구니비우기 -->
+	<delete id="goodsMemberCartEmpty">
+		/* goodsMemberCartEmpty */
+		DELETE 
+		FROM gd_goods_cart 
+		WHERE m_no = #{m_no}
+	</delete>
+	
+	<!-- 상품삭제 -->
+	<delete id="goodsMemberCartDelete">
+		/* goodsMemberCartDelete */
+		DELETE 
+		FROM gd_goods_cart 
+		WHERE m_no = #{m_no} 
+		  AND sno IN (${sno}) 
+		<if test="ukey != '' and m_no == 0">
+		  AND ukey = #{ukey}
+		</if>
+	</delete>
+	
+	<!-- 상품옵션수정 -->
+	<update id="goodsMemberCartOptUpdate">
+		/* goodsMemberCartEaUpdate */
+		UPDATE gd_goods_cart
+		   SET opt1 = #{opt} 
+		 WHERE m_no = #{m_no} 
+		   AND sno = #{sno}
+		<if test="ukey != '' and m_no == 0">
+		  AND ukey = #{ukey}
+		</if>
+	</update>
+	
+	<!-- 상품수량수정 -->
+	<update id="goodsMemberCartEaUpdate">
+		/* goodsMemberCartEaUpdate */
+		UPDATE gd_goods_cart
+		   SET ea = #{ea} 
+		 WHERE m_no = #{m_no} 
+		   AND goodsno = #{goodsno} 
+		   AND sno = #{optionSno}
+	</update>
+	
+	<!-- 회원장바구니 리스트 -->
+	<select id="goodsCartList" parameterType="com.wepinit.wepinit_shop.xmall.common.UserInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsCart">
+		/* goodsCartList */
+		SELECT * 
+		FROM gd_goods_cart 
+		WHERE m_no = #{m_no}
+		<if test="ukey != '' and m_no == 0">
+		  AND ukey = #{ukey}
+		</if>
+	</select>
+	
+	<!-- 회원장바구니 리스트 수정 -->
+	<update id="updateCartList" parameterType="com.wepinit.wepinit_shop.xmall.common.UserInfo" >
+		/* updateCartList */
+		UPDATE gd_goods_cart
+		   SET m_no = #{m_no}
+		 WHERE ukey = #{ukey}
+	</update>
+	
+	<!-- 상단 상품 검색 총 건수 -->
+	<select id="getFrontTopGoodsSearchListCount" resultType="int">
+		/* getFrontTopGoodsSearchListCount */
+		SELECT COUNT(DISTINCT b.goodsno)
+		FROM gd_goods b
+		LEFT OUTER JOIN gd_goods_link e ON b.goodsno = e.goodsno
+		<if test="skey == 'all' or skey =='brand' ">
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		</if>
+		<if test="skey == 'all' ">
+		LEFT OUTER JOIN gd_category f ON e.category = f.category
+		</if>
+		WHERE b.open = 1
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		<if test=" level gt 79 ">
+		  AND e.hidden = 0
+		</if>
+		
+		<if test="category != null and category != '' ">
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE category LIKE CONCAT(#{category}, '%'))
+		</if>
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+		
+		<if test="swords != null">
+			<foreach item="item" index="index" collection="swords">
+				<if test="skey=='all'">
+				  AND CONCAT(b.keyword, b.goodsnm, b.goodsnmKR, b.goodsnmCN, b.goodscd, b.binCd, 
+				  			IF(d.brandnm IS NULL, '', d.brandnm), IF(d.brandnmKR IS NULL, '', d.brandnmKR), IF(d.brandnmCN IS NULL, '', d.brandnmCN), IF(d.brandMemo IS NULL, '', d.brandMemo),
+				  			IF(f.catnm IS NULL, '', f.catnm), IF(f.catnmKR IS NULL, '', f.catnmKR), IF(f.catnmCN IS NULL, '', f.catnmCN), IF(f.catMemo IS NULL, '', f.catMemo)
+				  	) LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='brand'">
+				  AND brandnm LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='goodsnm'">
+				  AND CONCAT(goodsnm, goodsnmKR, goodsnmCN) Like CONCAT('%', #{item}, '%')
+				</if>
+			</foreach>
+		</if>
+		
+	</select>
+	
+	<!-- 상단 상품 검색 리스트 -->
+	<select id="getFrontTopGoodsSearchList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		/* getFrontTopGoodsSearchList */
+		SELECT DISTINCT b.*
+			 , b.optno
+			 , b.opt1
+			 , b.opt2
+			 , b.consumer 
+			 , b.price
+			 , b.priceRate
+			 , b.stock
+       		 , (SELECT COUNT(e.goodsno) FROM gd_goods_add e WHERE e.goodsno = b.goodsno) AS addoptFlag	<!-- 옵션상품 체크  -->
+			<if test ="mno != null and mno != 0" >
+       		 , (SELECT COUNT(f.goodsno) FROM gd_goods_like f WHERE m_no = #{mno} AND f.goodsno = b.goodsno) AS likes	<!-- 찜한상품 체크 -->
+			</if>
+			<if test ='sort == "ordCnt desc"' >
+			 , (SELECT IFNULL(SUM(ea), 0) FROM gd_order_item WHERE goodsno = b.goodsno) AS ordCnt
+			</if>
+		FROM gd_goods b
+		LEFT OUTER JOIN gd_goods_link e ON b.goodsno = e.goodsno
+		<if test="skey == 'all' or skey =='brand' ">
+		LEFT JOIN gd_goods_brand d ON b.brandno = d.sno
+		</if>
+		<if test="skey == 'all' ">
+		LEFT OUTER JOIN gd_category f ON e.category = f.category
+		</if>
+		WHERE b.open = 1
+		  AND b.approvalStatus = '2'
+		  AND b.stock > 0 
+		  AND b.runout = 0
+		<if test=" level gt 79 ">
+		  AND e.hidden = 0
+		</if>
+		
+		<if test="category != null and category != '' ">
+			AND b.goodsno IN (SELECT goodsno FROM gd_goods_link WHERE category LIKE CONCAT(#{category}, '%'))
+		</if>
+		<if test="brands != null and brands != ''">
+			AND d.sno IN
+			<foreach item="item" index="index" collection="brands" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="options != null and options != ''">
+			AND 
+			<foreach item="item" index="index" collection="options" open="(" separator="OR" close=")">
+				CONCAT('|', b.optnm, '|') LIKE CONCAT('%', #{item}, '%')
+			</foreach>
+		</if>
+		
+		<if test="swords != null">
+			<foreach item="item" index="index" collection="swords">
+				<if test="skey=='all'">
+				  AND CONCAT(b.keyword, b.goodsnm, b.goodsnmKR, b.goodsnmCN, b.goodscd, b.binCd, 
+				  			IF(d.brandnm IS NULL, '', d.brandnm), IF(d.brandnmKR IS NULL, '', d.brandnmKR), IF(d.brandnmCN IS NULL, '', d.brandnmCN), IF(d.brandMemo IS NULL, '', d.brandMemo),
+				  			IF(f.catnm IS NULL, '', f.catnm), IF(f.catnmKR IS NULL, '', f.catnmKR), IF(f.catnmCN IS NULL, '', f.catnmCN), IF(f.catMemo IS NULL, '', f.catMemo)
+				  	) LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='brand'">
+				  AND brandnm LIKE CONCAT('%', #{item}, '%')
+				</if>
+				<if test="skey=='goodsnm'">
+				  AND CONCAT(goodsnm, goodsnmKR, goodsnmCN) Like CONCAT('%', #{item}, '%')
+				</if>
+			</foreach>
+		</if>
+		
+		<if test=" sort != null ">
+		ORDER BY ${sort}
+		</if>
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 기본배송정책 추가리스트 -->
+	<select id="getDeliveryPolicyList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdDeliveryPolicy">
+		/* getDeliveryPolicyList */
+		SELECT no
+			 , r_delivery AS rDelivery
+			 , r_free AS rFree
+			 , r_deliType AS rDeliType
+			 , r_default AS rDefault
+			 , r_defalt_msg AS rDefaultMsg 
+		FROM gd_delivery_policy 
+		ORDER BY no ASC
+	</select>
+	
+	<!-- 해당 상품 연결 카테고리 조회 -->
+	<select id="getFrontGoodsLinkList" resultType="string">
+		/* getFrontGoodsLinkList */
+		SELECT category FROM gd_goods_link
+		WHERE goodsno = #{goodsno}				
+	</select>
+	
+	<!-- 회원직접 다운로드 쿠폰 조회 -->
+	<select id="getFrontDownCouponList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.CouponCouponcategoryCoupongoodsno">
+		/* getFrontDownCouponList */
+		SELECT DISTINCT a.couponcd
+			 , a.goodstype
+			 , a.coupontype
+			 , a.coupon
+			 , a.summa
+			 , a.priodtype
+			 , a.sdate
+			 , a.edate
+			 , a.excPrice
+			 , a.ability
+			 , a.price
+			 , a.regdt
+			 , a.goodsall
+			 , a.couponimg
+			 , a.eactl
+			 , a.dncnt
+			 , a.duplctl
+			 , a.edncnt
+			 , a.maxprice
+			 , a.skin
+			 , SUBSTRING(b.category, 1, 3) AS category
+			 , c.goodsno 
+		FROM gd_coupon a
+		LEFT JOIN gd_coupon_category b ON a.couponcd = b.couponcd
+		LEFT JOIN gd_coupon_goodsno c ON a.couponcd = c.couponcd
+		WHERE ((a.coupontype = 1 AND a.goodstype = 0) OR (a.coupontype = 1 AND a.goodstype = 1 AND (b.category IN
+		<foreach item="item" index="index" collection="category" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		)) OR (a.coupontype=1 AND a.goodstype=1 AND c.goodsno = #{goodsno}))
+		<![CDATA[
+		  AND ((STR_TO_DATE(a.sdate, '%Y-%m-%d %H:%i:%s') <= NOW() AND STR_TO_DATE(a.edate, '%Y-%m-%d %H:%i:%s') >= NOW() AND a.priodtype = '0') OR a.priodtype = '1')
+		]]>
+		  AND a.ability = 0
+		  AND a.open = 1
+		  AND a.approvalStatus = 2
+		  AND a.skin IN ('al', #{skin})
+		ORDER BY a.couponcd
+	</select>
+	
+	<!-- 쿠폰다운로드 횟수 조회 -->
+	<select id="getFrontDownCouponCount" resultType="int" >
+		/* getFrontDownCouponCount */
+		SELECT dncnt 
+		FROM gd_coupon
+		WHERE couponcd = #{couponcd}
+	</select>
+	
+	<!-- 해당 회원 해당 쿠폰 다운로드 횟수 조회 -->
+	<select id="getFrontDownCouponCountForMember" resultType="int">
+		/* getFrontDownCouponCountForMember */
+		SELECT COUNT(*) 
+		FROM gd_coupon_apply a
+		LEFT JOIN gd_coupon_applymember b ON a.sno = b.applysno
+		WHERE a.couponcd = #{couponcd}
+		  AND b.m_no = #{mno}
+	</select>
+	
+	<!-- 쿠폰발급내역 일련번호 최대값 조회 -->
+	<select id="getFrontCouponApplyMax" resultType="int">
+		/* getFrontCouponApplyMax */
+		SELECT IFNULL(MAX(sno), 0) AS maxCnt  
+		FROM gd_coupon_apply
+	</select>	
+
+	<!-- 회원직접 다운로드 쿠폰 발급 내역 등록 -->
+	<insert id="insertFrontCouponApply">
+		/* insertFrontCouponApply */
+		INSERT INTO gd_coupon_apply
+		SET sno = #{sno}
+		  , couponcd = #{couponcd}
+		  , membertype = #{membertype}
+		  , member_grp_sno = #{membergrpsno} 
+		  , goodsno = #{goodsno}
+		  , goodsnm = #{goodsnm}
+		  , goodsnmKR = #{goodsnmKR}
+		  , goodsnmCN = #{goodsnmCN}
+		  , regdt = now()
+		  , status = 1
+	</insert>
+	
+	<!-- 회원직접 다운로드 쿠폰 발급 회원정보 등록 -->
+	<insert id="insertFrontCouponApplyMember">
+		/* insertFrontCouponApplyMember */
+		INSERT INTO 
+			gd_coupon_applymember
+		SET m_no = #{mno}
+		  , applysno = #{sno}
+		  , status = 1
+	</insert>
+	
+	<!-- 찜한상품 등록 -->
+	<insert id="insertLikeGoods">
+		/* insertLikeGoods */
+		INSERT INTO gd_goods_like
+		SET goodsno	= #{goodsno}
+		  , m_no = #{mno}
+	</insert>
+	
+	<!-- 찜한상품 삭제 -->
+	<delete id="deleteLikeGoods">
+		/* deleteLikeGoods */
+		DELETE 
+		FROM gd_goods_like
+		WHERE goodsno = #{goodsno}
+		  AND m_no = #{mno}
+	</delete>
+	
+	<!-- 상품 브랜드 조회 -->
+	<select id="getGoodsInfo" resultType="map">
+		/* getGoodsInfo */
+		SELECT goodsnm
+			 , goodsnmKR
+			 , goodsnmCN
+			 , brandno
+			 , (SELECT brandnm FROM gd_goods_brand WHERE sno = brandno AND approvalStatus = 2) brandnm
+ 		FROM gd_goods
+ 		WHERE open = 1
+	</select>
+	
+	<!-- 상품명 조회 -->
+	<select id="getGoodsNameInfo" resultType="string">
+		/* getGoodsNameInfo */
+		SELECT goodsnm
+		FROM gd_goods
+		WHERE open = 1
+		GROUP BY goodsnm
+	</select>
+	
+	<!-- 브랜드명 조회 -->
+	<select id="getBrandNameInfo" resultType="string">
+		/* getBrandNameInfo */
+		SELECT brandnm
+  		FROM gd_goods T1
+  		JOIN gd_goods_brand T2 ON T1.brandno = T2.sno
+ 		WHERE open = 1
+ 		GROUP BY brandno
+	</select>
+	
+	<!-- 옵션2 리스트 -->
+	<select id="getOpt2List" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsOption">
+		/* getOpt2List */
+		SELECT sno
+			 , goodsno
+			 , opt2
+			 , price
+			 , stock
+		FROM gd_goods_option
+		WHERE goodsno = #{goodsno} 
+		  AND opt1 = #{opt1}
+	</select>
+	
+	<!-- 주문내역/배송조회 목록 -->
+	<select id="selectFrontReviewInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderMember">
+		 SELECT item.ordno
+			  , ord.skin 
+			  , ord.agent
+			  , ord.orddt
+			  , ord.nameorder
+			  , ord.customs_num
+			  , item.goodsno
+			  , item.brandnm
+			  , item.brandnmKR
+			  , item.brandnmCN
+			  , item.goodsnm
+			  , item.goodsnmKR
+			  , item.goodsnmCN
+			  , option.opt1
+			  , option.opt2
+			  , item.ea
+			  , option.price
+			  , ord.goodsprice
+			  , ord.prn_settleprice
+			  , ord.settlekind
+			  , ord.settleprice
+			  , ord.emoney
+			  , ord.addemoney
+			  , ord.country
+			  , ord.step
+			  , ord.step2
+			  , item.istep
+			  , goods.img_s imgs
+			  , goods.brandno
+		FROM gd_order_item item
+		 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+		 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+		  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+		 WHERE ord.m_no = #{m_no}
+		   AND item.goodsno = #{goodsno}
+		 LIMIT 1
+	</select>
+</mapper>

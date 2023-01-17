@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.seller.AdminSellerNoticeMapper">
+
+	<!-- 판매자 공지사항 총 게시물 수 -->
+	<select id="getSellerNoticeListCount" resultType="int">
+		SELECT COUNT(*) rowCount
+		FROM gd_seller_notice
+		WHERE 1=1
+		<choose>
+				<!-- 제목 -->
+			<when test="1 == schType">
+				AND title like concat('%', #{schText}, '%')
+			</when>
+			<!-- 내용 -->
+			<when test="2 == schType">
+				AND contents like concat('%', #{schText}, '%')
+			</when>
+			<!-- 전체 -->
+			<when test="'' == schType">
+				AND title like concat('%', #{schText}, '%')
+				OR contents like concat('%', #{schText}, '%')
+			</when>
+		</choose>
+	</select>
+	
+	<!-- 판매자 공지사항 목록 -->
+	<select id="getSellerNoticeList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerNoticeVO">
+		SELECT
+			sno, title, noticeYn, contents, attachFile
+			, regId, DATE_FORMAT(regDt, '%Y-%m-%d') AS regDt
+		FROM gd_seller_notice
+		WHERE 1=1
+		<choose>
+			<!-- 제목 -->
+			<when test="1 == schType">
+				AND title like concat('%', #{schText}, '%')
+			</when>
+			<!-- 내용 -->
+			<when test="2 == schType">
+				AND contents like concat('%', #{schText}, '%')
+			</when>
+			<!-- 전체 -->
+			<when test="'' == schType">
+				AND title like concat('%', #{schText}, '%')
+				OR contents like concat('%', #{schText}, '%')
+			</when>
+		</choose>
+		ORDER BY sno DESC
+		LIMIT ${pageStart}, ${pageSize}
+	</select>
+	
+	<!-- 판매자 공지사항 상세 -->
+	<select id="getSellerNoticeView" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerNoticeVO">
+		SELECT
+			sno, title, noticeYn, contents, attachFile
+			, regId, DATE_FORMAT(regDt, '%Y-%m-%d') AS regDt
+		FROM gd_seller_notice
+		WHERE 1=1
+			AND sno = #{noticeVO.sno}
+	</select>
+	
+	<!-- 판매자 공지사항 수정 -->
+	<update id="getSellerNoticeModify" >
+		UPDATE gd_seller_notice 
+			SET title		= #{title}
+			, noticeYn		= #{noticeYn}
+			, contents		= #{contents}
+		<if test='null != attachFile and "" != attachFile'>
+			, attachFile	= #{attachFile}
+		</if>
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 판매자 공지사항 등록 -->
+	<insert id="getSellerNoticeInsert">
+		INSERT INTO gd_seller_notice (
+			sno, title, noticeYn, contents, attachFile
+			, regId, regDt
+		)VALUES(
+			(SELECT ifnull(MAX(a.sno), 0) + 1 FROM gd_seller_notice a), #{title}, #{noticeYn}, #{contents}, #{attachFile}
+			, #{regId}, now()
+		)
+	</insert>	
+	
+	<!-- 판매자 공지사항 삭제 -->
+	<delete id="getSellerNoticeDelete">
+		DELETE FROM gd_seller_notice WHERE sno = #{sno}
+	</delete>
+</mapper>

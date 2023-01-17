@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.seller.AdminSellerManagementMapper">
+
+	<!-- 총 건수 및 오늘 승인된 건수 -->
+	<select id="getDivAppCount" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementFM">
+		select ( select count(*) from gd_seller where 1 = 1 and flag != 'D' and status = 'S' ) as totalApp
+			 , ( select count(*) from gd_seller where 1 = 1 and flag != 'D' and status = 'S' and date_format(regdt,"%Y.%m.%d") = date_format(sysdate(),"%Y.%m.%d") ) as todayApp
+  		  from dual	
+	</select>
+	
+	<!-- 탈퇴신청한 건수 -->
+	<select id="getLeaveCount" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementFM">
+		select ( select count(*) from gd_seller where 1 = 1 and flag != 'D' and status = 'X' ) as totalApp
+  		  from dual
+	</select>
+
+	<!-- 판매자신청목록(Count)-->
+	<select id="getSellerManagementListCount" resultType="int">
+		select count(*) 
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	  	    on a.sellerCd = b.sellerCd
+	  	 where 1 = 1
+	  	   and a.flag != 'D'
+			<if test='status == "W"'>
+				and ( a.status = 'W'
+				 or   a.status = 'R'
+				    )
+			</if>
+			<if test='status == "S"'>
+				and a.status = 'S'
+			</if>
+			<if test='status == "X"'>
+				and a.status = 'X'
+			</if>
+			<if test="sword != null and sword != '' and skey == 'all'">
+		   		and ( a.id like concat('%',#{sword},'%')
+		         or a.sellerNm like concat('%',#{sword},'%')
+		      	 or a.companyRegNo like concat('%',#{sword},'%')
+		      	 or b.managerNm like concat('%',#{sword},'%')
+		      	 or b.managerTel like concat('%',#{sword},'%')
+		      	 or b.managerHp like concat('%',#{sword},'%')
+		      	 or b.managerEmail like concat('%',#{sword},'%')
+		       		)
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sId'">
+				and a.id like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sSellerNm'">
+				and a.sellerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sCompanyRegNo'">
+				and a.companyRegNo like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerNm'">
+				and b.managerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerTel'">
+				and b.managerTel like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerHp'">
+				and b.managerHp like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerEmail'">
+				and b.managerEmail like concat('%',#{sword},'%')
+			</if>
+	</select>
+
+
+	<!-- 판매자신청목록 -->
+	<select id="getSellerManagementList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementFM">
+	<!-- 아이디 업체명 담당자 전화번호 휴대폰 신청일 상세정보 -->
+		select a.id 
+		 	 , a.sellerNm
+		 	 , b.managerNm
+		 	 , b.managerTel
+			 , b.managerHp
+			 , a.regdt
+			 , a.companyRegNo
+			 , b.managerEmail
+			 , a.sellerCd
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	  	    on a.sellerCd = b.sellerCd
+	  	 where 1 = 1
+	  	   and a.flag != 'D'
+			<if test='status == "W"'>
+				and ( a.status = 'W'
+				 or   a.status = 'R'
+				    )
+			</if>
+			<if test='status == "S"'>
+				and a.status = 'S'
+			</if>
+			<if test='status == "X"'>
+				and a.status = 'X'
+			</if>
+			<if test="sword != null and sword != '' and skey == 'all'">
+		   		and ( a.id like concat('%',#{sword},'%')
+		         or a.sellerNm like concat('%',#{sword},'%')
+		      	 or a.companyRegNo like concat('%',#{sword},'%')
+		      	 or b.managerNm like concat('%',#{sword},'%')
+		      	 or b.managerTel like concat('%',#{sword},'%')
+		      	 or b.managerHp like concat('%',#{sword},'%')
+		      	 or b.managerEmail like concat('%',#{sword},'%')
+		       		)
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sId'">
+				and a.id like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sSellerNm'">
+				and a.sellerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sCompanyRegNo'">
+				and a.companyRegNo like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerNm'">
+				and b.managerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerTel'">
+				and b.managerTel like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerHp'">
+				and b.managerHp like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerEmail'">
+				and b.managerEmail like concat('%',#{sword},'%')
+			</if>
+		order by a.moddt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 판매사정보관리등록 -->
+	<insert id="insertGdSeller">
+	
+		insert into gd_seller ( sellerCd, id, pwd, status, sellerNm, companyRegNo, agentNm, businessConditions, event
+		                      , homepage, zipcode, sellerAddr, sellerAddrSub, etc, adminMemo, settlementCycle, fees, feeDiv
+		                      , flag
+		                      <if test='"delete" != mode and "modify" != mode'>
+		                      	, regdt, reguser
+		                      </if>
+		                      , moddt, moduser
+		                      )
+		               values ( #{sellerCd}, #{id}, #{pwd}, #{status}, #{sellerNm}, #{companyRegNo}, #{agentNm}, #{businessConditions}, #{event}
+		                      , #{homepage}, #{zipcode}, #{sellerAddr}, #{sellerAddrSub}, #{etc}, #{adminMemo}, #{settlementCycle}, #{fees}, #{feeDiv}
+		                      , 'C'
+		                      <if test='"delete" != mode and "modify" != mode'>
+		                      	, SYSDATE(), #{reguser}
+		                      </if>
+		                      , SYSDATE(), #{moduser}
+		                      )
+	</insert>
+	
+	<!-- 판매사담당자정보관리 등록 -->
+	<insert id="insertGdSellerMng">
+	
+		insert into gd_seller_mng ( sellerCd, managerNm, managerPosition, managerTel, managerHp, managerFax, managerEmail )
+		                   values ( #{sellerCd}, #{managerNm}, #{managerPosition}, #{managerTel}, #{managerHp}, #{managerFax}, #{managerEmail} )
+
+	</insert>
+	
+	<!-- 판매사계좌정보 등록 -->
+	<insert id="insertGdSellerAcc">
+	
+		insert into gd_seller_acc ( sellerCd, accNm, bankCd, accNo )
+		                   values ( #{sellerCd}, #{accNm}, #{bankCd}, #{accNo} )
+
+	</insert>
+
+	<!-- 아이디중복 체크 -->
+	<select id="getDuplicationIdCount" resultType="int">
+		select count(*) as dupliCount
+		  from gd_seller
+		 where id = #{id}
+	</select>
+	
+	<!-- 판매자 코드중복 체크 -->
+	<select id="getDuplicationSellerCdCount" resultType="int">
+		select count(*) as dupliCount
+		  from gd_seller
+		 where sellerCd = #{sellerCd}
+	</select>
+	
+	<!-- 비밀번호 초기화 -->
+	<update id="updatePwd">
+		update gd_seller
+		   set pwd = #{pwd}
+		     , moddt = SYSDATE()
+		     , moduser = #{moduser}
+		 where sellerCd = #{sellerCd}
+	</update>
+	
+	<!-- 삭제 -->
+	<update id="updateSellerType">
+		update gd_seller
+		   set flag = 'D'
+		     , moddt = SYSDATE()
+		     , moduser = #{moduser}
+		 where sellerCd = #{sellerCd}
+	</update>
+	
+	<!-- 탈퇴 -->
+	<update id="updateSellerStatus">
+		update gd_seller
+		   set status = 'X'
+		     , moddt = SYSDATE()
+		     , moduser = #{moduser}
+		 where sellerCd = #{sellerCd}
+	</update>
+	
+	<!-- 판매자 상세정보 -->
+	<select id="getSellerManagementView" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementVO">
+	<!-- 아이디 업체명 담당자 전화번호 휴대폰 신청일 상세정보 -->
+		select a.sellerCd
+		     , a.id
+		     , a.status
+		 	 , a.sellerNm
+		 	 , a.companyRegNo
+		 	 , a.agentNm
+		 	 , a.businessConditions
+		 	 , a.event
+		 	 , a.homepage
+		 	 , a.zipcode
+		 	 , a.sellerAddr
+		 	 , a.sellerAddrSub
+		 	 , a.etc
+		 	 , a.adminMemo
+		 	 , a.settlementCycle
+		 	 , a.fees
+		 	 , a.feeDiv
+		 	 , a.flag
+		 	 , b.managerNm
+		 	 , b.managerPosition
+		 	 , b.managerTel
+			 , b.managerHp
+			 , b.managerFax
+			 , b.managerEmail
+			 , b.managerEmail
+			 , c.accNm
+			 , c.bankCd
+			 , c.accNo
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	 	    on a.sellerCd = b.sellerCd
+	 left join gd_seller_acc c
+			on a.sellerCd = c.sellerCd
+	  	 where a.sellerCd = #{sellerCd}
+	  	   and a.flag != 'D'
+	</select>
+	
+	<select id="getGdSellerCount" resultType="int">
+		select count(*)
+		  from gd_seller
+		 where sellerCd = #{sellerCd}
+	</select>
+
+	<select id="getGdSellerMngCount" resultType="int">
+		select count(*)
+		  from gd_seller_mng
+		 where sellerCd = #{sellerCd}	
+	</select>
+	
+	<select id="getGdSellerAccCount" resultType="int">
+		select count(*)
+		  from gd_seller_acc
+		 where sellerCd = #{sellerCd}
+	</select>
+	
+	<!-- 판매사정보관리수정 -->
+	<update id="updateGdSeller">
+	
+		update gd_seller
+		set
+			status = #{status}
+		  ,	sellerNm = #{sellerNm} 
+		  , pwd =  #{sellerPw}
+		  ,	companyRegNo = #{companyRegNo}
+		  ,	agentNm = #{agentNm}
+		  ,	businessConditions = #{businessConditions}
+		  ,	event = #{event}
+		  ,	homepage = #{homepage}
+		  ,	zipcode = #{zipcode}
+		  ,	sellerAddr = #{sellerAddr}
+		  ,	sellerAddrSub = #{sellerAddrSub}
+		  ,	etc = #{etc}
+		  ,	adminMemo = #{adminMemo}
+		  ,	settlementCycle = #{settlementCycle}
+	 	  ,	fees = #{fees}
+	 	  ,	feeDiv = #{feeDiv}
+		  ,	moddt = SYSDATE()
+		  ,	moduser = #{moduser}
+	  where sellerCd = #{sellerCd}
+	
+	</update>
+	
+	<!-- 판매사담당자정보관리 수정 -->
+	<update id="updateGdSellerMng">
+	
+		update gd_seller_mng
+		set
+		    managerNm = #{managerNm}
+		  ,	managerPosition = #{managerPosition}
+		  ,	managerTel = #{managerTel}
+		  ,	managerHp = #{managerHp} 
+		  ,	managerFax = #{managerFax}
+		  ,	managerEmail = #{managerEmail}
+	  where sellerCd = #{sellerCd}
+
+	</update>
+	
+	<!-- 판매사계좌정보 수정 -->
+	<update id="updateGdSellerAcc">
+	
+		update gd_seller_acc
+		set
+		    accNm = #{accNm}
+		  ,	bankCd = #{bankCd}
+		  ,	accNo = #{accNo}
+	  where sellerCd = #{sellerCd}
+
+	</update>
+
+	<select id="getSellerXls" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerManagementVO">
+<!-- 	아이디 업체명 담당자 전화번호 휴대폰 신청일 상세정보 -->
+		select a.id 
+		 	 , a.sellerNm
+		 	 , b.managerNm
+		 	 , b.managerTel
+			 , b.managerHp
+			 , a.regdt
+			 , a.companyRegNo
+			 , b.managerEmail
+			 , a.sellerCd
+	  	  from gd_seller     a
+	 left join gd_seller_mng b
+	  	    on a.sellerCd = b.sellerCd
+	  	 where 1 = 1
+	  	   and a.flag != 'D'
+			<if test='status == "W"'>
+				and ( a.status = 'W'
+				 or   a.status = 'R'
+				    )
+			</if>
+			<if test='status == "S"'>
+				and a.status = 'S'
+			</if>
+			<if test='status == "X"'>
+				and a.status = 'X'
+			</if>
+			<if test="sword != null and sword != '' and skey == 'all'">
+		   		and ( a.id like concat('%',#{sword},'%')
+		         or a.sellerNm like concat('%',#{sword},'%')
+		      	 or a.companyRegNo like concat('%',#{sword},'%')
+		      	 or b.managerNm like concat('%',#{sword},'%')
+		      	 or b.managerTel like concat('%',#{sword},'%')
+		      	 or b.managerHp like concat('%',#{sword},'%')
+		      	 or b.managerEmail like concat('%',#{sword},'%')
+		       		)
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sId'">
+				and a.id like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sSellerNm'">
+				and a.sellerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sCompanyRegNo'">
+				and a.companyRegNo like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerNm'">
+				and b.managerNm like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerTel'">
+				and b.managerTel like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerHp'">
+				and b.managerHp like concat('%',#{sword},'%')
+			</if>
+			<if test="sword != null and sword != '' and skey == 'sManagerEmail'">
+				and b.managerEmail like concat('%',#{sword},'%')
+			</if>
+		order by a.moddt desc
+	</select>
+
+</mapper>

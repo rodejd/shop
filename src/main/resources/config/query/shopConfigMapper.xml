@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.common.dao.ShopConfigMapper">
+	
+	<!-- getShopConfigProperty  -->
+	<select id="getShopConfigProperty" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdConfSet">
+		SELECT * FROM gd_conf_set WHERE conf_cd = #{conf_cd} and dim_set = #{dim_set} and dim1_var = #{dim1_var}
+	</select>
+	
+	<!-- getShopConfigPropertyList  -->
+	<select id="load" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdConfSet">
+		SELECT * FROM gd_conf_set WHERE 1=1 
+		<if test=" null != conf_cd and '' != conf_cd ">
+			AND conf_cd = #{conf_cd}
+		</if>
+		<if test=" null != dim_set and '' != dim_set ">
+			AND dim_set = #{dim_set}
+		</if>
+		<if test=" null != dim1_var and '' != dim1_var ">
+			AND dim_set = #{dim1_var}
+		</if>
+		<if test=" null != dim1_var and '' != dim1_var ">
+			AND dim1_var = #{dim1_var}
+		</if>
+		<if test=" null != dim2_var and '' != dim2_var ">
+			AND dim1_var = #{dim2_var}
+		</if>
+	</select>
+	
+	<!-- getProperties2  -->
+	<select id="getProperties2" resultType="map">
+		SELECT * FROM gd_conf_set WHERE conf_cd = #{conf_cd} AND dim_set = #{dim_set} <if test="'Y' == isOrderBy">order by regdt</if>
+	</select>
+	
+	<!-- setShopConfigProperty  -->
+	<insert id="setShopConfigProperty">
+		INSERT INTO 
+			gd_conf_set (conf_cd, dim_set, dim1_var, dim2_var, dim_val, regdt, uptdt) 
+		VALUES (
+			<choose>
+                <when test=" null == conf_cd or '' == conf_cd ">
+                    "config"
+                </when>
+                <otherwise>
+                  	#{conf_cd}
+                </otherwise>
+            </choose>
+			, 
+			<choose>
+                <when test=" null == dim_set or '' == dim_set " >
+                    "cfg"
+                </when>
+                <otherwise>
+                  	#{dim_set}
+                </otherwise>
+            </choose>
+			, #{dim1_var}
+			, 
+			<choose>
+                <when test=" null == dim2_var or '' == dim2_var ">
+                    "N/A"
+                </when>
+                <otherwise>
+                  	#{dim2_var}
+                </otherwise>
+            </choose>
+            , #{dim_val}
+            , NOW()
+            , NOW()
+		) ON DUPLICATE KEY UPDATE dim_val = #{dim_val}
+	</insert>	
+	
+	<!-- setShopConfigProperty3  -->
+	<update id="setShopConfigProperty3" >
+		UPDATE gd_conf_set SET dim_val = #{dim_val} WHERE conf_cd = #{conf_cd} and dim_set = #{dim_set} and dim1_var = #{dim1_var}
+	</update>
+	
+		<!-- Config 정보 조회  -->
+	<select id="getConfValueArry" resultType="map">
+		SELECT 
+			* 
+			FROM gd_conf_set
+			WHERE 1 = 1
+			AND conf_cd = #{confCd}
+			AND dim_set = #{dimSet}
+			AND dim1_var  IN ( ${dim1Var})
+			
+	</select>
+	
+		<!-- Config 정보 저장  -->
+	<update id="setConfValue" >
+		UPDATE gd_conf_set
+			SET
+		dim_val = #{dimVal}
+		WHERE 
+			conf_cd = #{confCd}
+			AND dim_set = #{dimSet}
+			AND dim1_var = #{dim1Var}
+	</update>
+		<!-- Config 정보 조회  -->
+	<select id="getConfValue" resultType="map">
+		SELECT 
+			dim_val 
+			FROM gd_conf_set
+			WHERE 1 = 1
+			AND conf_cd = #{confCd}
+			AND dim_set = #{dimSet}
+			AND dim1_var = #{dim1Var}
+			
+	</select>
+</mapper>
+

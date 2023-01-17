@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.basic.AdminMenuMapper">
+	<select id="getAdminMenuList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdAdminMenu">
+		SELECT c.menukey
+			 , c.parentkey
+			 , c.parentmenuname
+			 , c.menuname
+			 , c.link
+			 , c.menulevel
+			 , c.menunum 
+			 , c.usemenu
+		FROM (
+			SELECT a.menukey
+				 , a.parentkey
+				 , b.menuname AS parentmenuname
+				 , a.menuname
+				 , a.link
+				 , a.menulevel
+				 , a.menunum 
+				 , a.usemenu
+			FROM gd_admin_menu AS a 
+			LEFT JOIN gd_admin_menu AS b ON b.menukey = a.parentkey 
+		) AS c
+		WHERE c.parentkey = #{parentkey}
+		<if test='menulevel != null and menulevel >0' >
+		  AND c.menulevel = #{menulevel}
+		</if>
+		ORDER BY c.menuNum
+	</select>
+	
+	<select id="getAdminMenuList2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdAdminMenu">
+		SELECT c.menukey
+			 , c.parentkey
+			 , c.parentmenuname
+			 , c.menuname
+			 , c.link
+			 , c.menulevel
+			 , c.menunum
+			 , c.usemenu 
+		FROM (
+			SELECT a.menukey
+				 , a.parentkey
+				 , b.menuname AS parentmenuname
+				 , a.menuname
+				 , a.link
+				 , a.menulevel
+				 , a.menunum
+				 , a.usemenu 
+			FROM gd_admin_menu AS a 
+			LEFT JOIN gd_admin_menu AS b ON b.menukey = a.parentkey 
+		) AS c
+		WHERE c.menukey IN (${menukey}) 
+		ORDER BY c.menuNum
+	</select>
+	
+	<select id="getAdminMenuList3" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdAdminMenu">
+		SELECT  c.menukey
+			 , c.parentkey
+			 , c.parentmenuname
+			 , c.menuname
+			 , c.link
+			 , c.menulevel
+			 , c.menunum 
+			 , c.usemenu
+		FROM (
+			SELECT a.menukey
+				 , a.parentkey
+				 , b.menuname AS parentmenuname
+				 , a.menuname
+				 , a.link
+				 , a.menulevel
+				 , a.menunum 
+				 , a.usemenu
+			FROM gd_admin_menu AS a 
+			LEFT JOIN gd_admin_menu AS b ON b.menukey = a.parentkey 
+		) AS c
+		WHERE c.menukey IN (${menuname}) 
+		  AND c.menulevel = ${menulevel}
+		ORDER BY menuNum
+	</select>
+	
+	<!-- 관리자 메뉴 수정 -->
+	<update id="updateAdminMenu" >
+		UPDATE gd_admin_menu 
+		   SET menuname = #{menuname}
+			 , link = #{link}
+			 , menunum = #{menunum}
+			 , usemenu = #{usemenu}  
+		 WHERE menukey = #{menukey}
+	</update>
+	
+	<!-- 관라자 메뉴 등록 -->
+	<insert id="insertAdminMenu">
+		INSERT INTO gd_admin_menu (
+			  menukey
+			, parentkey
+			, menuname
+			, link
+			, menulevel
+			, menunum
+			, usemenu 
+		) VALUES (
+			  #{menukey}
+			, #{parentkey}
+			, #{menuname}
+			, #{link}
+			, #{menulevel}
+			, #{menunum}
+			, #{usemenu}
+		)
+	</insert>	
+	
+	<!-- 관리자 메뉴 삭제 -->
+	<delete id="deleteAdminMenu">
+		DELETE FROM gd_admin_menu WHERE menukey = #{menukey}
+	</delete>
+	
+	<!-- 관리자 메뉴 삭제 -->
+	<delete id="deleteAdminMenuLevel2">
+		DELETE FROM gd_admin_menu WHERE menukey IN (${link})
+	</delete>
+	
+	<!-- 관리자 메뉴 삭제 -->
+	<delete id="deleteAdminMenuLevel4">
+		DELETE FROM gd_admin_menu WHERE parentkey IN (${menukey})
+	</delete>
+	
+	<!-- 관리자 메뉴 삭제 -->
+	<delete id="deleteAdminMenuLevel24">
+		DELETE FROM gd_admin_menu WHERE parentkey IN (${link})
+	</delete>
+	
+	<select id="getAdminMenuMaxCount" resultType="int">
+		SELECT IFNULL(MAX(menukey), 0) AS maxCnt FROM gd_admin_menu
+	</select>
+	
+	<select id="getAdminMenuLink" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdAdminMenu">
+		SELECT menukey
+			 , parentkey
+			 , menuname
+			 , link
+			 , menulevel
+			 , menunum 
+		FROM gd_admin_menu 
+		WHERE link like '%${menukey}%'
+	</select>
+	
+	<!-- 2017-08-21 추가 - 사용여부  -->
+	<!-- 하위 링크 조회 -->
+	<select id="getAdminMenuSubLink" resultType="string">
+		SELECT link FROM gd_admin_menu WHERE menukey = #{menukey};
+	</select>
+	
+	<!-- 하위 링크 사용여부 수정 -->
+	<update id="updateAdminMunuSubUse" >
+		UPDATE gd_admin_menu
+		   SET useMenu = #{usemenu}
+		 WHERE menukey IN
+		<foreach collection="linkArr" item="menukey" open="(" close=")" separator=",">
+			#{menukey}
+		</foreach>
+	</update>
+	<!-- 2017-08-21 추가 끝 -->
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.seller.goods.dao.SellerBrandMapper">
+
+	<select id="getSellerBrandList" resultType="com.wepinit.wepinit_shop.xmall.seller.goods.vo.SellerBrandVO">
+		                                 
+		SELECT 	a.sno                   
+			,	a.brandnm            
+			,	a.sort               
+			,	a.sellerCd           
+			,	a.approvalStatus	   
+			,	a.brandMemo
+			, 	b.sellerNm	         
+		FROM gd_goods_brand a      
+		left outer join gd_seller b
+		on a.sellerCd=b.sellerCd   
+		WHERE 1=1 
+			and a.sellerCd=#{sellerCd}
+		<if test="sword != null and skey == 'all' and skey != ''">
+		   and ( a.brandnm like concat('%',#{sword},'%') 
+<!-- 		   or -->
+<!-- 		         b.sellerNm like concat('%',#{sword},'%') -->
+		               )
+		</if>
+		<if test="sword != null and skey == 'sBrandnm' and skey != '' ">
+			and a.brandnm like concat('%',#{sword},'%')
+		</if>
+<!-- 		<if test="sword != null and skey == 'sSellerNm' and skey != ''"> -->
+<!-- 			and b.sellerNm like concat('%',#{sword},'%') -->
+<!-- 		</if> -->
+		ORDER BY sort desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	
+	<select id="getSellerBrandListCount" resultType="int">
+		SELECT count(*) FROM 
+				gd_goods_brand a      
+				left outer join
+				gd_seller b
+				on a.sellerCd=b.sellerCd   
+		WHERE 1=1 
+			and a.sellerCd=#{sellerCd}
+		<if test="sword != null and skey == 'all' and skey != ''">
+		   and ( a.brandnm like concat('%',#{sword},'%')
+<!-- 		    or -->
+<!-- 		         b.sellerNm like concat('%',#{sword},'%') -->
+		               )
+		</if>
+		<if test="sword != null and skey == 'sBrandnm' and skey != ''">
+			and a.brandnm like concat('%',#{sword},'%')
+		</if>
+<!-- 		<if test="sword != null and skey == 'sSellerNm' and skey != ''"> -->
+<!-- 			and b.sellerNm like concat('%',#{sword},'%') -->
+<!-- 		</if> -->
+	</select>
+	
+	
+</mapper>

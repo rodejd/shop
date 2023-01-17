@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.seller.AdminSellerQuestMapper">
+	
+	<select id="getSellerQuestCount" resultType="int">
+		SELECT  COUNT(*)			
+		FROM gd_seller_quest a join 
+			 gd_seller b
+		WHERE b.sellerCd=a.sellerCd
+	</select>
+	
+	<select id="getSellerQuestList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerQuestVO">
+		SELECT  a.sno 
+				, a.sellerCd 
+				, a.email 
+				, a.title
+				, a.contents 
+				, a.attachFile 
+				, a.regId 
+				, a.regDt 
+				,b.sellerNm
+		FROM gd_seller_quest a join 
+			 gd_seller b
+		WHERE b.sellerCd=a.sellerCd
+		ORDER BY sno desc
+		LIMIT ${pageStart}, ${pageSize}
+	</select>
+	
+	<select id="getSellerCorrect" resultType="int">
+		SELECT count(*) FROM gd_seller_quest 
+		WHERE sellerCd =#{sellerCd} and sno = #{schText}
+	</select>
+	
+	<select id="getSellerQuestion" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerQuestVO">
+		SELECT  a.sno 
+				, a.sellerCd 
+				, a.email 
+				, a.title
+				, a.contents 
+				, a.attachFile 
+				, a.regId 
+				, a.regDt 
+				, b.sellerNm
+		FROM gd_seller_quest a join 
+			 gd_seller b
+		WHERE b.sellerCd=a.sellerCd
+			<if test="schType != null and schType == 'qno' and schType != ''">
+				and	sno = #{schText}
+			</if>
+	</select>
+	
+	<select id="getSellerAnswerList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.seller.AdminSellerAnswerVO">
+		SELECT 
+			a.sno,
+			a.qno,
+			a.answer,
+			a.regId,
+			a.regDt 
+		FROM gd_seller_quest_answer a
+		WHERE 1=1
+			<if test="schType != null and schType == 'qno' and schType != ''">
+				and	qno = #{schText}
+			</if>
+		ORDER BY a.sno 
+	</select>
+	
+	
+	<insert id="insertAdminQuest">
+		INSERT INTO gd_seller_quest (
+				sellerCd , title , contents , regId , regDt
+			)VALUES(
+				#{sellerCd} , #{title} , #{contents} , #{regId} ,now()
+			)
+	</insert>
+	
+	<insert id="insertAdminAnswer">
+			INSERT INTO gd_seller_quest_answer (
+				qno , answer , regId , regDt
+			)VALUES(
+				#{qno} , #{answer} , #{regId} ,now()
+			)
+	</insert>
+	
+	<update id="updateAdminAnswer">
+		UPDATE gd_seller_quest_answer 
+				SET answer		= #{answer}
+				, regId			= #{regId}
+				, regDt			= now()
+		WHERE qno = #{qno}
+	</update>
+	
+	<delete id="deleteQuest">
+		DELETE FROM gd_seller_quest where sno=#{sno}
+	</delete>
+	
+	<delete id="deleteAnswer">
+		DELETE FROM gd_seller_quest_answer where qno=#{sno}
+	</delete>
+	
+</mapper>
+

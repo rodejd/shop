@@ -1,0 +1,123 @@
+﻿{*** 광고제휴문의 | service/cooperation.php ***}
+{ # header }
+
+<!-- 상단이미지 || 현재위치 -->
+<TABLE width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+	<td><img src="../img/common/title_ad.gif" border=0></td>
+</tr>
+<TR>
+	<td class="path">HOME > <B>광고/제휴문의</B></td>
+</TR>
+</TABLE>
+
+
+<div class="indiv"><!-- Start indiv -->
+
+<form name=fm method=post action="" onsubmit="return fm_save( this );" id="form">
+<input type="hidden" name="mode" value="send">
+
+
+<div style="border:1px solid #DEDEDE;" class="hundred">
+<table width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+	<td style="border:5px solid #F3F3F3; padding:10 0 10 0" align=center>
+
+	<table border="0" cellspacing="0" cellpadding="5" width=95%>
+	<tr>
+		<col class=input_txt align=right width=100>
+		<th>이름</th>
+		<td><input type=text name='name' size=15></td>
+	</tr>
+	<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+	<tr>
+		<th>이메일</th>
+		<td><input type=text name=mail size=56></td>
+	</tr>
+	<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+	<tr>
+		<th>분야</th>
+		<td>
+		<select name="itemcd" class=select>
+		<option selected>------ 문의분야 ------</option>
+		<!--{ @ codeitem( 'cooperation' ) }-->
+		<option value="{ = .key_ }">↓ { = .value_ }</option>
+		<!--{ / }-->
+		</select>
+		</td>
+	</tr>
+	<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+	<tr>
+		<th>제목</th>
+		<td><input type=text name=title size=56></td>
+	</tr>
+	<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+	<tr>
+		<th>내용</th>
+		<td><textarea cols=75 rows=12 name=content></textarea></td>
+	</tr>
+	</table>
+
+	</td>
+</tr>
+</table>
+</div>
+
+<div style="padding-top:15;text-align:center" class=noline>
+<input type="image" src="../img/common/btn_send.gif" border=0 align="absmiddle">
+<a href="javascript:history.back();"><img src="../img/common/btn_cancel.gif" align="absmiddle"></a>
+</div>
+</form>
+
+</div><!-- End indiv -->
+
+
+
+<script language=javascript>
+<!--
+/*-------------------------------------
+ 등록
+-------------------------------------*/
+function fm_save( fobj ){
+
+	if ( fobj["name"].value == "" ){
+
+		alert( "이름을 입력하지 않았습니다.\n이름을 입력하세요!!" );
+		fobj["name"].focus() ;
+		return false;
+	}
+
+	if ( fobj["mail"].value == "" ){
+
+		alert( "메일을 입력하지 않았습니다.\n메일을 입력하세요!!" );
+		fobj["mail"].focus() ;
+		return false;
+	}
+
+	if ( fobj["itemcd"].selectedIndex == 0 ){
+
+		alert( "문의분야를 선택하지 않았습니다.\n문의분야를 선택하세요!!" );
+		fobj["itemcd"].focus() ;
+		return false;
+	}
+
+	if ( fobj["title"].value == "" ){
+
+		alert( "제목을 입력하지 않았습니다.\n제목을 입력하세요!!" );
+		fobj["title"].focus() ;
+		return false;
+	}
+
+	if ( fobj["content"].value == "" ){
+
+		alert( "내용을 입력하지 않았습니다.\n내용을 입력하세요!!" );
+		fobj["content"].focus() ;
+		return false;
+	}
+
+	return true;
+}
+//-->
+</script>
+
+{ # footer }

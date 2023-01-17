@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.api.dao.ApiMapper">
+	
+	<!-- 상품 등록 -->
+	<insert id="insertGoods">
+		INSERT INTO gd_goods (
+			  goodscd	
+			, goodsnm	
+			, goodsnmKR	
+			, goodsnmCN
+			, sellerCd
+			, brandno
+			, binCd
+			, simnCd
+			, seasonNm
+			, origin
+			, euYn
+			, shippingOrigin
+			, lowestPriceYn
+			, lowestPrice
+			, lowest2PriceYn
+			, lowest2Price
+			, longdesc
+			<if test="img_i != '' and img_i != null">
+			, img_i
+			</if>
+			<if test="img_s != '' and img_s != null">
+			, img_s
+			</if>
+			<if test="img_l != '' and img_l != null">
+			, img_l
+			</if>
+			<if test="img_m != '' and img_m != null">
+			, img_m
+			</if>
+			, scmRegdt
+			, usegoodsadd
+			, approvalStatus
+			, open
+			, optnm
+			, regdt
+			, m_id
+			, batchYn
+			, b2bYn
+			, priceMyRitz
+		) VALUES ( 
+			  #{goodsCd}
+			, #{goodsNmEN}
+			, #{goodsNmKR}
+			, #{goodsNmCN}
+			, #{sellerCd}
+			, #{brandCd}
+			, #{binCd}
+			, #{simnCd}
+			, #{seasonNm}
+			, #{origin}
+			, #{euYn}
+			, #{shippingOrigin}
+			, #{lowestPriceYn}
+			, #{lowestPrice}
+			, #{lowestPriceYn}
+			, #{lowestPrice}
+			, #{longdesc}
+			<if test="img_i != '' and img_i != null">
+			, #{img_i}
+			</if>
+			<if test="img_s != '' and img_s != null">
+			, #{img_s}
+			</if>
+			<if test="img_l != '' and img_l != null">
+			, #{img_l}
+			</if>
+			<if test="img_m != '' and img_m != null">
+			, #{img_m}
+			</if>
+			, #{scmRegdt}
+			, #{usegoodsadd}
+			, 2
+			, #{open}
+			, #{optnm}
+			, now()
+			, 'admin'
+			, 'N'
+			, #{b2bYn}
+			, #{priceMyRitz}
+		)
+	    <selectKey resultType="int" keyProperty="goodsno" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+	<!-- 상품연결 카테고리 등록 -->
+	<insert id="insertGoodsLink">
+		INSERT INTO gd_goods_link(
+			  goodsno
+			, category
+			, sort
+			, hidden
+		)
+		VALUES(
+			  ${goodsno}
+			, #{categoryCd}
+			, -unix_timestamp()
+			, 0
+		) 
+	</insert>
+	
+	<!-- 상품 필수 옵션 카운트 -->
+	<select id="getGoodsOptionCount" resultType="int">
+		SELECT count(sno) as totCnt
+		FROM gd_goods_option
+		WHERE parent = '1'
+		  AND goodsno = #{goodsno}
+		  AND (opt1 = #{opt1} OR opt2 = #{opt2})
+	</select>
+	
+	<!-- 상품 필수 옵션 입력 -->
+	<insert id="insertGoodsOption">
+		INSERT INTO gd_goods_option(
+			  goodsno
+			, opt1
+			, opt2
+			, consumer
+			, price
+			, priceRate
+			, priceB2b
+			, priceRateB2b
+			, supply
+			, supply2
+			, margin
+			, stock
+			, link
+			, parent
+			, optexplain
+			, priceMyRitz
+		) VALUES (
+			  #{goodsno}
+			, #{opt1}
+			, #{opt2}
+			, #{consumer}
+			, #{price}
+			, #{priceRate}
+			, #{priceB2b}
+			, #{priceRateB2b}
+			, #{supplyPrice1}
+			, #{supplyPrice2}
+			, #{margin}
+			, #{stock}
+			, #{link}
+			, #{parent}
+			, #{optexplain}
+			, #{priceMyRitz}
+		)
+	    <selectKey resultType="int" keyProperty="sno" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>   
+	</insert>
+
+
+	<!-- 상품 정보 수정 -->
+	<update id="updateGoods">
+		UPDATE gd_goods
+	       SET goodsnm = #{goodsNmEN}
+	         , goodsnmKR = #{goodsNmKR}
+	         , goodsnmCN = #{goodsNmCN}
+	         , origin = #{origin}
+	         , euYn = #{euYn}
+	         , shippingOrigin = #{shippingOrigin}
+	         , lowestPriceYn = #{lowestPriceYn}
+	    	 , lowestPrice = #{lowestPrice}
+	    	 , lowest2PriceYn = #{lowest2PriceYn}
+	    	 , lowest2Price = #{lowest2Price}
+	    	 , longdesc = #{longdesc}
+	    	 , usegoodsadd = #{usegoodsadd}
+	    	 , optnm = #{optnm}
+	    	 , open = #{open}
+	    	 , batchYn = 'N'
+	         , b2bYn = #{b2bYn}
+	    	 , priceMyRitz = #{priceMyRitz}
+	    	 <if test="img_i != '' and img_i != null">
+			 , img_i = #{img_i}
+			 </if>
+			 <if test="img_s != '' and img_s != null">
+			 , img_s = #{img_s}
+			 </if>
+			 <if test="img_l != '' and img_l != null">
+			 , img_l = #{img_l}
+			 </if>
+			 <if test="img_m != '' and img_m != null">
+			 , img_m = #{img_m}
+			 </if>
+		 WHERE goodsno = #{goodsno}
+	</update>
+	
+	<!-- 상품 필수 옵션 일련번호 -->
+	<select id="getGoodsOptionSno" resultType="Integer">
+		SELECT sno
+		FROM gd_goods_option
+		WHERE goodsno = #{goodsno}
+		  AND parent = #{parent}
+		  AND opt1 = #{opt1} 
+		  AND opt2 = #{opt2}
+	</select>
+	
+	<!-- 상품 필수 옵션 수정 -->
+	<update id="updateGoodsOption">
+		UPDATE gd_goods_option
+	       SET consumer = #{consumer}
+	    	 , price = #{price}
+	    	 , priceRate = #{priceRate}
+	    	 , priceB2b = #{priceB2b}
+	    	 , priceRateB2b = #{priceRateB2b}
+	    	 , supply = #{supplyPrice1}
+	    	 , supply2 = #{supplyPrice2}
+	    	 , margin = #{margin}
+	    	 , stock = #{stock}
+	    	 , priceMyRitz = #{priceMyRitz}
+		 WHERE sno = #{sno}
+	</update>	
+
+	<!-- 상품 필수 옵션 optno 입력 -->
+	<update id="updateGoodsOptionOptno">
+		UPDATE gd_goods_option
+	    	SET optno = sno
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 상품 일련번호 조회 -->
+	<select id="getGoodsNoByCd" resultType="Integer">
+		SELECT goodsno
+		  FROM gd_goods
+		 WHERE goodscd = #{goodsCd}
+		 ORDER BY goodsno DESC LIMIT 1
+	</select>
+	
+	<!-- 상품 옵션 재고 수정 -->
+	<update id="updateGoodsStock">
+		UPDATE gd_goods_option
+	       SET stock = #{stock}
+		 WHERE goodsno = #{goodsno}
+		   AND parent = #{parent}
+		   AND opt1 = #{opt1}
+		   AND opt2 = #{opt2}
+	</update>
+	
+	<!-- 상품 필수 옵션 optno 수정 -->
+	<update id="updateGoodsStatus">
+		UPDATE gd_goods
+	    	SET open = #{open}
+		WHERE goodsno = #{goodsno}
+	</update>
+	
+	<!-- 상품 최저가 차저가 수정 -->
+	<update id="updateGoodsLowest">
+		UPDATE gd_goods
+	       SET lowestPriceYn = #{lowestPriceYn}
+	    	 , lowestPrice = #{lowestPrice}
+	    	 , lowest2PriceYn = #{lowest2PriceYn}
+	    	 , lowest2Price = #{lowest2Price}
+		WHERE goodsno = #{goodsno}
+	</update>
+	
+	<!-- 상품 옵션 가격 수정 -->
+	<update id="updateGoodsPrice">
+		UPDATE gd_goods_option
+	       SET consumer = #{consumer}
+	    	 , price = #{price}
+	    	 , priceRate = #{priceRate}
+	    	 , priceB2b = #{priceB2b}
+	    	 , priceRateB2b = #{priceRateB2b}
+	    	 , supply = #{supplyPrice1}
+	    	 , supply2 = #{supplyPrice2}
+	    	 , margin = #{margin}
+	    	 , priceMyRitz = #{priceMyRitz}
+		 WHERE goodsno = #{goodsno}
+		   AND parent = #{parent}
+		   AND opt1 = #{opt1}
+		   AND opt2 = #{opt2}
+	</update>
+	
+	<!-- 주문 데이터 목록 -->
+	<select id="getOrderSearchList" resultType="com.wepinit.wepinit_shop.xmall.api.vo.OrdListVO">
+		SELECT a.ordno
+			 , c.goodscd
+			 , b.goodsno
+			 , #{ordTypCd} AS ordType
+			 , b.goodsnm
+			 , CONCAT(d.opt1, CASE WHEN d.opt2 = '' OR d.opt2 IS NULL THEN '' ELSE CONCAT('||', d.opt2) END) AS optnm
+			 , d.opt1
+			 , d.opt2
+			 , a.nameOrder
+			 , a.mobileOrder
+			 , a.phoneOrder
+			 , a.nameReceiver
+			 , a.mobileReceiver
+			 , a.phoneReceiver
+			 , a.zipcode
+			 , a.address
+			 , a.address2
+			 , a.memo
+			 , a.settleprice
+			 , a.prn_settleprice
+			 , (a.coupon + a.emoney + a.memberdc + a.enuri) AS dcSum
+			 , b.sno
+			 , a.customs_num AS customsNum
+			 , a.orddt
+			 , a.cdt
+		  FROM gd_order a
+		 INNER JOIN gd_order_item b ON a.ordno = b.ordno
+		 INNER JOIN gd_goods c ON b.goodsno = c.goodsno
+		  LEFT JOIN gd_goods_option d ON b.opt1 = d.sno
+		 WHERE orddt BETWEEN DATE_FORMAT(#{strtDt}, '%Y-%m-%d 00:00:00') and DATE_FORMAT(#{endDt},'%Y-%m-%d 23:59:59')
+		<if test="step != '' and step != null">
+		   AND a.step = #{step}
+		</if>
+		<if test="istep != '' and istep != null">
+		   AND b.istep = #{istep}
+		</if>
+		 ORDER BY a.ordno, b.sno
+	</select>
+	
+	<!-- 주문 데이터 정보 -->
+	<select id="getOrderSearchInfo" resultType="com.wepinit.wepinit_shop.xmall.api.vo.OrdListVO">
+		SELECT a.ordno
+			 , c.goodscd
+			 , b.goodsno
+			 , a.step
+			 , b.istep
+			 , b.goodsnm
+			 , CONCAT(d.opt1, CASE WHEN d.opt2 = '' OR d.opt2 IS NULL THEN '' ELSE CONCAT('||', d.opt2) END) AS optnm
+			 , d.opt1
+			 , d.opt2
+			 , a.nameOrder
+			 , a.mobileOrder
+			 , a.phoneOrder
+			 , a.nameReceiver
+			 , a.mobileReceiver
+			 , a.phoneReceiver
+			 , a.zipcode
+			 , a.address
+			 , a.address2
+			 , a.memo
+			 , a.settleprice
+			 , a.prn_settleprice
+			 , (a.coupon + a.emoney + a.memberdc + a.enuri) AS dc_sum
+			 , b.sno
+			 , a.customs_num
+			 , a.orddt
+			 , a.cdt
+		  FROM gd_order a
+		 INNER JOIN gd_order_item b ON a.ordno = b.ordno
+		 INNER JOIN gd_goods c ON b.goodsno = c.goodsno
+		  LEFT JOIN gd_goods_option d ON b.opt1 = d.sno
+		 WHERE a.ordno = #{ordno}
+		   AND b.sno = #{sno}
+	</select>
+	
+	<!-- 주문 상태 수정 -->
+	<update id="updateOrderStatus">
+		UPDATE gd_order
+	       SET step = #{step}
+			<if test="ordTypCd == '50'">
+	    	 , deliveryno = #{dvno}
+	    	 , deliverycode = #{dvcode}
+	    	 , confirmdt = #{confirmdt}
+			</if>
+		 WHERE ordno = #{ordno}
+	</update>
+	<update id="updateOrderItemStatus">
+		UPDATE gd_order_item
+	       SET istep = #{istep}
+			<if test="ordTypCd == '50'">
+	    	 , dvno = #{dvno}
+	    	 , dvcode = #{dvcode}
+	    	 , confirmdt = #{confirmdt}
+			</if>
+		 WHERE ordno = #{ordno}
+		   AND sno = #{sno}
+	</update>
+	
+</mapper>

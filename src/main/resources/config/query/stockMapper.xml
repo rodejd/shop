@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.StockMapper">
+
+<select id="getGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+	SELECT c.category, a.goodsno, a.goodsnm, a.goodsnmKR, a.goodsnmCN, a.open
+		, date_format(a.regdt, '%Y.%m.%d') as regdt
+	    , b.sno, b.supply, b.consumer, b.price, b.priceRate
+	    , b.opt1, b.opt2, b.stock, b.link
+	    <if test="addColumn !=null and addColumn !=''">
+	    ${addColumn}
+	    </if>
+	    , d.sellerNm
+	FROM gd_goods a
+		left join gd_goods_option b 
+			on a.goodsno = b.goodsno
+		left outer join (select goodsno,group_concat(category,'') as category from gd_goods_link group by goodsno) c 
+		 	on a.goodsno = c.goodsno
+		left outer join gd_seller d
+			on a.sellerCd = d.sellerCd
+    WHERE 1=1
+	    <if test="schCategory !=null and schCategory !=''">
+	    	and c.category like concat(#{schCategory},'%')
+	    </if>
+	    <if test="schWord !=null and schWord !=''">
+	    	and ${schWord}
+	    </if>
+	    <if test="schOpen !=null and schOpen !=''">
+	    	and ${schOpen}
+	    </if>
+	    <if test="schStock !=null and schStock !=''">
+	    	and ${schStock}
+	    </if>
+	    <if test="schEtc !=null and schEtc !=''">
+	    	and ${schEtc}
+	    </if>
+	    <if test="schGoodsNm !=null and schGoodsNm !=''">
+	    	and CONCAT(a.goodsnm, a.goodsnmKR, a.goodsnmCN) like concat('%',#{schGoodsNm},'%')
+	    </if>
+	    <if test="schSellerNm !=null and schSellerNm !=''">
+	    	and d.sellerNm like concat('%',#{schSellerNm},'%')
+	    </if>
+   	<if test="groupBy !=null and groupBy != ''">
+   		group by ${groupBy}
+   	</if>
+   	<if test="orderBy !=null and orderBy !=''">
+   		order by ${orderBy}
+   	</if>
+	LIMIT ${rowStart}, ${pageSize}
+</select>
+	
+<select id="getGoodsCount" resultType="int">
+	SELECT count(a.goodsno) as rowCount
+	FROM gd_goods a
+		left join gd_goods_option b 
+			on a.goodsno = b.goodsno
+		<if test="joinTable !=null and joinTable !=''">
+			left join (select goodsno,category from gd_goods_link c group by c.goodsno) c on a.goodsno= c.goodsno
+		</if>
+		left outer join gd_seller d
+			on a.sellerCd = d.sellerCd
+    WHERE 1=1
+   		<if test="schCategory !=null and schCategory !=''">
+	    	and c.category like concat(#{schCategory},'%')
+	    </if>
+	    <if test="schWord !=null and schWord !=''">
+	    	and ${schWord}
+	    </if>
+	    <if test="schOpen !=null and schOpen !=''">
+	    	and ${schOpen}
+	    </if>
+	    <if test="schStock !=null and schStock !=''">
+	    	and ${schStock}
+	    </if>
+	    <if test="schEtc !=null and schEtc !=''">
+	    	and ${schEtc}
+	    </if>
+	    <if test="schGoodsNm !=null and schGoodsNm !=''">
+	    	and CONCAT(a.goodsnm, a.goodsnmKR, a.goodsnmCN) like concat('%',#{schGoodsNm},'%')
+	    </if>
+	    <if test="schSellerNm !=null and schSellerNm !=''">
+	    	and d.sellerNm like concat('%',#{schSellerNm},'%')
+	    </if>
+</select>
+
+<update id="setStockPriceUpdate">
+	UPDATE gd_goods_option set
+		price		= ${price}
+		, consumer	= ${consumer}
+		, supply	= ${supply}
+	WHERE goodsno = ${goodsno}
+</update>
+<update id="setStockStockUpdate">
+	UPDATE gd_goods_option set
+		stock		= ${stock}
+	WHERE sno = ${sno}
+</update>
+
+</mapper>

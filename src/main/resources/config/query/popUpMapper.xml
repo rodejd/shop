@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.promotion.PopUpMapper">
+	
+	<!-- 메인팝업창관리 목록 select -->
+	<select id="getPopUpList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPopUp">
+		select sno,sub,filename,popuse,popspotw,popspoth,popsizew,popsizeh,
+		date_format(popsdt,'%Y-%m-%d %H\:%i') as popsdt,
+		date_format(popedt,'%Y-%m-%d  %H\:%i') as popedt,
+		date_format(popsdate,'%Y-%m-%d / %H\:%i') as popsdate,
+		date_format(popedate,'%Y-%m-%d / %H\:%i') as popedate,
+		date_format(popsdt,'%Y%m%d%H%i%s') as re_popsdt,
+		date_format(popedt,'%Y%m%d%H%i%s') as re_popedt,
+		date_format(popsdate,'%Y%m%d%H%i%s') as re_popsdate,
+		date_format(popedate,'%Y%m%d%H%i%s') as re_popedate,
+		poptype,poppik
+		from gd_popup
+		where 1=1
+		<if test="sword != null and skey == 'sub' ">
+			AND sub like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and skey == 'filename' ">
+			AND filename like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and skey == 'filename' ">
+			AND filename like concat('%',#{sword},'%')
+		</if>
+		<if test="sregdt0 != null">
+		    <![CDATA[and cast(left(date_format(popsdt,'%Y%m%d%H%i%s'),8) as UNSIGNED) >= #{sregdt0}]]>
+		</if>
+		<if test="sregdt1 != null">
+		    <![CDATA[and cast(left(date_format(popedt,'%Y%m%d%H%i%s'),8) as UNSIGNED) <=  #{sregdt1}]]>
+		</if>
+		<if test="use != null and use !='' ">
+		    <![CDATA[and popuse =  #{use}]]>
+		</if>
+		<if test="popUpType != null and popUpType !='' ">
+		    <![CDATA[and poptype =  #{popUpType}]]>
+		</if>
+		order by sno desc
+	</select>
+	
+	<!-- 메인팝업창관리 카운트 -->
+	<select id="getPopUpCount" resultType="int">
+		SELECT count(*) FROM gd_popup 
+				where 1=1
+		<if test="sword != null and skey == 'sub' ">
+			AND sub like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and skey == 'filename' ">
+			AND filename like concat('%',#{sword},'%')
+		</if>
+		<if test="sword != null and skey == 'filename' ">
+			AND filename like concat('%',#{sword},'%')
+		</if>
+		<if test="sregdt0 != null">
+		    <![CDATA[and cast(left(date_format(popsdt,'%Y%m%d%H%i%s'),8) as UNSIGNED) >= #{sregdt0}]]>
+		</if>
+		<if test="sregdt1 != null">
+		    <![CDATA[and cast(left(date_format(popedt,'%Y%m%d%H%i%s'),8) as UNSIGNED) <=  #{sregdt1}]]>
+		</if>
+		<if test="use != null and use !='' ">
+		    <![CDATA[and popuse =  #{use}]]>
+		</if>
+		<if test="popUpType != null and popUpType !='' ">
+		    <![CDATA[and poptype =  #{popUpType}]]>
+		</if>
+	</select>
+		<!-- 메인팝업창관리 삭제 -->
+	<delete id="deletePopUp">
+		DELETE FROM gd_popup WHERE sno=#{sno}
+	</delete>
+	<!-- 팝업 등록 -->
+	<insert id="insertPopUp">
+		INSERT INTO gd_popup(sub,filename,popuse,popspotw,popspoth,popsizew,popsizeh,popsdt,popedt,popsdate,popedate,poptype,poppik)
+		VALUES(
+		#{sub}
+		,#{filename}
+		,#{popuse}
+		,#{popspotw}
+		,#{popspoth}
+		,#{popsizew}
+		,#{popsizeh}
+		,str_to_date(#{popsdt},'%Y%m%d %H%i%s' )
+		,str_to_date(#{popedt},'%Y%m%d %H%i%s' )
+		,str_to_date(#{popsdate},'%Y%m%d %H%i%s')
+		,str_to_date(#{popedate},'%Y%m%d %H%i%s')
+		,#{poptype}
+		,#{poppik}
+		)
+	</insert>	
+	
+	<!-- 팝업 detail select -->
+	<select id="getPopUpListView" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPopUp">
+		select sno,sub,filename,popuse,popspotw,popspoth,popsizew,popsizeh,
+		date_format(popsdt,'%Y-%m-%d') as popsdt,
+		date_format(popedt,'%Y-%m-%d') as popedt,
+		date_format(popsdate,'%Y-%m-%d / %H\:%i') as popsdate,
+		date_format(popedate,'%Y-%m-%d / %H\:%i') as popedate,
+		date_format(popsdt,'%Y%m%d%H%i%s') as repopsdt,
+		date_format(popedt,'%Y%m%d%H%i%s') as repopedt,
+		date_format(popsdate,'%Y%m%d%H%i%s') as repopsdate,
+		date_format(popedate,'%Y%m%d%H%i%s') as repopedate,
+		poptype,poppik
+		from gd_popup
+		where sno = #{sno}
+	</select>
+	
+	<!-- 팝업 수정 -->
+	<update id="updatePopUp" >
+	update gd_popup 
+	set 
+	sub =#{sub},
+	filename =#{filename},
+	popuse =#{popuse},
+	popspotw =#{popspotw},
+	popspoth =#{popspoth},
+	popsizew =#{popsizew},
+	popsizeh =#{popsizeh},
+	popsdt=str_to_date(#{popsdt},'%Y%m%d %H%i%s' ),
+	popedt=str_to_date(#{popedt},'%Y%m%d %H%i%s' ),
+	popsdate=str_to_date(#{popsdate},'%Y%m%d %H%i%s' ),
+	popedate=str_to_date(#{popedate},'%Y%m%d %H%i%s' ),
+	poptype =#{poptype},
+	poppik =#{poppik}
+	where sno =#{sno}
+	</update>
+	
+	<!-- 팝업창 타입 목록 select -->
+	<select id="checkPopType" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPopUp">
+		select * from gd_popup where poptype=#{poptype} and popuse='Y'		
+	</select>
+	<!-- 팝업창 타입 목록 select -->
+	<select id="checkFileName" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdPopUp">
+		select * from gd_popup where filename=#{filename}	
+	</select>
+	
+
+</mapper>
+

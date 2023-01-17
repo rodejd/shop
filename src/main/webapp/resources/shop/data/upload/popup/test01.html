@@ -1,0 +1,41 @@
+
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript">
+function setCookie( name, value, expiredays )
+{
+ var todayDate = new Date();
+ todayDate.setDate( todayDate.getDate() + expiredays );
+ document.cookie = name + "=" + escape( value ) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+} 
+function closeWin()
+{
+ if ( document.fr.chk.checked )
+  setCookie( "popup", "no" , 1);
+ 
+ self.close();
+}
+</script>
+</head>
+<body topmargin='0' leftmargin='0'>
+<table>
+ <tr>
+  <td align='center'>     
+   내용 부분.......
+  </td>
+ </tr>
+ <tr>
+  <td align ='center'>
+   <form name=fr>
+   
+    오늘 하루 팝업을 열지 않음 <input type="checkbox" name="chk">&nbsp;&nbsp;&nbsp;
+   
+    <input type=image  onclick="closeWin()" src="/resources/shop/admin/img/btn_close_x.gif" width="35" height="21">
+   
+   </form>
+  </td>
+ </tr>
+</table>
+</body>
+</html>

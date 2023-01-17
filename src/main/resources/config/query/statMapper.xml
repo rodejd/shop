@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.log.StatMapper">
+	<!-- #####################매출분석(매출통계)################################## -->
+	
+	<!-- 통계/데이터관리 > 매출분석 > 매출통계(월기준 일별 주문내역 건수 및 합계) -->
+	<select id="getStatSaleList1" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatSaleOutVO">
+		select 
+			substring(orddt, 1, 10) as dt,
+			count(orddt) as cnt, 
+			sum(prn_settleprice) as sumPrnSettleprice  
+		from	gd_order
+		where
+		orddt like concat(#{year},'-',#{month},'%')
+		and step2 &lt; 40
+		GROUP by substring(orddt, 1, 10)
+	</select>
+	
+	
+	<!-- 통계/데이터관리 > 매출분석 > 매출통계(월기준 일별 주문내역 건수 및 합계) -->
+	<select id="getStatSaleList2" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatSaleOutVO">
+		select 
+			aa.cdt as dt
+			, count(aa.cdt) as cnt
+			, sum(prn_settleprice) as sumPrnSettleprice
+		    , sum(supply) as sumSupply
+		from 
+			(
+			select
+		    	substring(a.cdt,1,10) as cdt
+		    	, a.prn_settleprice
+		    	, (select sum(supply*ea) from gd_order_item where ordno = a.ordno and istep &lt; 40) as supply
+			from gd_order a
+				where
+				cdt like concat(#{year},'-',#{month},'%')
+				and step &gt; 0
+				and step2 &lt; 40
+		    ) aa
+		group by aa.cdt
+	</select>
+	
+	<!-- 통계/데이터관리 > 매출분석 > 매출통계(월기준 일별 주문내역 건수 및 합계)" -->
+	<select id="getStatSaleList3" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatSaleOutVO">
+		select 
+			substring(ddt, 1, 10) as dt,
+			count(ddt) as cnt, 
+			sum(prn_settleprice) as sumPrnSettleprice 
+		from	gd_order
+		where
+			ddt like concat(#{year},'-',#{month},'%')
+			and step &gt; 0
+			and step2 &lt; 40
+			GROUP by substring(ddt, 1, 10)
+	</select>
+	
+	<!-- #####################매출분석(결제수단분석)################################## -->
+	
+	<!--  -->
+	<select id="getStatSettlekindList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatSettlekindOutVO">
+		SELECT 
+			substring(cdt,1,10) as odt,
+			settlekind,
+			sum(prn_settleprice) as price,
+			count(*) as cnt 
+		FROM gd_order 
+			WHERE 
+				orddt like concat(#{year},'-',#{month},'%')
+				AND step &gt; 0 
+				AND step2 = 0 
+				GROUP BY odt, settlekind
+	</select>
+	
+	<!-- #####################매출분석(연령별매출분석)################################## -->
+	<!--  -->
+	<select id="getStatAgeList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatAgeOutVO">
+		SELECT 
+			substring(cdt,1,10) as odt,
+			b.birth_year,
+			sum(a.prn_settleprice) as price,
+			count(*) as cnt ,
+			year(now())-birth_year as age
+		FROM gd_order a ,  gd_member b 
+	 WHERE a.m_no = b.m_no 
+	       AND a.orddt like concat(#{year},'-',#{month},'%') 
+	       AND b.birth_year != '' 
+	       AND a.step > 0 
+	       AND a.step2 = 0 
+	   GROUP BY odt, b.birth_year
+	</select>
+	
+	<!-- #####################매출분석(지역별매출분석)################################## -->
+	<!--  -->
+	<select id="getStatAreaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatAreaOutVO">
+	SELECT 
+		substring(cdt,1,10) as odt,
+		substring(zipcode,1,3) as zip,
+		sum(prn_settleprice) as price,
+		count(*) as cnt 
+	FROM gd_order 
+		WHERE 
+			orddt like concat(#{year},'-',#{month},'%') 
+			AND zipcode != '' 
+			AND step > 0 
+			AND step2 = 0 
+			GROUP BY odt, zipcode
+	</select>
+	
+	<!-- #####################매출분석(성별매출분석)################################## -->
+	<!--  -->
+	<select id="getStatSexList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.StatSexOutVO">
+	SELECT 
+		substring(cdt,1,10) as odt,
+		b.sex,
+		sum(a.prn_settleprice) as price,
+		count(*) as cnt, 
+		a.step 
+	FROM gd_order a , gd_member b 
+		WHERE 
+			a.m_no = b.m_no 
+			AND a.orddt like concat(#{year},'-',#{month},'%')
+			AND b.sex != '' 
+			AND a.step > 0 
+			AND a.step2 = 0 
+			GROUP BY odt,       b.sex,       a.step
+	</select>
+	
+</mapper>
+

@@ -1,0 +1,1195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.mypage.FrontMypageMapper">
+
+
+	<!-- 할인쿠폰내역 건수 -->
+	<select id="getFrontCouponCount" resultType="int">
+		/* FrontMypageMapper / getFrontCouponCount */
+		SELECT COUNT(*) AS cnt 
+		  FROM (SELECT DISTINCT a.sno 
+				  FROM gd_coupon_apply a
+				  LEFT JOIN gd_coupon_applymember b ON a.sno = b.applysno
+				  LEFT JOIN gd_coupon c ON a.couponcd = c.couponcd
+				  LEFT JOIN gd_coupon_category d ON c.couponcd = d.couponcd
+				  LEFT JOIN gd_coupon_goodsno e ON c.couponcd = e.couponcd
+				 WHERE b.m_no = #{mno}
+				<!-- ((a.membertype = 1 and a.member_grp_sno=#{grp_sno}) OR (a.membertype = 2 and b.m_no=#{mno}) OR a.membertype = 0) -->
+				   AND ((c.sdate &lt;= now() AND c.edate &gt;= now() AND c.priodtype='0') OR (c.priodtype='1' AND ADDDATE(a.regdt,INTERVAL c.sdate DAY) &gt;= curdate()))
+				   AND c.skin IN ('al', #{skin})
+				<if test=" status != '' and status != null ">
+				   AND a.status = #{status}
+				</if>
+		  ) as coupon
+	</select>
+	
+	<!-- 할인쿠폰내역 목록 -->
+	<select id="getFrontCouponList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.CouponapplyApplymemberCouponCategoryGoodsno">
+		/* FrontMypageMapper / getFrontCouponList */
+		SELECT DISTINCT a.sno
+			 , c.*
+			 , a.goodsno
+			 , a.regdt AS gca_regdt
+			 , b.used <!-- f.regdt as gca_regdt -->
+			 , CASE WHEN c.priodtype = 0 THEN c.edate ELSE DATE_ADD(a.regdt, INTERVAL c.sdate DAY) END expdate 
+		  FROM gd_coupon_apply a
+		  LEFT JOIN gd_coupon_applymember b ON a.sno = b.applysno
+		  LEFT JOIN gd_coupon c ON a.couponcd = c.couponcd
+		  LEFT JOIN gd_coupon_category d ON c.couponcd = d.couponcd
+		  LEFT JOIN gd_coupon_goodsno e ON c.couponcd = e.couponcd
+		<!-- LEFT JOIN gd_coupon_apply f on b.applysno = f.sno -->
+		 WHERE b.m_no = #{mno}
+		<!-- ((a.membertype = 1 and a.member_grp_sno=#{grp_sno}) OR (a.membertype = 2 and b.m_no=#{mno}) OR a.membertype = 0) -->
+		   AND ((c.sdate &lt;= now() AND c.edate &gt;= now() AND c.priodtype='0') OR (c.priodtype='1' AND ADDDATE(a.regdt,INTERVAL c.sdate DAY) &gt;= curdate()))
+		   AND c.skin IN ('al', #{skin})
+		<if test=" status != '' and status != null ">
+		   AND a.status = #{status}
+		</if>
+		ORDER BY couponcd
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 적립금내역건수 -->
+	<select id="getFrontEmoneyCount" resultType="int">
+		/* FrontMypageMapper / getFrontEmoneyCount */
+		SELECT COUNT(*) 
+		  FROM gd_log_emoney 
+		 WHERE m_no = #{mno} 
+	</select>
+	
+	<!-- 적립금내역 목록 -->
+	<select id="getFrontEmoneyList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdLogEmoney">
+		/* FrontMypageMapper / getFrontEmoneyList */
+		SELECT *, DATE_FORMAT(regdt,'%Y-%m-%d') AS regdate
+		  FROM gd_log_emoney 
+		 WHERE m_no = #{mno} 
+		ORDER BY regdt desc 
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 나의 상품문의 총 건수 -->
+	<select id="getFrontMyPageGoodsQnaCount" resultType="int">
+		SELECT COUNT(*)
+		  FROM gd_goods_qna a
+		  LEFT JOIN gd_member b ON a.m_no = b.m_no
+		  LEFT JOIN gd_goods c ON a.goodsno = c.goodsno
+		 WHERE a.m_no = #{mno}
+	</select>
+	
+	<!-- 나의 상품문의 리스트 -->
+	<select id="getFrontMyPageGoodsQnaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		SELECT DISTINCT a.sno
+			 , a.parent
+			 , a.goodsno
+			 , a.subject
+			 , a.contents
+			 , a.regdt
+			 , a.name
+			 , b.m_no AS mno
+			 , b.m_id AS MID
+			 , (SELECT category FROM gd_goods_link WHERE goodsno = a.goodsno ORDER BY sort LIMIT 1) AS category
+			 , c.goodsnm
+			 , c.goodsnmKR
+			 , c.goodsnmCN
+			 , c.img_s AS imgs
+			 , d.price
+			 , (SELECT COUNT(sno) - 1 FROM gd_goods_qna WHERE a.sno = parent) AS recnt
+		  FROM gd_goods_qna a
+		  LEFT JOIN gd_member b ON a.m_no = b.m_no
+		  LEFT JOIN gd_goods c ON a.goodsno = c.goodsno
+		  LEFT JOIN gd_goods_option d ON a.goodsno = d.goodsno AND d.parent = 0
+		 WHERE a.m_no = #{mno}
+		ORDER BY a.sno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 나의 상품문의 리스트 -->
+	<select id="getFrontMyPageGoodsQnaReply" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		SELECT a.sno
+			 , a.parent
+			 , a.goodsno
+			 , a.subject
+			 , a.contents
+			 , a.regdt
+			 , a.name
+		  FROM gd_goods_qna a
+		 WHERE a.sno != #{sno}
+		   AND a.parent = #{sno}
+		ORDER BY a.sno DESC
+	</select>
+	
+	
+	
+	
+
+	<!-- 나의 1:1문의 리스트 총 건수-->
+	<select id="getFrontMemberQnaListCount" resultType="int">
+		SELECT COUNT(a.sno) FROM 
+			(SELECT sno FROM gd_member_qna
+			WHERE m_no= #{mno} AND sno = parent) a
+		LEFT JOIN gd_member_qna b ON a.sno = b.parent
+	</select>
+	
+	<!-- 나의 1:1문의 리스트 -->
+	<select id="getFrontMemberQnaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT a.sno AS asno, b.*
+		, (SELECT COUNT(sno) FROM gd_member_qna
+			WHERE asno != sno AND asno = parent) AS recnt
+		FROM (SELECT sno FROM gd_member_qna WHERE m_no=#{mno} AND sno = parent) a
+		LEFT JOIN gd_member_qna b ON a.sno = b.parent
+		ORDER BY a.sno DESC, b.sno
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 1:1 문의 수정 조회 -->
+	<select id="getFrontMemberQnaInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberqna">
+	SELECT 
+		b.m_id, a.itemcd, a.subject, a.contents, a.email, a.mobile, a.mailling, a.sms, a.ordno, a.parent, a.sellerCd
+	FROM gd_member_qna a
+	LEFT JOIN gd_member b ON a.m_no=b.m_no
+	WHERE a.sno= #{sno}
+	</select>
+	
+	<!-- 1:1 문의 답변 수정 -->
+	<update id="updateFrontMemberQna">
+		UPDATE gd_member_qna SET
+			subject		= #{subject}, 
+			contents	 = #{contents},
+			email		= #{email},
+			mobile		= #{mobile},
+			sms			= #{sms},
+			mailling	= #{mailling},
+			itemcd		= #{itemcd},
+			ordno		= #{ordno},
+			sellerCd     = #{sellerCd}
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 1:1문의 답변 등록 -->
+	<insert id="insertFrontMemberQnaReply">
+		INSERT INTO gd_member_qna SET
+			subject	= #{subject}, 
+			contents	= #{contents},
+			parent	= #{sno},
+			m_no		= #{mno},
+			regdt		= NOW(),
+			ip			= #{ip}	
+	</insert>
+	
+	<!-- 1:1 문의 등록 -->
+	<insert id="insertFrontMemberQna">
+		INSERT INTO gd_member_qna SET
+			itemcd	= #{itemcd},
+			subject	= #{subject}, 
+			contents	= #{contents},
+			m_no		= #{mno},
+			email		= #{email},
+			mobile	= #{mobile},
+			mailling	= #{mailling},
+			sms		= #{sms},
+			sellerCd 	= #{sellerCd},
+			<if test=" ordno != '' and ordno != null ">
+			ordno		= #{ordno},
+			</if>
+			regdt		= NOW(),
+			ip			= #{ip},
+			name		= #{name},
+			skin    = #{skin}
+	</insert>
+	
+	<!-- MemberQna MAX값 조회 -->
+	<select id="getFrontMemberQnaSnoMax" resultType="int">
+		SELECT MAX(sno) AS sno FROM gd_member_qna
+	</select>
+	
+	<!-- 1:1문의 부모글 업데이트 -->
+	<update id="updateFrontMemberQnaParent">
+		UPDATE gd_member_qna SET parent=sno
+		WHERE sno=#{sno}
+	</update>
+	
+	<!-- 1:1문의 글 삭제 -->
+	<delete id="deleteFrontMemberQna">
+		DELETE FROM gd_member_qna
+		WHERE sno = #{sno}
+	</delete>
+	
+	
+	<!-- 주문관리 > 주문배송조회 -->
+	<select id="getFrontOrderCountStep" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderOrderitem">
+		/* FrontMypageMapper / getFrontOrderCount */
+		<!-- 
+		SELECT IFNULL(SUM(CASE WHEN b.step = 1 AND (a.istep = 0 OR a.istep = 10) THEN 1 ELSE 0 END),0) cnt1
+			 , IFNULL(SUM(CASE WHEN b.step = 10 AND a.istep = 0 THEN 1 ELSE 0 END),0) cnt2
+			 , IFNULL(SUM(CASE WHEN b.step IN (2,11) AND a.istep = 0 THEN 1 ELSE 0 END),0) cnt3
+			 , IFNULL(SUM(CASE WHEN b.step IN (3,12) AND a.istep = 0 THEN 1 ELSE 0 END),0) cnt4
+			 , IFNULL(SUM(CASE WHEN b.step = 4 AND a.istep = 0 THEN 1 ELSE 0 END),0) cnt5
+			 , IFNULL(SUM(CASE WHEN (istep = 0 OR istep = 51) THEN 1 ELSE 0 END),0) cnt6
+			 , IFNULL(SUM(CASE WHEN (istep > 0 AND istep != 51) THEN 1 ELSE 0 END),0) cnt7 
+		  FROM gd_order_item a
+		 INNER JOIN gd_order b ON a.ordno = b.ordno
+		 INNER JOIN gd_goods c ON a.goodsno = c.goodsno
+		 WHERE b.m_no = #{mno}
+		-->
+		SELECT IFNULL(SUM(CASE WHEN step = 1 AND (step2 = 0 OR step2 = 10) THEN 1 ELSE 0 END),0) cnt1
+			 , IFNULL(SUM(CASE WHEN step = 10 AND step2 = 0 THEN 1 ELSE 0 END),0) cnt2
+			 , IFNULL(SUM(CASE WHEN step IN (2,11) AND step2 = 0 THEN 1 ELSE 0 END),0) cnt3
+			 , IFNULL(SUM(CASE WHEN step IN (3,12) AND step2 = 0 THEN 1 ELSE 0 END),0) cnt4
+			 , IFNULL(SUM(CASE WHEN step = 4 AND step2 = 0 THEN 1 ELSE 0 END),0) cnt5
+			 , IFNULL(SUM(CASE WHEN (step2 = 0 OR step2 = 51) THEN 1 ELSE 0 END),0) cnt6
+			 , IFNULL(SUM(CASE WHEN (step2 > 0 AND step2 != 51) THEN 1 ELSE 0 END),0) cnt7 
+		  FROM gd_order
+		 WHERE m_no = #{mno}
+<!-- 		<include refid="getFrontOrderInclude"></include> -->
+	</select>
+	
+
+	<!-- 주문내역/배송조회 건수조회 -->
+	<select id="getFrontOrderCount" resultType="int">
+		/* FrontMypageMapper / getFrontOrderCount */
+		SELECT COUNT(*) CNT
+		  FROM (
+				SELECT item.ordno
+					 , ord.skin 
+					 , ord.agent
+					 , ord.orddt
+					 , ord.nameOrder
+					 , ord.customs_num
+					 , item.goodsno
+					 , item.brandnm
+					 , item.brandnmKR
+					 , item.brandnmCN
+					 , item.goodsnm
+					 , item.goodsnmKR
+					 , item.goodsnmCN
+					 , option.opt1
+					 , option.opt2
+					 , item.ea
+					 , option.price
+					 , ord.goodsprice
+					 , ord.prn_settleprice
+					 , ord.settlekind
+					 , ord.settleprice
+					 , ord.emoney
+					 , ord.addemoney
+					 , coupon.couponNm
+					 , ifnull(coupon.couponPrice,0) couponPrice
+					 , coupon.dcCodeNm
+					 , ifnull(coupon.dcCodePrice,0) dcCodePrice
+					 , ord.country
+					 , ROUND((((option.price*option.margin)-(ifnull(coupon.couponPrice,0)+ifnull(coupon.dcCodePrice,0)))-ifnull(item.addemoney,0)) / ifnull(option.price,0)) estimate
+					 , soi.goodsnmcnt
+				FROM gd_order_item item
+				 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+				 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+				  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+				  LEFT JOIN (
+					  SELECT y.ordno
+						    , y.m_no
+						    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+							 , MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+							 , MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+							 , MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+						  FROM gd_coupon_order y
+						  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+						  GROUP BY y.ordno
+						    	 	, y.m_no
+				  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+				  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+				  LEFT JOIN (
+				  	  SELECT ordno
+					  		 , COUNT(*) goodsnmcnt
+					   FROM gd_order_item
+					   GROUP BY ordno
+				   )soi ON item.ordno = soi.ordno
+				WHERE ord.m_no = #{mno}
+				<include refid="getFrontOrderInclude"></include>
+				GROUP BY item.ordno
+			)z
+	</select>
+	
+	
+	<!-- 주문내역/배송조회 목록 -->
+	<select id="getFrontOrderList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderMember">
+		/* FrontMypageMapper / getFrontOrderList */
+		 SELECT item.ordno
+			  , ord.skin 
+			  , ord.agent
+			  , ord.orddt
+			  , ord.nameorder
+			  , ord.customs_num
+			  , item.goodsno
+			  , item.brandnm
+			  , item.brandnmKR
+			  , item.brandnmCN
+			  , item.goodsnm
+			  , item.goodsnmKR
+			  , item.goodsnmCN
+			  , option.opt1
+			  , option.opt2
+			  , item.ea
+			  , option.price
+			  , ord.goodsprice
+			  , ord.prn_settleprice
+			  , ord.settlekind
+			  , ord.settleprice
+			  , ord.emoney
+			  , ord.addemoney
+			  , coupon.couponcd
+			  , coupon.couponNm
+			  , ifnull(coupon.couponPrice,0) couponPrice
+			  , coupon.dcCouponcd
+			  , coupon.dcCodeNm
+			  , ifnull(coupon.dcCodePrice,0) dcCodePrice
+			  , ord.country
+			  , ROUND((((option.price*option.margin)-(ifnull(coupon.couponPrice,0)+ifnull(coupon.dcCodePrice,0)))-ifnull(item.addemoney,0)) / ifnull(option.price,0)) estimate
+			  , soi.goodsnmcnt
+			  , ord.step
+			  , ord.step2
+			  , item.istep
+			  , goods.img_s imgs
+			  , goods.brandno
+		FROM gd_order_item item
+		 INNER JOIN gd_order ord ON item.ordno = ord.ordno
+		 INNER JOIN gd_goods goods ON item.goodsno = goods.goodsno
+		  LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+		  LEFT JOIN (
+			  SELECT y.ordno
+				    , y.m_no
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.couponcd ELSE null END) couponcd
+				    , MAX(CASE WHEN z.coupontype != '3' THEN y.coupon ELSE null END) couponNm
+					, MAX(CASE WHEN z.coupontype != '3' THEN y.dc ELSE null END) couponPrice
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.couponcd ELSE null END) dcCouponcd
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.coupon ELSE null END) dcCodeNm
+					, MAX(CASE WHEN z.coupontype = '3' THEN y.dc ELSE null END) dcCodePrice
+				  FROM gd_coupon_order y
+				  LEFT JOIN gd_coupon z ON y.couponcd = z.couponcd
+				  GROUP BY y.ordno
+				    	 	, y.m_no
+		  )coupon ON item.ordno = coupon.ordno AND ord.m_no = coupon.m_no
+		  LEFT JOIN gd_order_delivery delivery ON ord.ordno = delivery.ordno
+		  LEFT JOIN (
+		  	  SELECT ordno
+			  		 , COUNT(*) goodsnmcnt
+			   FROM gd_order_item
+			   GROUP BY ordno
+		   )soi ON item.ordno = soi.ordno
+		WHERE ord.m_no = #{mno}
+		<include refid="getFrontOrderInclude"></include>
+		GROUP BY item.ordno
+		ORDER BY item.ordno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<sql id="getFrontOrderInclude">
+		<if test="sear != null and sear != '' ">
+			<if test="sear == 'deli_1' ">
+				AND ord.step = 2
+			</if>	
+			<if test="sear == 'deli_2' ">
+				AND ord.step = 3
+			</if>
+			<if test="sear == 'deli_3' ">
+				AND ord.step = 4
+			</if>
+			<if test="sear == 'cancel' ">
+				AND ord.step2 >= 40
+			</if>
+		</if>
+		
+		
+		<if test="sear2 != null and sear2 != '' ">
+			<if test="sear2 == 'week' ">
+				AND ord.orddt &gt; date_add(now(),interval -7 day)
+			</if>
+			<if test="sear2 == 'month_1' ">
+				AND ord.orddt &gt; date_add(now(),interval -1 month)
+			</if>
+			<if test="sear2 == 'month_3' ">
+				AND ord.orddt &gt; date_add(now(),interval -3 month)
+			</if>
+			<if test="sear2 == 'month_6' ">
+				AND ord.orddt &gt; date_add(now(),interval -6 month)
+			</if>
+			<if test="sear2 == 'month_12' ">
+				AND ord.orddt &gt; date_add(now(),interval -12 month)
+			</if>
+		</if>
+		
+		<if test="stype != null and stype != '' ">
+			<if test="stype == 'order' ">
+				AND (item.istep = 0 OR item.istep = 51 OR item.istep = 10)
+			</if>
+			<if test="stype == 'cancel' ">
+				AND (item.istep > 0 AND item.istep != 51 AND item.istep != 10)
+			</if>
+		</if>
+	</sql>
+	
+	<!-- 주문내역/배송조회 상세조회(주문상세) -->
+	<select id="getFrontOrderView" resultType="map">
+		/* FrontMypageMapper / getFrontOrderView */
+		SELECT *
+		  FROM gd_order
+		 WHERE ordno = #{ordno}
+		   AND m_no = #{mno}
+	</select>
+	
+	<select id="getFrontOrderItemList" resultType="map">
+		/* FrontMypageMapper / "getFrontOrderItemList" */
+		 SELECT item.*
+			  , ord.ordno
+			  , goods.img_s imgs
+			  , option.priceRate
+			  , option.consumer
+			  , option.price
+			  , option.opt1 optOpt1
+			  , option.opt2 optOpt2
+		   FROM gd_order_item item
+		  INNER JOIN gd_order ord ON item.ordno = ord.ordno
+		  INNER JOIN gd_goods goods ON goods.goodsno = item.goodsno
+		   LEFT JOIN gd_goods_option option ON item.opt1 = option.sno 
+		  WHERE ord.ordno = #{ordno}
+		    AND m_no = #{mno}
+	</select>
+	
+	
+	<!-- 주문내역/배송조회 주문상태변경 -->
+<!-- 	<update id="updateOrderStep" >
+		/* FrontMypageMapper / updateOrderStep */
+		UPDATE 
+			gd_order SET
+			<if test=" ( step != null and step != ''  ) and ( step2 != null and step2 != ''  )"> 
+			step=#{step}, step2=#{step2}
+			</if>
+			<if test=" ( step == null or step == ''  ) and ( step2 != null and step2 != ''  )"> 
+			step2=#{step2}
+			</if>
+		WHERE ordno=#{ordno}
+	</update> -->
+	<!-- 주문내역/배송조회 주문상태변경 -->
+	<update id="updateOrderStep" >
+		/* FrontMypageMapper / updateOrderStep */
+		UPDATE 
+			gd_order SET 
+			step=#{step}
+		WHERE ordno=#{ordno}
+	</update>
+	
+	<!-- 주문내역/배송조회 주문상태변경 -->
+	<update id="updateOrderStep2" >
+		/* FrontMypageMapper / updateOrderStep2 */
+		UPDATE 
+			gd_order SET
+			step2=#{step2}
+		WHERE ordno=#{ordno}
+	</update>	
+	
+	<!-- 부분 수정을 위한 sno 조건 추가 -->
+	<!-- 취소화면 물품정보 -->
+	<select id="getFrontOrderItemObj" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrderItem">
+		/* FrontMypageMapper / getFrontOrderItemObj */
+		SELECT * FROM gd_order_item WHERE ordno=#{ordno} and sno=#{sno}
+	</select>
+	
+	<!-- 주문취소 추가 -->
+	<insert id="insertOrderCancel" parameterType="map" useGeneratedKeys="true" keyProperty="sno">
+		/* FrontMypageMapper / insertOrderCancel */
+		INSERT INTO gd_order_cancel(ordno, code, memo, name, regdt, rprice, rfee, remoney, ccdt
+		<if test="mode == 'sendback' ">
+		, bankcode, bankaccount, bankuser
+		</if>
+		)
+		VALUES(#{ordno},#{code}, #{memo},#{name},now(),null,null,null,null
+		<if test="mode == 'sendback' ">
+		,#{bankcode},#{bankaccount},#{bankuser}
+		</if>
+		)
+		
+		<selectKey resultType="int" keyProperty="cancel" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 2020.01.08 이현빈 개별 수정을 위한 조건추가 itemsno -->
+	<!-- 주문내역/배송조회 주무취소 - 주문정보 업데이트 -->
+	<update id="updateOrderItem" >
+		/* FrontMypageMapper / updateOrderItem */
+		UPDATE gd_order_item 
+		SET cancel=#{sno} 
+		WHERE ordno=#{ordno}
+	</update>
+	
+	<update id="updateDeliveryReturn" >
+		/* FrontMypageMapper / updateDeliveryReturn */
+		UPDATE gd_order_delivery 
+		   SET returnDeliveryCompCd = #{returnDeliveryCompCd} 
+		     , returnInvoice = #{returnInvoice} 
+		 WHERE ordno = #{ordno} 
+	</update>
+	
+	<!-- 반품/환불 접수 상품리스트>반품신청 -->
+	<update id="updateOrderItem2" >
+		/* FrontMypageMapper / updateOrderItem2 */
+		UPDATE gd_order_item 
+		SET istep=#{istep} 
+		WHERE cancel=#{sno}
+	</update>
+	
+	<!-- 상품 취소 whpark 20191111-->
+	<update id="updateOrderItemIstep" >
+		/* FrontMypageMapper / updateOrderItemIstep */
+		UPDATE gd_order_item 
+		SET istep=#{istep} 
+		WHERE ordno=#{ordno} AND sno=#{sno}
+	</update>
+	
+	
+	
+	
+	<!-- 주문내역/배송조회 상세조회1(주문상품) -->
+	<select id="getFrontOrderViewList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderitemGoods">
+		/* FrontMypageMapper / getFrontOrderViewList */
+		SELECT 
+			a.goodsno,
+			a.sno,
+			a.ordno,
+			a.brandnm,
+			a.opt1,
+			a.opt2,
+			a.addopt,
+			a.price,
+			a.supply,
+			a.reserve,
+			a.memberdc,
+			a.ea,
+			a.dvno,
+			a.dvcode,
+			a.istep,
+			a.stockyn,
+			a.cyn,
+			a.dyn,
+			a.cancel,
+			a.optno,
+			a.coupon_emoney,
+			b.*, 
+			c.step,
+			c.step2,
+			c.escrowconfirm,
+			delivery.invoice,
+			(SELECT category FROM gd_goods_link WHERE gd_goods_link.goodsno = a.goodsno ORDER BY rand() LIMIT 1) as category ,
+				delivery.invoice AS invoice,
+		delivery.deliveryCompCd AS deliveryCompCd,
+		delivery.deliveryStatus AS deliveryStatus,
+		CONCAT(d.opt1 ,' ', d.opt2) AS optname
+<!-- 		/*whpark 20191108*/
+	    ,deliveryComp.deliverycomp AS deliveryCompNm,
+	    deliveryComp.deliveryurl AS deliveryCompUrl -->		
+		FROM 
+			gd_order_item a 
+			LEFT JOIN gd_goods b ON a.goodsno=b.goodsno 
+			LEFT JOIN gd_order c ON a.ordno = c.ordno
+			LEFT JOIN gd_order_delivery AS delivery ON a.goodsno = delivery.goodsno AND a.ordno = delivery.ordno
+			LEFT JOIN gd_goods_option d ON a.opt1 = d.sno
+<!-- 			/*whpark 20191108 */
+			LEFT OUTER JOIN gd_list_delivery AS deliveryComp ON convert(delivery.deliveryCompCd,UNSIGNED) = convert(deliveryComp.deliveryno,UNSIGNED) AND deliveryComp.useyn='y' 		 -->	
+		WHERE a.ordno = #{ordno}
+		<!-- 상품옵션 추가로 group by goodsno 에서 group by sno 로 변경 
+		GROUP BY b.goodsno-->
+		GROUP BY a.sno
+	</select>
+	
+	<!-- 주문내역/배송조회 상세조회2(주문상세) -->
+	<select id="getFrontOrderViewObj" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrder">
+		/* FrontMypageMapper / getFrontOrderViewObj */
+		SELECT 
+			* 
+		FROM 
+			gd_order a 
+			LEFT JOIN gd_list_bank b ON a.bankAccount=b.sno 
+			LEFT JOIN gd_list_delivery c ON a.deliveryno=c.deliveryno 
+			LEFT JOIN gd_order_item d ON a.ordno = d.ordno
+		WHERE a.ordno = #{ordno}
+	</select>
+	
+	<!-- 주문이 전체 취소이면 0 반환  -->
+	<!-- <select id="getOtherItemCnt" resultType="int">
+		/* FrontMypageMapper / getOtherItemCnt */
+		SELECT 
+		  count(sno) - SUM(CASE WHEN istep = #{istep} THEN 1 ELSE 0 END)
+		FROM gd_order_item WHERE ordno =#{ordno}	
+	</select>	 -->
+	
+	<select id="getOtherItemCnt" resultType="int">
+		/* FrontMypageMapper / getOtherItemCnt */
+		SELECT <![CDATA[ count(sno) - SUM(CASE WHEN istep > 39 AND istep NOT IN(55,60,61,62) THEN 1 ELSE 0 END) ]]>
+		  FROM gd_order_item 
+		 WHERE ordno =#{ordno}
+	</select>
+
+	<!-- 주문건에 해당하는 사용한 할인쿠폰 목록 -->
+	<select id="getUsedCouponList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.CouponapplyApplymemberCouponCategoryGoodsno">
+		SELECT DISTINCT
+			a.couponcd
+			, a.goodstype as coupontype
+			, a.coupon
+			, a.price
+			, a.maxprice
+			, a.ability as couponAbi
+		    , e.category
+		FROM gd_coupon a
+		LEFT JOIN gd_coupon_apply b ON a.couponcd = b.couponcd
+		LEFT JOIN gd_coupon_applymember c ON b.sno = c.applysno
+		LEFT JOIN gd_order_delivery d ON c.ordno = d.ordno
+		LEFT JOIN gd_coupon_category e ON a.couponcd = e.couponcd
+		WHERE c.ordno = #{ordno}
+	</select>
+	
+	<!-- 상품별 이용후기 작성 -->
+	<insert id="setGoodsReviewInsert" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsReview">
+		<![CDATA[
+		/** setGoodsReviewInsert **/
+		INSERT INTO gd_goods_review 
+		SET 
+			goodsno	 	= #{goodsno}, 
+			ordno	 	= #{ordno}, 
+			subject	 	= #{subject}, 
+			contents	= #{contents}, 
+			point 		= ${point},
+			m_no		= ${mno}, 
+			name		= (select name from gd_member where m_no = ${mno}), 
+			password	= md5(#{password}), 
+			regdt		= now(), 
+			ip			= #{ip},
+			skin 		= #{skin}
+		]]>
+		<selectKey resultType="int" keyProperty="sno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 이용후기작성 sno 업데이트 -->
+	<update id="setGoodsReviewSnoUpdate">
+		<![CDATA[
+			/** setGoodsReviewSnoUpdate **/
+			UPDATE 
+				gd_goods_review 
+			SET 
+				parent=sno 
+			WHERE 
+				parent='0'
+		]]>
+	</update>
+	
+	<!-- 나의 상품후기 수정 -->
+	<update id="setGoodsReviewUpdate" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsReview">
+		<![CDATA[
+			/* setGoodsReviewUpdate */
+			UPDATE gd_goods_review 
+			SET
+				subject 	= #{subject} ,
+				contents 	= #{contents} ,
+				point = #{point} 
+			WHERE 
+				sno = #{sno}
+		]]>
+	</update>
+	
+	<!-- 나의 상품후기 삭제 -->
+	<delete id="setGoodsReviewDelete" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsReview">
+		<![CDATA[
+			/* setGoodsReviewDelete */
+			DELETE FROM gd_goods_review WHERE sno = #{sno}
+		]]>
+	</delete>
+	
+	
+	<!-- 상품별 QnA 작성 -->
+	<insert id="setGoodsQnAInsert" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		<![CDATA[
+			/** setGoodsQnAInsert **/
+			INSERT INTO gd_goods_qna
+			SET 
+				goodsno	 	= #{goodsno}, 
+				subject	 	= #{subject}, 
+				contents		= #{contents}, 
+				m_no	 		= #{mno}, 
+				name			= (select name from gd_member where m_no = ${mno}), 
+				password		= md5(#{password}), 
+				regdt	 		= now(), 
+				ip	 			= #{ip},
+				skin 			= #{skin}
+		]]>
+	</insert>
+	
+	<!-- 상품별 QnA sno 업데이트 -->
+	<update id="setGoodsQnASnoUpdate">
+		<![CDATA[
+			/** setGoodsQnASnoUpdate **/
+			UPDATE gd_goods_qna
+			SET
+				parent = sno
+			WHERE 
+				parent = '0' 
+		]]>
+	</update>
+	
+	<!-- 나의 상품별 QnA 수정 -->
+	<update id="setGoodsQnAUpdate" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		<![CDATA[
+			/* setGoodsQnAUpdate */
+			UPDATE gd_goods_qna 
+			SET
+				subject 	= #{subject} ,
+				contents 	= #{contents} ,
+				name 		= (select name from gd_member where m_no = ${mno})
+			WHERE 
+				sno 		= #{sno}
+		]]>
+	</update>
+	
+	<!-- 나의 상품별 QnA 삭제 -->
+	<delete id="setGoodsQnADelete" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsQna">
+		<![CDATA[
+			/* setGoodsQnADelete */
+			DELETE FROM gd_goods_qna WHERE sno = #{sno}
+		]]>
+	</delete>
+	
+	
+	<!-- 
+	Front > MyPage > 1:1 문의
+	 -->
+	
+	
+	<!-- 나의 상품후기 개수 -->
+	<select id="getFrontMyPageReviewCount" resultType="int">
+		SELECT COUNT(DISTINCT a.sno) FROM gd_goods_review a
+		LEFT JOIN gd_member b ON a.m_no=b.m_no
+		WHERE a.m_no = #{mno}
+	</select>
+	
+	<!-- 나의 상품후기 리스트 -->
+	<select id="getFrontMyPageReviewList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberGoodsrevwGoods">
+		SELECT DISTINCT a.sno
+			 , a.goodsno
+			 , a.subject
+			 , a.contents
+			 , a.point
+			 , a.regdt
+			 , a.name
+			 , b.m_no as mno
+			 , b.profile
+			 , b.m_id as mid
+			 , c.img_s as imgs
+			 , c.goodsnm
+			 , c.goodsnmKR
+			 , c.goodsnmCN
+			 , c.binCd
+			 , d.price
+			 , f.brandnm
+			 , g.img reviewimg
+		FROM gd_goods_review a
+		LEFT JOIN gd_member b ON a.m_no=b.m_no
+		LEFT JOIN gd_goods c ON c.goodsno = a.goodsno
+		LEFT JOIN gd_goods_option d ON c.goodsno = d.goodsno AND d.parent = 0
+		LEFT JOIN gd_goods_link e ON d.goodsno = e.goodsno
+		LEFT JOIN gd_goods_brand f ON c.brandno = f.sno
+		LEFT JOIN (SELECT sno, MAX(img) img FROM gd_goods_review_file GROUP BY sno) g ON a.sno = g.sno
+		WHERE a.m_no = #{mno}
+		ORDER BY regdt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 나의 상품후기 수정 -->
+	<update id="updateFrontMyPageReview">
+		UPDATE gd_goods_review SET
+			contents = #{contents}, point = #{point} 
+		WHERE sno = #{sno}
+	</update>
+	
+	<!-- 나의 상품후기 삭제 -->
+	<delete id="deleteFrontMyPageReview">
+	DELETE FROM gd_goods_review
+	WHERE sno = #{sno}
+	</delete>
+	
+	<!-- 나의 상품문의 댓글 수 -->
+	<select id="getFrontMyPageGoodsQnaReplyCount" resultType="int">
+		SELECT COUNT(*) AS cnt FROM gd_goods_qna
+		WHERE sno != parent AND parent=#{parent}
+	</select>
+	
+	<!-- 상품보관함 건수 -->
+	<select id="getFrontMyPageWishCount" resultType="int">
+		SELECT COUNT(*) FROM gd_member_wishlist AS w
+		LEFT JOIN gd_goods AS a ON w.goodsno=a.goodsno
+		<!-- LEFT JOIN gd_goods_option AS b ON w.goodsno=b.goodsno AND w.opt1=b.opt1 AND w.opt2=b.opt2 -->
+		LEFT JOIN gd_goods_option AS b ON w.opt1 = b.sno
+		WHERE w.m_no = #{mno} AND a.open = 1 AND a.approvalStatus = '2'
+	</select>
+	
+	<!-- 상품보관함 리스트 -->
+	<select id="getFrontMyPageWishList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberwishlistGoodsGoodsoption">
+		SELECT w.*
+			 , a.goodsnm
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , a.img_l as imgl
+			 , a.img_s as imgs
+			 , a.vip_yn
+			 , b.price
+			 , b.priceRate
+			 , b.consumer
+			 , b.stock
+			 , c.category
+			 , (SELECT brandnm FROM gd_goods_brand WHERE sno = a.brandno) AS brandnm
+			 , DATE_FORMAT(w.regdt,'%Y-%m-%d') AS rdt
+		FROM gd_member_wishlist AS w
+		LEFT JOIN gd_goods AS a ON w.goodsno = a.goodsno
+		<!-- LEFT JOIN gd_goods_option AS b ON w.goodsno = b.goodsno AND w.opt1 = b.opt1 AND w.opt2 = b.opt2 -->
+		LEFT JOIN gd_goods_option AS b ON w.opt1 = b.sno
+		LEFT JOIN (SELECT goodsno, category FROM gd_goods_link GROUP BY goodsno) c ON w.goodsno = c.goodsno
+		WHERE w.m_no = #{mno} 
+		  AND a.open = 1 
+		  AND a.approvalStatus = '2'
+		<if test="cate == 'recipe' ">
+		  AND category like '001%'
+		</if>
+		<if test="cate == 'market' ">
+		  AND category like '002%' or category like '003%'
+		</if>
+		ORDER BY sno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 상품보관함 삭제 -->
+	<delete id="deleteFrontMyPageWishList">
+		DELETE 
+		  FROM gd_member_wishlist
+		 WHERE m_no = #{mno} 
+		   AND sno IN (${snoList})
+	</delete>
+	
+	<!-- 상품보관함 보관갯수 확인 -->
+	<select id="getFrontMyPageWishListCheckCount" resultType="int">
+		SELECT count(*) FROM gd_member_wishlist
+		WHERE m_no = #{mno} AND goodsno =#{goodsno}
+		<if test="opt1 != null  and opt1 != '' ">
+			AND opt1 = #{opt1}
+		</if>
+		<if test="opt2 != null and opt2 !='' ">
+			AND opt2 = #{opt2}
+		</if>
+		<if test="addopt != null and addopt != '' ">
+			AND addopt = #{addopt}
+		</if>
+	</select>
+	
+	<!-- 상품보관함 등록 -->
+	<insert id="insertFrontMyPageWishList">
+	INSERT INTO gd_member_wishlist SET 
+		m_no = #{mno}
+		, goodsno = #{goodsno}
+		, regdt = NOW()
+		<if test="opt1 != null">
+		, opt1 = #{opt1}
+		</if>
+		<if test="opt2 != null">
+		, opt2 = #{opt2}
+		</if>
+		<if test="addopt != null">
+		, addopt = #{addopt}
+		</if>
+	</insert>
+	
+	<!-- 최근 본 상품 목록 카운트 -->
+	<select id="getFrontMyPageTodayGoodsListCount" resultType="int">
+		SELECT count(*) AS TOTCNT FROM
+		(
+			SELECT DISTINCT b.goodsno
+					, b.goodscd
+					, b.sellerCd
+					, b.goodsnm
+					, b.goodsnmKR
+					, b.goodsnmCN
+					, b.brandno
+					, b.origin
+					, b.binCd
+					, b.simnCd
+					, b.seasonNm
+					, b.euYn
+					, b.shippingOrigin
+					, b.scmRegdt
+					, b.lowestPriceYn
+					, b.lowestPrice
+					, b.lowest2PriceYn
+					, b.lowest2Price
+					, b.meta_title
+					, b.keyword
+					, b.open
+					, b.ex_title
+					, b.ex1
+					, b.ex2
+					, b.ex3
+					, b.ex4
+					, b.ex5
+					, b.ex6
+					, b.use_emoney
+					, b.usestock
+					, b.runout
+					, b.tax
+					, b.strprice
+					, b.delivery_type
+					, b.goods_delivery
+					, b.usegoodsadd
+					, b.optnm
+					, b.opttype
+					, b.useadd
+					, b.addoptnm
+					, b.relationis
+					, b.relation
+					, b.img_i
+					, b.img_s
+					, b.img_l
+					, b.img_m
+					, b.shortdesc
+					, b.longdesc
+					, b.memo
+					, b.m_id
+					, b.regdt
+					, b.moddt
+					, b.manage_yn
+					, b.delYn
+					, b.hot_yn
+					, b.vip_yn
+					, b.approvalStatus
+					, b.approvalMemo
+					, b.coupon
+					, b.coupon_ea
+					, b.coupon_usecnt
+					, b.coupon_date
+					, b.batchYn
+					, b.b2bYn, 
+			       c.price,
+			       c.priceRate,
+			       c.consumer,
+			       c.opt1,
+			       c.opt2 
+			  FROM gd_goods_link a 
+			     LEFT JOIN gd_goods b 
+			         ON a.goodsno=b.goodsno 
+			     LEFT JOIN gd_goods_option c 
+			         ON a.goodsno=c.goodsno 
+			       AND c.parent = 0 
+			 WHERE a.hidden=0 
+			       AND b.goodsno in (${goodsno})
+			       AND open = 1 
+			       AND b.approvalStatus = '2'
+		) AA
+	</select>
+	
+	<!-- 최근 본 상품 목록 -->
+	<select id="getFrontMyPageTodayGoodsList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		SELECT DISTINCT b.goodsno
+					, b.goodscd
+					, b.sellerCd
+					, b.goodsnm
+					, b.goodsnmKR
+					, b.goodsnmCN
+					, b.brandno
+					, b.origin
+					, b.binCd
+					, b.simnCd
+					, b.seasonNm
+					, b.euYn
+					, b.shippingOrigin
+					, b.scmRegdt
+					, b.lowestPriceYn
+					, b.lowestPrice
+					, b.lowest2PriceYn
+					, b.lowest2Price
+					, b.meta_title
+					, b.keyword
+					, b.open
+					, b.ex_title
+					, b.ex1
+					, b.ex2
+					, b.ex3
+					, b.ex4
+					, b.ex5
+					, b.ex6
+					, b.use_emoney
+					, b.usestock
+					, b.runout
+					, b.tax
+					, b.strprice
+					, b.delivery_type
+					, b.goods_delivery
+					, b.usegoodsadd
+					, b.optnm
+					, b.opttype
+					, b.useadd
+					, b.addoptnm
+					, b.relationis
+					, b.relation
+					, b.img_i
+					, b.img_s
+					, b.img_l
+					, b.img_m
+					, b.shortdesc
+					, b.longdesc
+					, b.memo
+					, b.m_id
+					, b.regdt
+					, b.moddt
+					, b.manage_yn
+					, b.delYn
+					, b.hot_yn
+					, b.vip_yn
+					, b.approvalStatus
+					, b.approvalMemo
+					, b.coupon
+					, b.coupon_ea
+					, b.coupon_usecnt
+					, b.coupon_date
+					, b.batchYn
+					, b.b2bYn, c.price, c.priceRate, c.consumer, c.opt1, c.opt2
+		FROM gd_goods_link a
+		LEFT JOIN gd_goods b ON a.goodsno=b.goodsno
+		LEFT JOIN gd_goods_option c ON a.goodsno=c.goodsno AND c.parent = 0
+		LEFT JOIN gd_goods_link e ON a.goodsno=e.goodsno
+		WHERE a.hidden=0 AND b.goodsno IN (${goodsno}) AND OPEN AND b.approvalStatus = '2'
+		
+		<if test="'price'.equals(sort)">
+			ORDER BY price
+		</if>
+		<if test="'price desc'.equals(sort)">
+			ORDER BY price DESC
+		</if>
+		<if test="'goodsnm'.equals(sort)">
+			ORDER BY goodsnm
+		</if>
+		<if test="'goodsnm desc'.equals(sort)">
+			ORDER BY goodsnm DESC
+		</if>
+		<if test="'goodsnmKR'.equals(sort)">
+			ORDER BY goodsnmKR
+		</if>
+		<if test="'goodsnmKR desc'.equals(sort)">
+			ORDER BY goodsnmKR DESC
+		</if>
+		<if test="'goodsnmCN'.equals(sort)">
+			ORDER BY goodsnmCN
+		</if>
+		<if test="'goodsnmCN desc'.equals(sort)">
+			ORDER BY goodsnmCN DESC
+		</if>
+		
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 주문번호 조회 건수 -->
+	<select id="getFrontMyPageMemberQnaOrderListCount" resultType="int">
+		SELECT COUNT(*)
+		  FROM gd_order a
+		  LEFT JOIN gd_member b ON a.m_no = b.m_no
+		 WHERE a.m_no = #{mno}
+	</select>
+	
+	<!-- 주문번호 조회 -->
+	<select id="getFrontMyPageMemberQnaOrderList" resultType="map">
+		SELECT a.ordno
+			 , DATE_FORMAT(a.orddt,'%Y-%m-%d') AS orddt
+			 , a.settleprice
+			 , COUNT(c.ea) AS cnt
+			 , SUM(c.ea) AS ea
+			 , c.goodsnm
+			 , c.goodsnmKR
+			 , c.goodsnmCN
+		FROM gd_order a
+		LEFT JOIN gd_member b ON a.m_no = b.m_no
+		LEFT JOIN gd_order_item c ON c.ordno = a.ordno
+		WHERE a.m_no = #{mno}
+		GROUP BY a.ordno
+		ORDER BY a.ordno DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<select id="getFrontMyPageOrderGoddsList" resultType="com.wepinit.wepinit_shop.xmall.front.vo.mypage.FrontMypageBoardVO">
+		SELECT * 
+		FROM gd_order_item a 
+		LEFT JOIN gd_goods b on  a.goodsno = b.goodsno 
+		WHERE ordno = ${ordno}
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 주문번호 조회 건수 -->
+	<select id="getFrontMyPageOrderGoddsListCount" resultType="int">
+		SELECT COUNT(*)
+		FROM gd_order_item a 
+		LEFT JOIN gd_goods b on  a.goodsno = b.goodsno 
+		WHERE ordno = #{ordno}
+	</select>
+	
+	
+	
+	<!-- 주문 log insert -->
+	<insert id="insertOrderLog">
+			/* insertOrderLog */
+			insert into gd_order_log  
+		(	
+			ordno	,
+			memo	,
+			regdt	,
+			step	,
+			step2	,
+			idx
+		)
+		VALUES
+		(
+			#{ordno}	,
+			#{memo}		,
+			now()		,
+			#{step}		,
+			#{step2}	,
+			#{idx}
+		 )
+	</insert>
+
+	<select id="getsellerCd" resultType="java.lang.String">
+			
+		SELECT sellerCd FROM gd_goods a join gd_order_item b on b.goodsno = a.goodsno 
+		WHERE b.ordno=#{ordno}
+		
+	</select>
+	
+	<select id="getUseDeliveryCompList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListDelivery">
+		SELECT 
+			deliveryno,
+			deliverycomp,
+			deliveryurl,
+			useyn
+		FROM gd_list_delivery AS delivery
+		WHERE
+		(
+			SELECT useDeliveryComp
+			FROM
+			(
+				SELECT 
+					useDeliveryComp
+				FROM gd_seller_delivery_policy
+				UNION
+				(
+					SELECT
+						GROUP_CONCAT(deliveryno SEPARATOR ',') AS useDeliveryComp
+					FROM gd_list_delivery
+					WHERE useyn='y' 
+					GROUP BY useyn
+				)
+			) AS useDelivery
+
+		) LIKE concat('%', deliveryno, '%')
+		ORDER BY deliverycomp
+	</select>
+</mapper>

@@ -1,0 +1,432 @@
+﻿{*** 회원가입/수정 폼 | member/join.php ***}
+
+<style>
+.memberCols1 {
+width:100px;
+text-align:right;
+padding-right:10px;
+font:bold 8pt 돋움;
+color:#5D5D5D;
+letter-spacing:-1;
+}
+.memberCols2 {
+text-align:left;
+padding-left:10px;
+}
+</style>
+
+<form id=form name=frmMember method=post action="../member/indb.php" onsubmit="return chkForm(this)">
+<input type=hidden name=mode value="{_mode}">
+<!--{ ? _sess }--><input type=hidden name=m_id value="{m_id}"><!--{ / }-->
+
+<div><img src="../img/common/join_txt_04.gif" border=0 align=absmiddle><font color=FF6000 >* </font><font class=small><b>필수입력사항</b></font></div>
+<div style="border:1px solid #DEDEDE;" class="hundred">
+<table width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td style="border:5px solid #F3F3F3;">
+
+<table width=100% cellpadding=0 cellspacing=0>
+<tr>
+<td style="padding:10px 0" align=center>
+
+<table width=97% cellpadding=5 cellspacing=0 border=0>
+<tr>
+	<td class=memberCols1><font color=FF6000>*</font> 아이디</td>
+	<td class=memberCols2>
+	<!--{ ? !_sess }-->
+	<input type=text name=m_id value="{m_id}" maxlength=10 required option=regId label="아이디">
+	<input type=hidden name=chk_id required label="아이디중복체크">
+	<a href="javascript:chkId()"><img src="../img/common/btn_idcheck.gif" border=0 align=absmiddle></a>
+	<!--{ : }-->
+	<span class=eng><b>{m_id}</b></span>
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<tr>
+	<td class=memberCols1><font color=FF6000>*</font> 비밀번호</td>
+	<td class=memberCols2>
+	<input type=password name=password required option=regPass label="비밀번호">
+	<span style="padding:0 10px 0 30px; font:bold 8pt 돋움; color:#5D5D5D; letter-spacing:-1" ><font color=FF6000>*</font> 비밀번호확인</span>
+	<input type=password name=password2 required option=regPass label="비밀번호">
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<tr>
+	<td class=memberCols1><font color=FF6000>*</font> 이름</td>
+	<td class=memberCols2>
+	<!--{ ? _mode=="joinMember" && name }-->
+	<input type=hidden name=name value="{name}">{name}
+	<!--{ : }-->
+	<input type=text name=name value="{name}" required label="이름">
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ ? _checked.useField.nickname }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.nickname }--><font color=FF6000>*</font> <!--{ / }--> 닉네임</td>
+	<td class=memberCols2>
+	<input type=text name=nickname value="{nickname}" {_required.nickname} label="닉네임">
+	<input type=hidden name=chk_nickname required label="닉네임중복체크">
+	<a href="javascript:chkNickname()"><img src="../img/common/btn_nickcheck.gif" border=0 align=absmiddle></a>
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.resno }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.resno }--><font color=FF6000>*</font> <!--{ / }-->주민등록번호</td>
+	<td class=memberCols2>
+	<!--{ ? _sess }-->
+	<font color=FF6000>128bit 암호화 되어있음</font>
+	<!--{ : resno }-->
+	<input type=hidden name=resno[] value="{resno[0]}">
+	<input type=hidden name=resno[] value="{resno[1]}">
+	{resno[0]} - {resno[1]}
+	<!--{ : }-->
+	<input type=text name=resno[] value="{resno[0]}" {_required.resno} label="주민등록번호" size=8 maxlength=6 onKeyPress=onlynumber() { ? _checked.useField.birth }onblur="chkBirth(this)"{ / }> -
+	<input type=password name=resno[] value="{resno[1]}" {_required.resno} label="주민등록번호" size=8 maxlength=7 onKeyPress=onlynumber() { ? _checked.useField.sex }onblur="chkSex(this)"{ / }>
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.sex }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.sex }--><font color=FF6000>*</font> <!--{ / }-->성별</td>
+	<td class=memberCols2><span class=noline>
+	<input type=radio name=sex {_required.sex} label="성별" value="m" {_checked.sex.m}> 남자
+	<input type=radio name=sex {_required.sex} label="성별" value="w" {_checked.sex.w}> 여자
+	</span></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.birth }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.birth }--><font color=FF6000>*</font> <!--{ / }-->생년월일</td>
+	<td class=memberCols2>
+	<input type=text name=birth_year value="{birth_year}" {_required.birth} label="생년월일" size=4 maxlength=4>년
+	<input type=text name=birth[] value="{birth[0]}" {_required.birth} label="생년월일" size=2 maxlength=2>월
+	<input type=text name=birth[] value="{birth[1]}" {_required.birth} label="생년월일" size=2 maxlength=2>일
+
+	<!--{ ? _checked.useField.calendar }-->
+	<span class=noline style="padding-left:10px">
+	<input type=radio name=calendar value="s" checked> 양력
+	<input type=radio name=calendar value="l" {_checked.calendar.l}> 음력
+	</span>
+	<!--{ / }-->
+
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.marriyn }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.marriyn }--><font color=FF6000>*</font> <!--{ / }-->결혼여부</td>
+	<td class=memberCols2><span class=noline>
+	<input type=radio name=marriyn value="n" {_required.marriyn} label="결혼여부" {_checked.marriyn.n}> 미혼
+	<input type=radio name=marriyn value="y" {_required.marriyn} label="결혼여부" {_checked.marriyn.y}> 기혼
+	</span></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.marridate }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.marridate }--><font color=FF6000>*</font> <!--{ / }-->결혼기념일</td>
+	<td class=memberCols2>
+	<input type=text name=marridate[] value="{marridate[0]}" {_required.marridate} label="결혼기념일" size=4 maxlength=4>년
+	<input type=text name=marridate[] value="{marridate[1]}" {_required.marridate} label="결혼기념일" size=2 maxlength=2>월
+	<input type=text name=marridate[] value="{marridate[2]}" {_required.marridate} label="결혼기념일" size=2 maxlength=2>일
+
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.email }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.email }--><font color=FF6000>*</font> <!--{ / }-->이메일</td>
+	<td class=memberCols2>
+	<input type=text name=email value="{email}" size=30 {_required.email} option=regEmail label="이메일">
+	<input type=hidden name=chk_email  required  label="이메일중복체크">
+	<a href="javascript:void(0)" onClick="chkEmail()"><img src="../img/common/btn_mailcheck.gif" border=0 align=absmiddle></a>
+	<!--{ ? _checked.useField.mailling }-->
+	<span class=noline style="padding-left:10px"><input type=checkbox name=mailling {_checked.mailling}><span style="font:8pt 돋움;color:#007FC8" >정보메일수신</span></span>
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.address }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.address }--><font color=FF6000>*</font> <!--{ / }-->주소</td>
+	<td class=memberCols2>
+
+	<table>
+	<tr>
+		<td>
+		<input type=text name=zipcode[] size=3 class=line readonly value="{zipcode[0]}" {_required.address} label="우편번호"> -
+		<input type=text name=zipcode[] size=3 class=line readonly value="{zipcode[1]}" {_required.address} label="우편번호">
+		<a href="javascript:popup_zipcode('opener.document.frmMember')"><img src="../img/common/btn_zipcode.gif" border=0 align=absmiddle></a>
+		</td>
+	</tr>
+	<tr>
+		<td>
+		<input type=text name=address value="{address}" readonlY size=30 {_required.address} label="주소">
+		<input type=text name=address_sub value="{address_sub}" size=30 {_required.address} label="세부주소">
+		</td>
+	</tr>
+	</table>
+
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.mobile }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.mobile }--><font color=FF6000>*</font> <!--{ / }-->핸드폰</td>
+	<td class=memberCols2>
+	<input type=text name=mobile[] value="{mobile[0]}" size=4 maxlength=4 {_required.mobile} option=regNum label="핸드폰"> -
+	<input type=text name=mobile[] value="{mobile[1]}" size=4 maxlength=4 {_required.mobile} option=regNum label="핸드폰"> -
+	<input type=text name=mobile[] value="{mobile[2]}" size=4 maxlength=4 {_required.mobile} option=regNum label="핸드폰">
+
+	<!--{ ? _checked.useField.sms }-->
+	<span class=noline style="padding-left:10px"><input type=checkbox name=sms {_checked.sms}><span style="font:8pt 돋움;color:#007FC8" >문자서비스수신</span></span>
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.phone }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.phone }--><font color=FF6000>*</font> <!--{ / }-->전화번호</td>
+	<td class=memberCols2>
+	<input type=text name=phone[] value="{phone[0]}" size=4 maxlength=4 {_required.phone} option=regNum label="전화번호"> -
+	<input type=text name=phone[] value="{phone[1]}" size=4 maxlength=4 {_required.phone} option=regNum label="전화번호"> -
+	<input type=text name=phone[] value="{phone[2]}" size=4 maxlength=4 {_required.phone} option=regNum label="전화번호">
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.fax }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.fax }--><font color=FF6000>*</font> <!--{ / }-->팩스</td>
+	<td class=memberCols2>
+	<input type=text name=fax[] value="{fax[0]}" size=4 maxlength=4 {_required.fax} option=regNum label="팩스"> -
+	<input type=text name=fax[] value="{fax[1]}" size=4 maxlength=4 {_required.fax} option=regNum label="팩스"> -
+	<input type=text name=fax[] value="{fax[2]}" size=4 maxlength=4 {_required.fax} option=regNum label="팩스">
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.company }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.company }--><font color=FF6000>*</font> <!--{ / }-->회사</td>
+	<td class=memberCols2>
+	<input type=text name=company {_required.company} value="{company}" style="width:300px">
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.service }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.service }--><font color=FF6000>*</font> <!--{ / }-->업태</td>
+	<td class=memberCols2><input type=text name=service {_required.service} value="{service}"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.item }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.item }--><font color=FF6000>*</font> <!--{ / }-->종목</td>
+	<td class=memberCols2><input type=text name=item {_required.item} value="{item}"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.busino }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.busino }--><font color=FF6000>*</font> <!--{ / }-->사업자번호</td>
+	<td class=memberCols2>
+	<input type=text name=busino {_required.busino} value="{busino}" style="width:300px">
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.job }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.job }--><font color=FF6000>*</font> <!--{ / }-->직업</td>
+	<td class=memberCols2>
+	<select name=job class="select">
+	<option value="">==선택하세요==
+	<!--{ @ codeitem('job') }-->
+	<option value="{.key_}" {_selected.job[.key_]}>{.value_}
+	<!--{ / }-->
+	</select>
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.interest }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.interest }--><font color=FF6000>*</font> <!--{ / }-->관심분야</td>
+	<td class=memberCols2>
+	<table><tr>
+	<!--{ @ codeitem('like') }-->
+	<td class=noline><input type=checkbox name=interest[] value="{=pow(2,.key_+0)}" {?interest&pow(2,.key_+0)}checked{/}>{.value_}</td>
+	<!--{ ? .index_%4==3 }--></tr><tr><!--{ / }-->
+	<!--{ / }-->
+	</tr></table>
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.ex1 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex1 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex1}</td>
+	<td class=memberCols2><input type=text name=ex1 {_required.ex1} value="{ex1}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.ex2 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex2 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex2}</td>
+	<td class=memberCols2><input type=text name=ex2 {_required.ex2} value="{ex2}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.ex3 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex3 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex3}</td>
+	<td class=memberCols2><input type=text name=ex3 {_required.ex3} value="{ex3}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.ex4 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex4 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex4}</td>
+	<td class=memberCols2><input type=text name=ex4 {_required.ex4} value="{ex4}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.ex5 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex5 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex5}</td>
+	<td class=memberCols2><input type=text name=ex5 {_required.ex5} value="{ex5}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+<!--{ ? _checked.useField.ex6 }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.ex6 }--><font color=FF6000>*</font> <!--{ / }-->{_joinset.ex6}</td>
+	<td class=memberCols2><input type=text name=ex6 {_required.ex6} value="{ex6}" style="width:300px"></td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.recommid }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.recommid }--><font color=FF6000>*</font> <!--{ / }-->추천인아이디</td>
+	<td class=memberCols2>
+	<!--{ ? _sess }-->
+	<input type=hidden name=recommid value="{recommid}">{recommid}
+	<!--{ : }-->
+	<input type=text name=recommid value="{recommid}" {_required.recommid} label="추천인아이디">
+	<!--{ / }-->
+	</td>
+</tr>
+<tr><td colspan=2 height=1 bgcolor="#DEDEDE" style="padding:0px;"></td></tr>
+<!--{ / }-->
+
+<!--{ ? _checked.useField.memo }-->
+<tr>
+	<td class=memberCols1><!--{ ? _required.memo }--><font color=FF6000>*</font> <!--{ / }-->남기는 말씀</td>
+	<td class=memberCols2><textarea name=memo {_required.memo} style="width:100%;height:80">{memo}</textarea></td>
+</tr>
+<!--{ / }-->
+</table>
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+</table>
+</div>
+
+<!--{ ? !_sess }-->
+<table width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td id=avoidDbl align=center height=100>
+<div style="width:100%" class=noline><input type=image src="../img/common/btn_join.gif">
+<img src="../img/common/btn_back.gif" border=0 onClick="history.back()" style="cursor:pointer;"></div>
+</td>
+</tr>
+</table>
+<!--{ : }-->
+<table width=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td id=avoidDbl align=center height=100>
+<div style="width:100%" class=noline><input type=image src="../img/common/btn_modify_info.gif">
+<img src="../img/common/btn_back.gif" border=0 onClick="history.back()" style="cursor:pointer;"></div>
+</td>
+</tr>
+</table>
+<!--{ / }-->
+
+</form>
+
+<script>
+
+function chkId()
+{
+var form = document.frmMember;
+if (!chkText(form.m_id,form.m_id.value,"아이디를 입력해주세요")) return;
+if (!chkPatten(form.m_id,form.m_id.getAttribute('option'),"아이디는 4자 이상 10자 이하의 영문자,숫자 조합만 가능합니다")) return;
+ifrmHidden.location.href = "indb.php?mode=chkId&m_id=" + form.m_id.value;
+}
+
+function chkEmail()
+{
+var form = document.frmMember;
+if (!chkText(form.email,form.email.value,"이메일을 입력해주세요")) return;
+if (!chkPatten(form.email,form.email.getAttribute('option'),"정상적인 이메일 주소를 입력해주세요")) return;
+ifrmHidden.location.href = "indb.php?mode=chkEmail&email=" + form.email.value + "&m_id=" + form.m_id.value;
+}
+
+function chkNickname()
+{
+var form = document.frmMember;
+if (!chkText(form.nickname,form.nickname.value,"닉네임을 입력해주세요")) return;
+ifrmHidden.location.href = "indb.php?mode=chkNickname&nickname=" + form.nickname.value + "&m_id=" + form.m_id.value;
+}
+
+function chkBirth(obj)
+{
+var birth = obj.value;
+var objBirth = document.getElementsByName('birth[]');
+obj.form.birth_year.value = (birth) ? "19" + birth.substring(0,2) : "";
+objBirth[0].value = birth.substring(2,4);
+objBirth[1].value = birth.substring(4,6);
+}
+
+function chkSex(obj)
+{
+var resno = obj.value;
+if (resno) obj.form.sex[1-resno.substring(0,1)%2].checked = true;
+}
+
+</script>

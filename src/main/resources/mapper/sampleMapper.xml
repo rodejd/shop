@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.sample.dao.SampleMapper">
+	
+	<!-- getSampleRowCount -->
+	<select id="getSampleRowCount" resultType="int">
+		SELECT count(*) FROM t_sample WHERE 1=1 
+		<if test=" null != sample_no and '' != sample_no ">
+			AND sample_no = #{sample_no}
+		</if>
+		<if test=" null != title and '' != title ">
+			AND title = #{title}
+		</if>
+		<if test=" null != description and '' != description ">
+			AND description = #{description}
+		</if>
+	</select>
+	
+	<!-- getSampleList -->
+	<select id="getSampleList" resultType="com.wepinit.wepinit_shop.xmall.sample.vo.SampleViewVO">
+		SELECT * FROM t_sample WHERE 1=1 
+		<if test=" null != sample_no and '' != sample_no ">
+			AND sample_no = #{sample_no}
+		</if>
+		<if test=" null != title and '' != title ">
+			AND title = #{title}
+		</if>
+		<if test=" null != description and '' != description ">
+			AND description = #{description}
+		</if>
+		limit #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- getSample  -->
+	<select id="getSample" resultType="com.wepinit.wepinit_shop.xmall.sample.vo.SampleViewVO">
+		SELECT * FROM t_sample WHERE sample_no = #{sample_no}
+	</select>	
+	
+	<!-- setSampleReg  -->
+	<insert id="setSampleReg" >
+		INSERT INTO 
+			t_sample (sample_no, title, description) 
+		VALUES ( #{sample_no}, #{title}, #{description} )
+	</insert>	
+	
+	<!-- setSampleMod  -->
+	<update id="setSampleMod" >
+		UPDATE 
+			t_sample 
+		SET 
+			title = #{title}, description = #{description}
+		WHERE sample_no = #{sample_no}
+	</update>	
+	
+</mapper>

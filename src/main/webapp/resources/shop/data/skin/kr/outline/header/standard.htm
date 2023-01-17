@@ -1,0 +1,110 @@
+﻿{*** 상단기본파일 | main/index.php ***}
+
+<a name="top"></a>
+
+
+<table width=100% height=100% cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td>
+
+<table width={_cfg['shopSize']} height=100% align={_cfg['shopAlign']} cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td width=33% valign=bottom>
+<!------------------ 로그인,로그아웃,회원가입, 즐겨찾기,시작페이지등록 시작 ------------------->
+<TABLE cellpadding=0 cellspacing=0 border=0>
+<TR style="padding-bottom:5px">
+<td width=7></td>
+<!--{ ? !_sess }-->
+<td><a href="../member/login.php"><img src="../../img/main/top_menu_login.gif"></a></TD>
+<td width=3></td>
+<td><a href="../member/join.php"><img src="../../img/main/top_menu_join.gif"></a></td>
+<!--{ : }-->
+<td><a href="../member/logout.php"><img src="../../img/main/top_menu_logout.gif"></a></td>
+<td width=3></td>
+<td><a href="../member/myinfo.php"><img src="../../img/main/top_menu_modify.gif"></a></td>
+<!--{ / }-->
+<td width=7></td>
+<td><!-- 즐겨찾기이미지 (배너관리에서 수정가능,도메인과 상점명을 입력하세요) --><!--{ @ dataBanner( 21 ) }-->{.tag}<!--{ / }--></td>
+<td width=3></td>
+<!--<td><A HREF="../mypage/mypage_orderlist.php"><img src="../../img/main/top_menu_startpage.gif"></a></td>-->
+</tr></table>
+<!------------------ 즐겨찾기,시작페이지등록 끝 ------------------->
+
+</td>
+
+<!------------------ 상단로고 시작 ------------------->
+<td width=33% align=center><!-- 배너관리에서 수정가능 --><!--{ @ dataBanner( 90 ) }-->{.tag}<!--{ / }--></td>
+<!------------------ 상단로고 끝 ------------------->
+
+
+<td width=33%align=right valign=top>
+<!------------------ 장바구니,주문조회,마이페이지 등 시작 ------------------->
+<TABLE cellpadding=0 cellspacing=0 border=0>
+<TR>
+<td><a href="../goods/goods_cart.php"><img src="../../img/main/top_menu_main_cart.gif"></a></td>
+<td><A HREF="../mypage/mypage_orderlist.php"><img src="../../img/main/top_menu_main_order.gif"></a></td>
+<td><A HREF="../member/myinfo.php"><img src="../../img/main/top_menu_main_mypage.gif"></a></td>
+<td><A HREF="../service/customer.php"><img src="../../img/main/top_menu_main_center.gif"></a></td>
+<td><a href="../board/list.php?id=notice"><img src="../../img/main/top_menu_main_community.gif"></a></td>
+</tr></table>
+<!------------------ 장바구니,주문조회,마이페이지 등 끝 ------------------->
+
+<!------------------ 상품보관함, 최근본상품 시작 ---------------------->
+<TABLE cellpadding=0 cellspacing=0 border=0 width=100% height=49>
+<TR valign=bottom>
+<td width=100%></td>
+<td><a href="../mypage/mypage_wishlist.php"><img src="../../img/main/top_menu_wishlist.gif"></a></td>
+<td style="padding-right:7px"><a href="../mypage/mypage_today.php"><img src="../../img/main/top_menu_today.gif"></a></td>
+</TR>
+</TABLE>
+<!------------------ 상품보관함, 최근본상품 끝 ---------------------->
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<tr>
+<td>
+<table width="{_cfg['shopSize']}" align="{_cfg['shopAlign']}" cellpadding=0 cellspacing=0 background="../../img/main/top_menu_back.gif">
+<tr>
+<td width="{_cfg['shopLineWidthL']}"></td>
+
+<!------------  상단메뉴 new arrival, discount goods, best goods, 검색창 시작 ----------->
+<td background="../../img/main/top_menu_back.gif" >
+<form action="../goods/goods_search.php" onsubmit="return chkForm(this)">
+<input type=hidden name=searched value="Y">
+<input type=hidden name=log value="1">
+<input type=hidden name=skey value="all">
+<table cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td><a href="../goods/goods_grp_01.php"><img src="../../img/main/top_menu_sub_event.gif"></a></td>
+<td><a href="../goods/goods_grp_02.php"><img src="../../img/main/top_menu_sub_brand.gif"></a></td>
+<td><a href="../goods/goods_grp_03.php"><img src="../../img/main/top_menu_sub_best.gif"></a></td>
+<td><a href="../goods/goods_grp_04.php"><img src="../../img/main/top_menu_sub_recom.gif"></a></td>
+<td><a href="../goods/goods_grp_05.php"><img src="../../img/main/top_menu_sub_special.gif"></a></td>
+<td align=right width=100% style="padding-right:10px">
+<!-- 검색창 -------->
+<table cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td><input name=sword type=text class=line style="width:100" value="{_GET['sword']}" required label="검색어"></td>
+<td width=3></td>
+<td><input type=image src="../../img/main/top_search_bu_go.gif"></td>
+</td></tr></table>
+<!-- 검색창 -------->
+</td>
+</tr>
+</table>
+</form>
+<!------------  상단메뉴 new arrival, discount goods, best goods, 검색창 끝 ----------->
+</td>
+<td width="{_cfg['shopLineWidthR']}"></td>
+</tr>
+<tr><td colspan=4 height=18 background="../../img/main/top_menu_bottom_back.gif"></td></tr>
+</table>
+
+</td>	
+</tr>
+</table>

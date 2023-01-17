@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+<tlib-version>1.1</tlib-version>
+<uri>DateUtil</uri>
+    
+    <function>
+    	<description>현재일로부터 지정된 날수 이전/이후의 일자/시간을 반환</description>
+        <name>getDateFrom</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String getDateFrom(java.lang.String, int)
+        </function-signature>
+        <example>
+        	${dateUtil:getDateFrom("MM/dd", -2)}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>입력한 포맷으로 현재일자/시간을 반환</description>
+        <name>getDate</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String getDate(java.lang.String)
+        </function-signature>
+        <example>
+        	${dateUtil:getDate("MM/dd")}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>지정된 일자의 요일을 반환</description>
+        <name>getDayOfWeek</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String getDayOfWeek(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${dateUtil:getDayOfWeek("2016-12-01","ko")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>특정일자의 지정된 날수 이전/이후의 일자/시간을  Default Fromat 으로 반환</description>
+        <name>getDateFormatFrom</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String getDateFormatFrom(java.lang.String, java.lang.String, int)
+        </function-signature>
+        <example>
+        	${dateUtil:getDateFormatFrom("yyyyMMdd", '2016-12-01', -1)}
+        </example>
+    </function>
+    
+    <function>
+    	<description>특정일자의 지정된 날수 이전/이후의 일자/시간을 Default Fromat 으로 반환</description>
+        <name>getDateFormatFromMonth</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String getDateFormatFromMonth(java.lang.String, java.lang.String, int)
+        </function-signature>
+        <example>
+        	${dateUtil:getDateFormatFromMonth("yyyyMMdd", '2016-12-01', -1)}
+        </example>
+    </function>
+    
+    <function>
+    	<description>yyyymmdd을 출력시 공통으로 사용할 yyyy/mm/dd로 변환</description>
+        <name>commonFormatDate</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String commonFormatDate(java.lang.String)
+        </function-signature>
+        <example>
+        	${dateUtil:commonFormatDate("2016-12-01")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>넘어온 날짜를 지정된 포맷으로 변환</description>
+        <name>formatDate</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           java.lang.String formatDate(java.util.Date, java.lang.String)
+        </function-signature>
+        <example>
+        	${dateUtil:formatDate(java.util.Date, "yyyy/MM/dd HH:mm:ss")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>getIntTimeOver</description>
+        <name>getIntTimeOver</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+           int getIntTimeOver(java.util.Date)
+        </function-signature>
+        <example>
+        	${dateUtil:getIntTimeOver(java.util.Date)}
+        </example>
+    </function>
+    
+    <function>
+    	<description>
+    		getDateFormat
+    		@param   format   표현하고자 하는 형식을 지정
+	  		@param   data   지정일자 (yyyyMMdd, yyyyMMddHHmmss)
+    	</description>
+        <name>getDateFormat</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.DateUtil</function-class>
+        <function-signature>
+        	java.lang.String getDateFormat(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${dateUtil:getDateFormat("yyyy-MM-dd", "20171124")}
+        </example>
+    </function>
+    
+</taglib>

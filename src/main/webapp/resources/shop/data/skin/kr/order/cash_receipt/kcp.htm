@@ -1,0 +1,210 @@
+﻿<script language="javascript">
+
+	// 주문번호 생성 예제
+	function init_orderid()
+	{
+	    var today = new Date();
+	    var year  = today.getFullYear();
+	    var month = today.getMonth()+ 1;
+	    var date  = today.getDate();
+	    var time  = today.getTime();
+
+	    if(parseInt(month) < 10)
+	    {
+	        month = "0" + month;
+	    }
+
+	    var vOrderID = year + "" + month + "" + date + "" + time;
+
+	    document.forms[0].ordr_idxx.value = vOrderID;
+	}
+
+    // 현금영수증 MAIN FUNC
+    function  jsf__pay_cash( form )
+    {
+        jsf__show_progress(true);
+
+        if ( jsf__chk_cash( form ) == false )
+        {
+            jsf__show_progress(false);
+            return;
+        }
+
+        form.submit();
+    }
+
+    // 진행 바
+    function  jsf__show_progress( show )
+    {
+        if ( show == true )
+        {
+            window.show_pay_btn.style.display  = "none";
+            window.show_progress.style.display = "inline";
+        }
+        else
+        {
+            window.show_pay_btn.style.display  = "inline";
+            window.show_progress.style.display = "none";
+        }
+    }
+
+	// 포맷 체크
+    function  jsf__chk_cash( form )
+    {
+        if ( form.trad_time.value.length != 14 )
+        {
+            alert("원 거래 시각을 정확히 입력해 주시기 바랍니다.");
+            form.trad_time.select();
+            form.trad_time.focus();
+            return false;
+        }
+
+		if ( form.corp_type.value == "1" )
+        {
+            if ( form.corp_tax_no.value.length != 10 )
+            {
+                alert("발행 사업자번호를 정확히 입력해 주시기 바랍니다.");
+                form.corp_tax_no.select();
+                form.corp_tax_no.focus();
+                return false;
+            }
+        }
+
+        if (  form.tr_code[0].checked )
+        {
+            if ( form.id_info.value.length != 10 &&
+            	 form.id_info.value.length != 11 &&
+            	 form.id_info.value.length != 13 )
+            {
+                alert("주민번호 또는 휴대폰번호를 정확히 입력해 주시기 바랍니다.");
+                form.id_info.select();
+                form.id_info.focus();
+                return false;
+            }
+        }
+        else if (  form.tr_code[1].checked )
+        {
+            if ( form.id_info.value.length != 10 )
+            {
+                alert("사업자번호를 정확히 입력해 주시기 바랍니다.");
+                form.id_info.select();
+                form.id_info.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function  jsf__chk_tr_code( form )
+    {
+        var span_tr_code_0 = document.getElementById( "span_tr_code_0" );
+        var span_tr_code_1 = document.getElementById( "span_tr_code_1" );
+
+        if ( form.tr_code[0].checked )
+        {
+            span_tr_code_0.style.display = "block";
+            span_tr_code_1.style.display = "none";
+        }
+        else if (form.tr_code[1].checked )
+        {
+            span_tr_code_0.style.display = "none";
+            span_tr_code_1.style.display = "block";
+        }
+    }
+
+</script>
+
+<script language="javascript">
+        <!-- 현금영수증 연동 스크립트 -->
+        function receiptView(cash_no)
+        {
+            receiptWin = receiptWin = "http://admin.kcp.co.kr/Modules/Service/Cash/Cash_Bill_Common_View.jsp?cash_no="+cash_no;
+            window.open(receiptWin , "" , "width=360, height=647")
+        }
+    </script>
+
+<table width=100% style="border:1px solid #DEDEDE" cellpadding=0 cellspacing=0>
+<tr>
+	<td width=150 valign=top align=right bgcolor="#F3F3F3"></td>
+	<td id="orderbox">
+
+	<table>
+	<col width=100>
+	<tr>
+		<td valign="top">현금영수증</td>
+		<td>
+		<!--{ ? cashreceipt && (settlekind=="o" || settlekind=="v") }--><!-- 계좌이체 -->
+		<a href="http://현금영수증.kr" target=_blank>현금영수증확인</a>(KCP 현금영수증시스템에 해당 결제자의 영수증 등록을 한 날짜의 3일후에 해당건의 "현금영수증.kr"에 확인가능)<br>
+		<!--{ : cashreceipt && settlekind=="a"}-->
+		<input type="button" name="receiptView" value="영수증 확인" class="box" onClick="javascript:receiptView('{cashreceipt}')">
+		<!--{ : !cashreceipt && settlekind=="a" }--><!-- 자체 무통장입금 -->
+
+			<!--{? settleprice < 5000}-->
+			현금영수증은 5,000원 미만금액에 대해서는 발행이 안됩니다
+			<!--{:  step==4 && step2==0 && (strtotime(confirmdt)+172800) > time() }-->
+
+<form name="cash_form" action="../order/card/kcp/receipt/request/cash/pp_cli_hub.php" method="post">
+
+<input type="hidden" name="ordr_idxx" size="30" maxlength="40" value="{ordno}">
+<input type="hidden" name="good_name" maxlength="30" value="{=strcut(_item[0]['goodsnm'],30)}{? count(_item)>1} 외  {=(count(_item)-1)}건{/}">
+
+<input type="hidden" name="buyr_name" size="20" maxlength="20" value="{nameOrder}">
+<input type="hidden" name="buyr_mail" size="20" maxlength="50" value="{email}">
+<input type="hidden" name="buyr_tel1" size="20" maxlength="20" value="{phoneOrder}">
+<input type="hidden" name="comment" size="20" maxlength="40" value="">
+
+<input type="hidden" name="corp_type" value="0">
+<input type="hidden" name="corp_tax_type" value="TG01">
+
+<input type="hidden" name="corp_tax_no" size="20" maxlength="10" value="{_cfg.compSerial}">
+<input type="hidden" name="corp_nm" size="20" maxlength="40" value="{_cfg.compName}">
+<input type="hidden" name="corp_owner_nm" size="20" maxlength="40" value="{_cfg.ceoName}">
+<input type="hidden" name="corp_addr" size="40" maxlength="200" value="{_cfg.address}">
+<input type="hidden" name="corp_telno" size="20" maxlength="20" value="{_cfg.compPhone}">
+
+<input type="hidden" name="amt_tot" size="12" maxlength="9" value="{settleprice}">
+<input type="hidden" name="amt_sup" size="12" maxlength="9" value="{_cashReceipt.supply}">
+<input type="hidden" name="amt_svc" size="12" maxlength="9" value="0">
+<input type="hidden" name="amt_tax" size="12" maxlength="9" value="{_cashReceipt.vat}">
+
+
+<input type="hidden" name="trad_time" size="20" maxlength="14" value="{=date('YmdHis',strtotime(confirmdt))}">
+
+<input type="radio" name="tr_code" value="0" onClick="jsf__chk_tr_code( this.form )" checked>소득공제용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="tr_code" value="1" onClick="jsf__chk_tr_code( this.form )">지출증빙용
+
+<table border=0>
+<tr>
+<td>
+<span id="span_tr_code_0" style="display:block;">주민(휴대폰)번호</span>
+<span id="span_tr_code_1" style="display:none;">사업자번호</span>
+
+<td>
+<input type="text" name="id_info" size="16" maxlength="13" value="">
+</table>
+
+ <span id="show_pay_btn">
+	<input type="button" value="등록 요청" onclick="jsf__pay_cash( this.form )" class="box">
+</span>
+<span id="show_progress" style="display:none">
+	<b>등록 진행중입니다. 잠시만 기다려주십시오</b>
+</span>
+<input type="hidden" name="req_tx" value="pay">
+</form>
+
+
+			<!--{:}-->
+			현금거래에 대한 영수증 발급기한이 거래일로부터 48시간으로,<br> 반드시 기한내에 발급하여야 합니다.<br>
+			거래시각 {confirmdt} 로부터 48시간이 지났습니다
+			<!--{/}-->
+
+		<!--{ : }-->
+		결제시 발급받지 않았습니다.
+		<!--{ / }-->
+		</td>
+	</tr>
+	</table>
+
+	</td>
+</tr>
+</table>

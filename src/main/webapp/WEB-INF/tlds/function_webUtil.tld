@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+<tlib-version>1.1</tlib-version>
+<uri>WebUtil</uri>
+
+    <function>
+    	<description>개행</description>
+        <name>setLineChange</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+        <function-signature>
+           java.lang.String setLineChange(java.lang.String)
+        </function-signature>
+        <example>
+        	${webUtil:setLineChange('str')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>CodeItem Select Option ( option value = itemcd )</description>
+        <name>makeSelectCodeItem</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+        <function-signature>
+           java.lang.String makeSelectCodeItem(java.util.List, java.lang.String)
+        </function-signature>
+        <example>
+        	${webUtil:makeSelectCodeItem('list', 'option')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>CodeItem Select Option2 ( option value = itemnm )</description>
+        <name>makeSelectCodeItem2</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+        <function-signature>
+           java.lang.String makeSelectCodeItem2(java.util.List, java.lang.String)
+        </function-signature>
+        <example>
+        	${webUtil:makeSelectCodeItem2('list', 'option')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>HTML의 모든 특수 문자 변환</description>
+        <name>simpleEncode</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+        <function-signature>
+           java.lang.String simpleEncode(java.lang.String)
+        </function-signature>
+        <example>
+        	${webUtil:makeSelectCodeItem('str')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>list Select Option</description>
+        <name>makeSelectOption</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+        <function-signature>
+           java.lang.String makeSelectOption(java.util.List, java.lang.String, java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${webUtil:makeSelectOption(list, keyCol, valueCol, selectValue)
+        </example>
+    </function>
+    
+    <function>
+    	<description>getBrandIcon</description>
+    	<name>getBrandIcon</name>
+    	<function-class>com.wepinit.wepinit_shop.xcube.util.WebUtil</function-class>
+    	<function-signature>java.lang.String getBrandIcon(java.lang.String)</function-signature>
+    	<example>${webUtil:getBrandIcon("1")</example>
+  	</function>
+</taglib>    

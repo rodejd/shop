@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.member.FieldsetMapper">
+<select id= "getFieldSetProperty" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdConfSet" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdConfSet">
+SELECT * FROM gd_conf_set WHERE 
+<if test="confCd != null and confCd != ''">
+	conf_cd = #{confCd}
+</if>
+<if test="dimSet != null and dimSet != ''">
+ 	and dim_set = #{dimSet}
+ </if>
+  order by regdt
+</select>
+
+<select id="getMemberGroupLIST" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+SELECT a.sno, a.grpnm, a.k_level as kLevel, a.add_emoney as addEmoney, a.free_deliveryfee as freeDeliveryfee, a.regdt, a.moddt, b.cnt, a.dc
+	FROM gd_member_grp a left outer join (
+			SELECT k_level, count(*) as cnt 
+			FROM gd_member 
+			WHERE 1=1 
+			GROUP BY k_level
+		) b
+		on a.k_level = b.k_level 
+	WHERE 1=1
+	<if test="level !=null and level != ''">
+		and ${level}
+	</if> 
+	ORDER BY a.k_level
+</select>
+</mapper>
+	

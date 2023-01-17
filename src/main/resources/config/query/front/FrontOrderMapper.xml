@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.order.FrontOrderMapper">
+
+	<select id="getOrderDeliveryList" resultType="com.wepinit.wepinit_shop.xmall.front.vo.order.FrontOrderSettleVO">
+		SELECT nameReceiver
+			 , nameReceiver1
+			 , nameReceiver2
+			 , emailReceiver
+			 , mobileReceiverType
+			 , mobileReceiver
+			 , zipcode
+			 , address
+			 , address2
+			 , city
+			 , state
+			 , customs_num
+		  FROM gd_order
+		 WHERE m_no = #{m_no}
+		 GROUP BY nameReceiver
+				, nameReceiver1
+				, nameReceiver2
+				, emailReceiver
+				, mobileReceiverType
+				, mobileReceiver
+				, zipcode
+				, address
+				, address2
+				, city
+				, state
+				, customs_num
+		ORDER BY ordno desc	
+	</select>
+	
+	<!-- 주문자 회원정보 가져오기 select -->
+	<select id="getOrderMember" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+		/* front_order_member  */
+	select * from gd_member a
+		left join gd_member_grp b on a.k_level = b.k_level
+	where m_no = #{m_no}
+	</select>
+	
+	<!-- 장바구니 목록 -->
+	<select id="getFrontMypageCheckStock" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GoodsGoodsption">
+		/* front_mypage_checkstock */
+		SELECT goodsnm
+			 , goodsnmKR
+			 , goodsnmCN
+			 , usestock
+			 , runout
+			 , b.stock 
+		FROM gd_goods as a 
+		INNER JOIN gd_goods_option AS b ON a.goodsno=b.goodsno
+		WHERE a.goodsno=#{goodsno} AND b.sno=#{opt1}
+		<!-- 
+		<if test="opt2 != '' and opt2 != null">
+			AND opt2=#{opt2}
+		</if>
+		 -->
+	</select>
+		<!-- 장바구니 목록 --> <!-- goodsno 에 해당하는 상품 정보를 가져온다...( 왜 장바구니 목록 인건지는 모르겠음 ) -->
+	<select id="getFrontMypageCartlist" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+	/* front_mypage_cartlist */
+		<![CDATA[
+	    SELECT 
+	        gd_goods_link.category, 
+	        good.goodsno, 
+	        good.goodsnm, 
+	        good.goodsnmKR, 
+	        good.goodsnmCN, 
+	        good.img,
+	        good.opt1,
+	        good.opt2,
+	        good.consumer,
+	        good.price,
+	        good.dcPrice,
+	        good.delivery_type as deliverytype, 
+	        good.goods_delivery as goodsdelivery, 
+	        good.use_emoney as useemoney, 
+	        good.sellerCd,
+	        good.usestock,
+	        good.brandno,
+	        CONCAT(opt1, ' ', opt2) AS optNm,
+	        (
+	          SELECT 
+	                 aa.couponcd
+	          FROM  gd_coupon aa LEFT JOIN gd_coupon_category bb ON aa.couponcd = bb.couponcd 
+	          WHERE aa.coupontype IN (4)
+	          AND (( date_format(aa.sdate, '%Y-%m-%d 00:00:00') <= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND date_format(aa.edate, '%Y-%m-%d 00:00:00') >= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND aa.priodtype = '0')
+	                OR (aa.priodtype = '1'))
+	          AND bb.category LIKE CONCAT(SUBSTR(gd_goods_link.category,1,6), '%') limit 1
+	        ) as cpCouponcd,
+	        (
+	          SELECT 
+	                 aa.price
+	          FROM  gd_coupon aa LEFT JOIN gd_coupon_category bb ON aa.couponcd = bb.couponcd 
+	          WHERE aa.coupontype IN (4)
+	          AND (( date_format(aa.sdate, '%Y-%m-%d 00:00:00') <= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND date_format(aa.edate, '%Y-%m-%d 00:00:00') >= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND aa.priodtype = '0')
+	                OR (aa.priodtype = '1'))
+	          AND bb.category LIKE CONCAT(SUBSTR(gd_goods_link.category,1,6), '%') limit 1
+	        ) as cpCouponprice,
+	        (
+	          SELECT 
+	                 aa.maxprice
+	          FROM  gd_coupon aa LEFT JOIN gd_coupon_category bb ON aa.couponcd = bb.couponcd 
+	          WHERE aa.coupontype IN (4)
+	          AND (( date_format(aa.sdate, '%Y-%m-%d 00:00:00') <= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND date_format(aa.edate, '%Y-%m-%d 00:00:00') >= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND aa.priodtype = '0')
+	                OR (aa.priodtype = '1'))
+	          AND bb.category LIKE CONCAT(SUBSTR(gd_goods_link.category,1,6), '%') limit 1
+	        ) as cpMaxprice,
+	        (
+	          SELECT 
+	                 aa.skin
+	          FROM  gd_coupon aa LEFT JOIN gd_coupon_category bb ON aa.couponcd = bb.couponcd 
+	          WHERE aa.coupontype IN (4)
+	          AND (( date_format(aa.sdate, '%Y-%m-%d 00:00:00') <= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND date_format(aa.edate, '%Y-%m-%d 00:00:00') >= date_format(now(), '%Y-%m-%d 00:00:00')
+	                AND aa.priodtype = '0')
+	                OR (aa.priodtype = '1'))
+	          AND bb.category LIKE CONCAT(SUBSTR(gd_goods_link.category,1,6), '%') limit 1
+	        ) as cpCouponskin
+	    FROM 
+	    	(
+	            SELECT 
+	                a.goodsno,
+	                a.sellerCd,
+	                goodsnm,
+	                goodsnmKR,
+	                goodsnmCN,
+	                img_s img,
+					b.consumer , 
+					b.price ,
+					(b.consumer -b.price) dcPrice ,  
+	                delivery_type,
+	                goods_delivery,
+	                use_emoney,
+	                usestock ,
+	                b.opt1,
+	                b.opt2,
+	                a.brandno
+	            FROM gd_goods as a 
+	            INNER JOIN gd_goods_option AS b ON a.goodsno=b.goodsno
+	            WHERE a.goodsno=#{goodsno} AND b.sno=#{opt1}
+	        ) good 
+	    LEFT OUTER JOIN gd_goods_link
+	    ON good.goodsno = gd_goods_link.goodsno LIMIT 1
+	    ]]>
+	</select>
+	<!-- ########### 배송정책 ########## -->
+	<select id="getDeliveryPolicy" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdDeliveryPolicy">
+		SELECT no, r_delivery as rDelivery, r_free as rFree, r_deliType as rDeliType, r_default as rDefault, r_defalt_msg as rDefaultMsg
+		FROM gd_delivery_policy
+		ORDER BY no asc
+	</select>
+	
+	<!-- 주문 카테고리 -->
+	<select id="getFrontOrderCategory" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsLink">
+		/* front_order_category */
+		select category,char_length(category) clen from gd_goods_link where goodsno in (#{goodsno})
+	</select>
+	
+	<!-- 주문 판매사 -->
+	<select id="getFrontOrderSellerCd" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoods">
+		/* getFrontOrderSellerCd */
+		SELECT sellerCd FROM gd_goods WHERE goodsno IN (#{goodsno})
+	</select>
+	
+	<!-- 주문자 회원정보 가져오기 -->
+	<select id="getFrontOrderMember" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderMember">
+		/* front_order_member  */
+		select * from gd_member a
+			left join gd_member_grp b on a.k_level = b.k_level
+		where m_no = #{m_no}
+	</select>
+	
+	<!-- 주문 쿠폰리스트 -->
+	<select id="getFrontOrderCoupon" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.CouponapplyApplymemberCouponCategoryGoodsno">
+		/* front_order_coupon */
+		SELECT DISTINCT c.*
+			 , a.goodsnm
+			 , a.goodsnmKR
+			 , a.goodsnmCN
+			 , a.goodsno
+			 , a.sno
+			 , a.regdt 
+		  FROM gd_coupon_apply a
+		LEFT JOIN gd_coupon_applymember b ON a.sno = b.applysno
+		LEFT JOIN gd_coupon c ON a.couponcd = c.couponcd
+		LEFT JOIN gd_coupon_category d ON c.couponcd = d.couponcd
+		LEFT JOIN gd_coupon_goodsno e ON c.couponcd = e.couponcd AND a.goodsno = e.goodsno
+		WHERE ((a.membertype = 1 AND a.member_grp_sno = #{grp_sno}) OR (a.membertype = 2 AND b.m_no = #{m_no}) OR a.membertype = 0)
+		  AND ((c.priodtype = '0' AND NOW() BETWEEN c.sdate AND c.edate) OR (c.priodtype = '1' AND ADDDATE(a.regdt, INTERVAL c.sdate DAY) >= curdate()))
+		  AND (c.goodstype='0' ${strWhere})
+		  AND a.status = '1'
+		  AND c.excPrice <![CDATA[ < ]]> ${priceSum2}
+		  AND c.skin IN ('al', #{skin})
+		ORDER BY couponcd
+	</select>
+	
+	<!-- 할인쿠폰내역 목록 -->
+	<select id="getFrontCouponList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.CouponapplyApplymemberCouponCategoryGoodsno">
+<!-- 		SELECT DISTINCT  -->
+		SELECT
+			apply.goodsnm, 
+			apply.goodsnmKR, 
+			apply.goodsnmCN, 
+			apply.sno, 
+			apply.regdt, 
+			coupongoodsno.goodsno, 
+			afterApply.regdt AS gca_regdt, 
+			applymember.applysno,
+			coupon.couponcd,
+			coupon.goodstype,
+			coupon.coupontype,
+			coupon.coupon,
+			coupon.summa,
+			coupon.priodtype,
+			DATE_FORMAT(IF(coupon.priodtype = 1, apply.regdt, coupon.sdate),'%Y.%m.%d') as sdate,
+			DATE_FORMAT(IF(coupon.priodtype = 1, ADDDATE(apply.regdt, INTERVAL coupon.sdate DAY), coupon.edate),'%Y.%m.%d') as edate,
+			coupon.excPrice,
+			coupon.ability,
+			coupon.price,
+			coupon.regdt,
+			coupon.goodsall,
+			coupon.couponimg,
+			coupon.eactl,
+			coupon.dncnt,
+			coupon.duplctl,
+			coupon.edncnt,
+			coupon.maxprice,
+			coupon.skin,
+			category.category
+		FROM gd_coupon_apply apply
+			LEFT JOIN gd_coupon_applymember applymember ON apply.sno=applymember.applysno
+			LEFT JOIN gd_coupon coupon ON apply.couponcd = coupon.couponcd
+			LEFT JOIN gd_coupon_category category ON coupon.couponcd = category.couponcd
+			LEFT JOIN gd_coupon_goodsno coupongoodsno ON coupon.couponcd = coupongoodsno.couponcd
+			LEFT JOIN gd_coupon_apply afterApply ON applymember.applysno = afterApply.sno 
+		WHERE applymember.used = 0 
+		AND applymember.`status` = 1
+		AND applymember.m_no = ${m_no}
+		AND ((apply.membertype = 1 AND apply.member_grp_sno=#{grp_sno}) OR (apply.membertype = 2 AND applymember.m_no=#{m_no}) OR apply.membertype = 0)
+		<![CDATA[
+		AND ((coupon.sdate <= NOW() AND coupon.edate >= NOW() AND coupon.priodtype='0') OR (coupon.priodtype='1' AND ADDDATE(apply.regdt, INTERVAL coupon.sdate DAY) >= CURDATE()))
+		AND (coupon.excPrice < ${priceSum})
+		AND ((coupon.goodstype = 0)
+		]]>
+		<if test="goodsno != null">
+			OR (
+				(coupon.goodstype = 1) AND 
+				(<foreach item="no" collection="goodsno" separator="OR" >
+					coupongoodsno.goodsno = #{no}
+				</foreach>)
+			) 
+		</if>
+		<if test="category != null and categoryCount != '0'">
+			OR ((coupon.goodstype = 1) AND category.category IN 
+			
+			<foreach item="item" index="index" collection="category" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			)
+		</if>
+		)
+		AND coupon.skin IN ('al', #{skin})
+		GROUP BY apply.sno
+		ORDER BY couponcd
+	</select>
+	
+	
+	<select id="getFrontCouponOrder" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponOrder">
+		/* front_coupon_order */
+		select count(*) as cnt from gd_coupon_order where applysno=#{applysno} and m_no=#{m_no}
+	</select>
+	<!-- 주문 회원 그룹 정보 -->
+	<select id="getFrontDeliveryGrp" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+	/* front_delivery_group */
+		select * from gd_member_grp where k_level = #{level} limit 1
+	</select>
+	<select id="getOrdersPopupOrder4" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdListBank">
+		select * from gd_list_bank where useyn = 'y' order by sno
+	</select>
+	<!-- 회원장바구니 리스트 -->
+	<select id="getGoodsMemberCartList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsCart">
+		select * from gd_goods_cart where m_no =#{m_no} <if test="ukey != '' and m_no == 0">AND ukey = #{ukey}</if>
+	</select>
+	
+	<update id="deleteGoodsMemberCartList">
+		DELETE 
+		  FROM gd_goods_cart
+		 WHERE goodsno = #{goodsno}
+		   AND opt1 = #{opt1}
+		<if test="m_no != '' and m_no != null">
+			AND m_no = #{m_no}
+		</if>
+		<if test="ukey != '' and ukey != null">
+			AND ukey = #{ukey}
+		</if>
+	</update>
+	
+	
+	<!-- 주문상품 정보 -->
+	<select id="getFrontOrderGoods" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GoodsGoodsption">
+		/* front_order_goods */
+	 	select
+			goodsnm,goodsnmKR,goodsnmCN,img_s img,price,delivery_type,goods_delivery,use_emoney
+		from
+			gd_goods as a
+			left join gd_goods_option as b on a.goodsno=b.goodsno
+		where
+			a.goodsno= #{goodsno}
+		<if test="opt1 != '' and opt1 != null">
+			AND b.sno=#{opt1}
+		</if>
+		<if test="opt2 != '' and opt2 != null">
+			AND opt2=#{opt2}
+		</if>
+	</select>
+	<!-- 주문번호 중복체크 -->
+	<select id="getFrontOrderCheck" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdOrder">
+		/* front_ordno_check */
+		select ordno,settlekind from gd_order where ordno = #{ordno}
+	</select>
+	<!-- 주문정보 저장 -->
+	<insert id="insertFrontOrder">
+		/* front_order_insert */
+		insert into gd_order set 
+			ordno			= #{ordno},
+			nameOrder		= #{nameOrder},
+			nameOrder1		= #{nameOrder1},
+			nameOrder2		= #{nameOrder2},
+			deliverycode 	= #{deliverycode},
+			email			= #{email},
+			mobileOrder		= #{mobileOrder},
+			nameReceiver	= #{nameReceiver},
+			nameReceiver1	= #{nameReceiver1},
+			nameReceiver2	= #{nameReceiver2},
+			emailReceiver	= #{emailReceiver},
+			mobileReceiverType= #{mobileReceiverType},
+			mobileReceiver	= #{mobileReceiver},
+			country			= #{country},
+			zipcode			= #{zipcode},
+			address			= #{address},
+			address2		= #{address2},
+			city			= #{city},
+			state			= #{state},
+			customs_num		= #{customs_num},
+			settlekind		= #{settlekind},
+			settleprice		= #{settleprice},
+			prn_settleprice	= #{prn_settleprice},
+			goodsprice		= #{goodsprice},
+			deli_title		= #{deli_title},
+			delivery		= #{delivery},
+			deli_type		= #{deli_type},
+			deli_msg		= #{deli_msg},
+			coupon			= #{coupon},
+			emoney			= #{emoney},
+			addemoney		= #{addemoney},
+			memberdc		= #{memberdc},
+			reserve			= #{reserve},
+			eggFee			= #{eggFee},
+			bankAccount		= #{bankAccount},
+			bankSender		= #{bankSender},
+			m_no			= #{m_no},
+			ip				= #{ip},
+			referer			= #{referer},
+			memo			= #{memo},
+			orddt			= now(),
+			coupon_emoney	= #{coupon_emoney},
+			cashbagcard		= #{cashbagcard},
+			cbyn			= 'N',
+			emailRecceiver 	= #{emailRecceiver},
+			addDelivery 	= #{addDelivery},
+			inicis_tid		= #{inicisTid},
+			agent 			= #{agent},
+			skin			= #{skin},
+			step			= #{step},
+			step2			= #{step2},
+			cyn				= #{cyn}
+	</insert>
+	<!-- 사용한 쿠폰 체크 -->
+	<select id="getFrontOrderCouponCheck" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.couponapplyCoupon">
+		/* front_order_coupon_check */
+		select * from gd_coupon_apply a 
+			left join gd_coupon b on a.couponcd = b.couponcd 
+		where
+			a.sno = #{sno}
+	</select>
+	<!-- 쿠폰 사용 -->
+	<update id="updateFrontCoupon" >
+		/* front_coupon_update */
+		update gd_coupon_apply set status=0 where sno = #{sno}
+	</update>
+	<!-- 사용쿠폰 저장 -->
+	<insert id="insertFrontOrderCoupon">
+		/* front_order_coupon_insert */
+		insert into gd_coupon_order set
+			ordno = #{ordno},
+			goodsno = #{goods_cou_no},
+			applysno = #{sno},
+			coupon = #{couponnm},
+			dc = #{coupon},
+			emoney = #{coupon_emoney},
+			regdt = now(),
+			m_no = #{m_no}
+	</insert>
+	<!-- 공급가 가져오기 -->
+	<select id="getFrontGoodsSupply" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsOption">
+		/* front_goods_supply */
+		select supply from gd_goods_option 
+			where goodsno = #{goodsno}
+		<if test="opt1 != '' and opt1 != null">
+			AND sno=#{opt1}
+		</if>
+		<if test="opt2 != '' and opt2 != null">
+			AND opt2=#{opt2}
+		</if>
+	</select>
+	<!-- 브랜드 정보 -->
+	<select id="getFrontGoodsBrand" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GoodsGoodsbrand">
+		/* front_goods_brand_maker */
+		select brandnm, brandnmCN, brandnmKR, tax from gd_goods 
+		left join gd_goods_brand on brandno=sno 
+		where goodsno=${goodsno}
+	</select>
+	<!-- 주문상품정보 저장 -->
+	<insert id="insertFrontOrderGoods">
+		/* front_order_goods_insert */
+	   insert into gd_order_item set 
+			ordno = #{ordno},
+			goodsno	= #{goodsno},
+			goodsnm	= #{goodsnm},
+			goodsnmKR	= #{goodsnmKR},
+			goodsnmCN	= #{goodsnmCN},
+		<if test="opt1 != '' and opt1 != null">
+			opt1 = #{opt1},
+		</if>
+		<if test="opt2 != '' and opt2 != null">
+			opt2 = #{opt2},
+		</if>
+			istep = #{istep},
+			cyn = #{cyn},
+			addopt = #{addopt},
+			price = #{price},
+			supply = #{supply},
+			reserve		= #{reserve},
+			memberdc = #{memberdc},
+			addemoney = #{addemoney},
+			ea = #{ea},
+			brandnm = #{brandnm},
+			brandnmKR = #{brandnmKR},
+			brandnmCN = #{brandnmCN},
+			tax = #{tax},
+<!-- 			stockyn		= #{stockyn}, -->
+			coupon = #{coupon}
+	</insert>
+	
+		
+	<!-- 주문상품별 배송정보 저장 -->
+	<insert id="insertFrontOrderDelivery">
+		INSERT INTO 
+			gd_order_delivery 
+		SET 
+			ordno = #{ordno},
+			goodsno	= #{goodsno},
+			deliveryPrice = #{deliveryPrice},
+			paymentTerms = #{paymentTerms},
+			addDeliveryPrice = #{addDeliveryPrice},
+			opt  			 = #{opt1}
+	</insert>
+	
+	
+	<!-- 주문정보 -->
+	<select id="frontOrderResult" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdOrderListBank">
+		SELECT * 
+		FROM gd_order a
+		LEFT JOIN gd_list_bank b ON a.bankAccount = b.sno
+		WHERE a.ordno = #{ordno}
+	</select>
+	
+	<!-- 결제완료 또는 실패 시 step2 업데이트 -->
+	<update id="frontOrderEndUpdate">
+		UPDATE gd_order 
+		SET 
+			step2 = #{step2}, 
+			cdt=now(), 
+			inis_tid = #{inis_tid}, 
+			cyn=#{cyn} 
+		WHERE ordno = #{ordno}
+	</update>
+	
+	<update id="frontOrderItemUpdate">
+		UPDATE gd_order_item 
+		SET cyn=#{cyn} 
+		WHERE ordno = #{ordno}
+	</update>
+	
+	<!-- 쿠폰 상태 변경 -->
+	<update id="frontCouponStatusUpdate">
+		<!-- 기존쿼리 주석
+		UPDATE gd_coupon_apply 
+		SET status=1 
+		WHERE sno = #{applysno} -->
+		UPDATE gd_coupon_applymember 
+		SET used = 1
+			, applyDt = now()
+			, ordno = ${ordno}
+		WHERE applysno IN
+		<foreach collection="usedCouponSnos" item="sno" open="(" separator="," close=")">
+			${sno}
+		</foreach>
+		AND m_no = ${mno}
+	</update>
+	
+	<!-- 쿠폰 상태 변경 applysno조회 -->
+	<select id="selectApplysnoFrontCouponStatus" resultType="long">
+		SELECT applysno 
+		FROM gd_coupon_order 
+		WHERE ordno = #{ordno}
+	</select>
+	
+	
+	
+	<!-- 상품번호 조회 -->
+	<select id="getFrontGoodsNo" resultType="int">
+	SELECT goodsno FROM gd_order_item
+	WHERE ordno = #{ordno}
+	</select>	
+	
+	<!-- 주문 정보 적립금 UPDATE -->
+	<update id="updateFrontReserve">
+		UPDATE gd_order SET reserve=#{reserve}
+		WHERE ordno=#{ordno}
+	</update>
+	
+	<!-- 적립금 적립 쿠폰 정보 가져오기 -->
+	<select id="selectReserveCouponInUsedCoupon" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+		SELECT *
+		FROM gd_coupon coupon
+		LEFT JOIN gd_coupon_apply apply ON apply.couponcd = coupon.couponcd
+		WHERE coupon.ability = 1
+		AND 
+		<foreach collection="usedCouponSnos" item="sno" open="(" separator="OR" close=")">
+			apply.sno = ${sno}
+		</foreach>
+	</select>
+	
+	<select id="getGoodsCategory" resultType="java.lang.String">
+		SELECT 
+			DISTINCT category
+		FROM gd_goods_link 
+		WHERE 
+		<foreach item="goodsno" collection="goodsnos" separator="OR">
+			goodsno = ${goodsno}
+		</foreach>
+	</select>
+	
+	<select id="getSellerOverDelivery" resultType="com.wepinit.wepinit_shop.xmall.front.vo.order.OverDeliveryVO">
+		SELECT DISTINCT
+			goods.sellerCd AS sellerCd,
+			goods.goodsno AS goodsno,
+			cities AS sido,
+			addDeliveryPrice AS price
+		FROM gd_goods AS goods
+		LEFT JOIN gd_seller_delivery_over_policy  
+		ON goods.sellerCd = gd_seller_delivery_over_policy.sellerCd
+		WHERE goods.goodsno in 
+			<foreach collection="goodsnos" open="(" close=")" separator="," item="goodsno">
+				#{goodsno}
+			</foreach>
+		AND gd_seller_delivery_over_policy.cities LIKE '%${addressSido}%'
+	</select>
+	
+	<select id="getDivisionOverDeliveryPolicy" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.order.OrderDeliveryVO">
+		SELECT DISTINCT goodsno ,sellerCd 
+		FROM gd_goods
+		WHERE goodsno = #{goodsno}
+	</select>
+	
+	<select id="getOrderEndInfo" resultType="com.wepinit.wepinit_shop.xmall.front.vo.order.FrontOrderSettleVO">
+		SELECT ordno
+			 , settlekind
+			 , prn_settleprice price
+			 , addemoney
+		  FROM gd_order
+		 WHERE ordno = #{ordno}
+	</select>
+	
+	<!-- 쿠폰사용조회 적립금 로그 -->
+	<insert id="insertEmoneyLog">
+		INSERT 
+		  INTO gd_log_emoney
+			 ( m_no
+			 , gbn
+			 , ordno
+			 , emoney
+			 , memo
+			 , regdt
+			 )
+		VALUES
+			 ( #{m_no}
+			 , #{gbn}
+			 , #{ordno}
+			 , #{emoney}
+			 , #{memo}
+			 , now()
+			 )
+	</insert>	
+	
+	<!-- 적립금 사용처리 -->
+	<update id="updateMemberEmoney">
+		UPDATE gd_member 
+		   SET emoney = #{emoney} 
+		 WHERE m_no = #{m_no}
+	</update>
+	
+	<select id="getFrontOrderCouponCodeByCouponcd" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+		/* front_order_coupon */
+		SELECT *
+		  FROM gd_coupon
+		 WHERE open = 1
+		   AND approvalStatus = 2 
+		   AND couponcd = #{couponcd}
+	</select>
+	
+	<select id="getFrontOrderDcCodeInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+		/* front_order_coupon */
+		SELECT *
+		  FROM gd_coupon
+		 WHERE coupontype = 3
+		   AND open = 1
+		   AND approvalStatus = 2 
+		   AND dncode = #{dncode}
+	</select>
+	
+	<select id="getFrontOrderCouponCodeCnt" resultType="int">
+		SELECT COUNT(*)
+		  FROM gd_coupon a
+		  LEFT JOIN gd_coupon_apply b  ON a.couponcd = b.couponcd
+		  LEFT JOIN gd_coupon_applymember c ON b.sno = c.applysno
+		 WHERE coupontype = 3
+		   AND used = 1
+		   AND a.dncode = #{dncode}
+		   AND c.m_no = #{m_no}
+	</select>
+	
+	<select id="selectCouponApplySno" resultType="int">
+		SELECT IFNULL(MAX(sno), 0)+1 
+		  FROM gd_coupon_apply
+	</select>
+	
+	<insert id="insertCouponApply">
+		INSERT
+		  INTO gd_coupon_apply
+		     ( sno
+		     , couponcd
+		     , membertype
+		     , member_grp_sno
+		     , regdt
+		     , goodsno
+		     , goodsnm
+		     , goodsnmKR
+		     , goodsnmCN
+		     , status
+		     )
+		VALUES
+		     ( #{sno}
+		     , #{couponcd}
+		     , #{membertype}
+		     , #{member_grp_sno}
+		     , NOW()
+		     , #{goodsno}
+		     , #{goodsnm}
+		     , #{goodsnmKR}
+		     , #{goodsnmCN}
+		     , #{status}
+		     )
+	</insert>	
+	
+	<update id="updateCouponApplymember">
+		UPDATE gd_coupon_applymember
+		   SET used = #{used}
+			 , applyDt = now()
+			 , ordno = #{ordno}
+		 WHERE applysno = #{applysno}
+		   AND m_no = #{m_no}
+	</update>
+	
+	<insert id="insertCouponApplymember">
+		INSERT
+		  INTO gd_coupon_applymember
+		     ( applysno
+		     , m_no
+		     , status
+		     , used
+		     , applyDt
+		     , ordno
+		     )
+		VALUES
+		     ( #{applysno}
+		     , #{m_no}
+		     , #{status}
+		     , #{used}
+		     , NOW()
+		     , #{ordno}
+		     )
+	</insert>
+		
+	<insert id="insertCouponOrder">
+		INSERT
+		  INTO gd_coupon_order
+		     ( ordno
+		     , goodsno
+		     , applysno
+		     , couponcd
+		     , coupon
+		     , dc
+		     , emoney
+		     , regdt
+		     , m_no
+		     )
+		VALUES
+		     ( #{ordno}
+		     , #{goodsno}
+		     , #{applysno}
+		     , #{couponcd}
+		     , #{coupon}
+		     , #{dc}
+		     , #{emoney}
+		     , NOW()
+		     , #{m_no}
+		     )
+	</insert>
+	
+	<insert id="insertOrderPayLog">
+		INSERT
+		  INTO gd_order_pay_tran_log /* 결제 트렌젝션ID발급 이력 */
+		     ( shopID
+		     , transactionID
+		     , ordno
+		     , integration_type
+		     , integration_name
+		     , mid
+		     , paymentId
+		     , instrument
+		     , operation_type
+		     , amount
+		     , currency
+		     , language
+		     , transaction_type
+		     , addresses
+		     , products
+		     , notification
+		     , additionals
+		     , callback_url
+		     , transactionAt
+		     , card_brand_desc 
+		     , service_type_desc
+		     , product_priority_code
+		     , payInstrToken_external
+		     , payCardToken_external
+		     , maskedPan
+		     , card_expiration
+		     , card_brand
+		     , cardHolder
+		     , tid
+		     , transaction_status
+		     , brand
+		     , authStatus
+		     , enrStatus
+		     , authCode
+		     , transaction_code
+		     , description_status
+		     , pendingAmount
+		     , regdt
+		     )
+		VALUES
+		     ( #{shopID}
+		     , #{transactionID}
+		     , #{ordno}
+		     , #{integration_type}
+		     , #{integration_name}
+		     , #{mid}
+		     , #{paymentId}
+		     , #{instrument}
+		     , #{operation_type}
+		     , #{amount}
+		     , #{currency}
+		     , #{language}
+		     , #{transaction_type}
+		     , #{strAddresses}
+		     , #{strProducts}
+		     , #{strNotification}
+		     , #{strAdditionals}
+		     , #{callback_url}
+		     , #{transactionAt}
+		     , #{card_brand_desc} 
+		     , #{service_type_desc}
+		     , #{product_priority_code}
+		     , #{payInstrToken_external}
+		     , #{payCardToken_external}
+		     , #{maskedPan}
+		     , #{card_expiration}
+		     , #{card_brand}
+		     , #{cardHolder}
+		     , #{tid}
+		     , #{transaction_status}
+		     , #{brand}
+		     , #{authStatus}
+		     , #{enrStatus}
+		     , #{authCode}
+		     , #{transaction_code}
+		     , #{description_status}
+		     , #{pendingAmount}
+		     , now()
+		     )
+	</insert>
+</mapper>

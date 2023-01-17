@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.order.RepayMapper">
+	<select id="getRepayCount" resultType="int">
+			SELECT count(*)
+				FROM gd_order_cancel a 
+				LEFT JOIN gd_order_item b 
+				ON a.sno=b.cancel ,
+				gd_order c 
+				LEFT JOIN gd_member d 
+				ON d.m_no = c.m_no 
+				WHERE b.ordno=c.ordno 
+					AND istep>40
+					AND b.cyn='y'
+					AND b.dyn in('n','r')
+				ORDER BY a.sno desc
+	</select>
+	<select id="getRepayList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrdercancelOrderitemMember">
+			select 
+				a.sno as oCsno
+				,a.ordno as oCordno
+				,a.name as oCname
+				,a.regdt as oCregdt
+				,a.ccdt as oCccdt
+				,a.bankcode as oCbankcode
+				,a.bankaccount as oCbankaccount
+				,a.bankuser as oCbankuser
+				,b.sno as oIsno
+				,b.ordno as oIordno
+				,b.goodsno as oIgoodsno
+				,b.goodsnm as oIgoodsnm
+				,b.goodsnmKR as oIgoodsnmKR
+				,b.goodsnmCN as oIgoodsnmCN
+				,b.addopt as oIaddopt
+				,b.price as oIprice
+				,b.coupon as oIcoupon
+				,b.memberdc as oImemberdc
+				,b.ea as oIea
+				,b.reserve as oIreserve
+				,c.ordno as oRordno
+				,c.nameOrder as oRnameorder
+				,c.settlekind as oRsettlekind
+				,c.settleprice as oRsettleprice
+				,c.prn_settleprice as oRpmsettleprice
+				,c.goodsprice as oRgoodsprice
+				,c.delivery as oRdelivery
+				,c.coupon as oRcoupon
+				,c.emoney as oRemoney
+				,c.memberdc as oRmemberdc
+				,c.adddelivery as oRaddDelivery
+				,c.orddt as oRorddt
+				,d.m_no as mBm_no
+				,d.m_id as mBmid
+				,CONCAT(T1.opt1 ,' ', T1.opt2) AS optname
+			 from gd_order_cancel a
+			left join gd_order_item b on a.sno=b.cancel left join gd_goods_option T1 ON b.opt1=T1.sno,
+			gd_order c
+			left join gd_member d on c.m_no=d.m_no
+			where b.ordno=c.ordno
+			AND istep>40
+			AND b.cyn='y'
+			AND b.dyn in('n','r')
+			order by a.sno desc
+			limit #{rowStart}, #{pageSize}
+	</select>
+	<select id="getRepayList2" resultType="int">
+	  		select count(*)
+				,ifnull(sum(case when cancel != '' AND cancel &lt;= ${oCsno} then 1 end),'0') as ccnt
+			FROM gd_order_item WHERE ordno=${oCordno}
+	</select>
+	<select id="getRepayList3" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.OrderitemOrdercancel">
+	select ifnull(sum(remoney), '0') as remoney from gd_order_item a 
+		left join gd_order_cancel b on a.cancel = b.sno 
+		where a.ordno = ${oCordno}
+	</select>
+		<!-- 배너 수정 -->
+	<update id="updateBanner" >
+		UPDATE gd_banner 
+		SET title=#{title}, img=#{img}, imgmobile=#{imgMobile}, linkaddr=#{linkaddr}, target=#{target}, sort=#{sort}, used=#{used}  
+		WHERE sno = #{sno}
+	</update>
+	<update id="updateOrderRepay1">
+		update gd_order_cancel set
+			rprice = ${rprice},
+			rfee = ${rfee},
+			remoney = ${remoney},
+			ccdt = now(),
+			bankcode 	= ${bankcode},
+			bankaccount	= ${bankaccount},
+			bankuser  	= #{bankuser}
+		where sno=${sno}
+	</update>
+
+	<!-- 환불 완료처리시 istep 74로 변경  -->
+	<update id="updateOrderRepay2">
+		update gd_order_item set istep=74, cyn='r' where cancel=${sno}
+	</update>
+
+	<select id="updateOrderRepay3" resultType="string">
+		select ordno from gd_order_cancel where sno=${sno}
+	</select>
+
+	<update id="updateOrderRepay4">
+		update gd_order set cyn='r' ,step2=74 where ordno=${ordno} and step2 in (41, 42, 62, 72)
+	</update>
+
+	<select id="updateOrderRepay5" resultType="map">
+   		select b.*, a.*, (select category from gd_goods_link where gd_goods_link.goodsno = a.goodsno order by rand() limit 1) as category from gd_order_item a left join 
+   		gd_goods b on a.goodsno=b.goodsno where ordno = ${ordno}
+   </select>
+	<!--    사용한쿠폰 status 바꿔주기 -->
+   <!-- <update id="couponYnStatus">
+   		update gd_coupon_apply set status=0 where sno = (select applysno from gd_coupon_order where ordno = ${ordno})
+   </update> -->
+
+   
+   <!-- 2020-01-21 이현빈 전체쿠폰 가져오기 -->
+   <select id="getAllCouponApplySno" resultType="string">
+   		SELECT T2.applysno
+   		  FROM gd_coupon_apply T1 
+   		  JOIN gd_coupon_applymember T2 ON T1.sno = T2.applysno 
+   		  JOIN gd_coupon T3 ON T1.couponcd = T3.couponcd
+   		 WHERE T2.ordno = #{ordno} AND T3.goodstype = 0
+   </select>
+   
+   <!-- 2020-01-17 이현빈 사용쿠폰정보 가져오기 -->
+   <select id="getCouponApplySno" resultType="string">
+   		SELECT T3.applysno
+   		  FROM gd_coupon_apply T1 JOIN gd_coupon_goodsno T2 ON T1.couponcd=T2.couponcd
+   		  	   JOIN gd_coupon_applymember T3 ON T1.sno=T3.applysno
+   		 WHERE T3.ordno=#{ordno} AND T2.goodsno=#{goodsno}
+   </select>
+   
+   <!-- 2020-01-17 이현빈 환불 후 사용한 쿠폰상태변경 -->
+   <update id="couponYnStatus1">
+   		UPDATE gd_coupon_applymember
+   		   SET used=0 ,applyDt=null ,ordno=0
+   		 WHERE applysno=#{applysno} AND ordno=#{ordno}
+   </update>
+   
+   
+	<!-- ctl_Step에서 사용 -->
+	<select id="libfuncCtlStep1" resultType="map">
+		select 
+			* 
+		from gd_order 
+		where ordno=${ordno}
+	</select>
+	
+	<select id="totalDeliveryPrice" resultType="map">
+		SELECT SUM(a.deliveryPrice) delivery ,SUM(a.addDeliveryPrice) addDelivery FROM(
+			SELECT DISTINCT T2.deliveryPrice, T2.addDeliveryPrice
+			  FROM gd_order_item T1 JOIN gd_log_cancel T2 ON T1.cancel=T2.cancel
+			  	   JOIN gd_goods T3 ON T1.goodsno=T3.goodsno
+			 WHERE T1.ordno=#{ordno} AND T3.sellerCd IN 
+			 <foreach item="sellerCd" collection="sellerCd" open="(" separator="," close=")">
+			 	#{sellerCd}
+			 </foreach>
+			 ) a
+	</select>
+	
+	<select id="getAllSellerCdForRefund" resultType="string">
+		SELECT DISTINCT IFNULL(T2.sellerCd,'admin')
+		  FROM gd_order_item T1 JOIN gd_goods T2 ON T1.goodsno=T2.goodsno
+		 WHERE T1.ordno=#{ordno}
+	</select>
+	
+	<update id="repayEmoneyPrice">
+		UPDATE gd_order
+		   SET emoney=#{emoney}
+		 WHERE ordno=#{ordno}
+	</update>
+	
+	<update id="repayReservePrice">
+		UPDATE gd_order
+		   SET reserve=#{reserve}
+		 WHERE ordno=#{ordno}
+	</update>
+	
+</mapper>
+

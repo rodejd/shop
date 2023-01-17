@@ -1,0 +1,659 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/shop/taglib/taglib.jsp" %>
+
+<%-- ================================================================================
+* 공통 스크립트/CSS include
+================================================================================ --%>
+<script src="https://ssl.daumcdn.net/dmaps/map_js_init/postcode.v2.js?autoload=false"></script>
+<script language="javascript">
+
+	function postcode() {
+		   new daum.Postcode({
+		       oncomplete: function(data) {
+		           // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+		           // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+		           // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+		           var fullAddr = ''; // 최종 주소 변수
+		           var extraAddr = ''; // 조합형 주소 변수
+
+		           // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+		           if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+		               fullAddr = data.roadAddress;
+
+		           } else { // 사용자가 지번 주소를 선택했을 경우(J)
+		               fullAddr = data.jibunAddress;
+		           }
+
+		           // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+		           if(data.userSelectedType === 'R'){
+		               //법정동명이 있을 경우 추가한다.
+		               if(data.bname !== ''){
+		                   extraAddr += data.bname;
+		               }
+		               // 건물명이 있을 경우 추가한다.
+		               if(data.buildingName !== ''){
+		                   extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+		               }
+		               // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+		               fullAddr += (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+		           }
+
+		           // 우편번호와 주소 정보를 해당 필드에 넣는다.
+		           document.getElementById('postcode').value = data.zonecode; //5자리 새우편번호 사용
+		           document.getElementById('address').value = fullAddr;
+
+		           // 커서를 상세주소 필드로 이동한다.
+		           document.getElementById('address_sub').focus();
+		       }
+		   }).open();
+		}
+	
+	// 승인 요청
+	function goApprov() {
+		
+		if($("#status").val() == "R") {
+			alert("이미 승인 요청 상태 입니다.");
+			return;
+		}
+		
+		if ( confirm( "승인요청을 하시겠습니까?" ) == false ) return;
+
+		$('#fmList').attr("action", "reqApprov");
+		$('#fmList').submit();
+		
+	}
+	
+	// 수정
+	function goModify() {
+		
+		if ( confirm( "판매사정보를 수정 하시겠습니까?" ) == false ) return;
+
+		$('#fmList').attr("action", "Modify");
+
+		$('#fmList').submit();
+		
+	}
+
+	// 패스워드 입력시
+	function regPassword() {
+		if($("#pwd").val() == $("#pwdConfirm").val()) {
+			$("#msg").css("color","green");
+			$("#msg").html('비밀번호가 일치 합니다.');
+			$("#chk_pwd").val("1");
+		}else{
+			$("#msg").css("color","red");
+			$("#msg").html('비밀번호가 일치 하지 않습니다.');
+			$("#chk_pwd").val("0");
+		}
+	}
+
+	$(document).ready(function() {
+
+		// 비밀번호 변경 클릭시
+		$("#btn_change_pwd").on("click", function() {
+
+			if($("#pwd").val() == "" || $("#pwd").val() == null ) {
+				alert("비밀번호를 입력하세요.");
+				$("#pwd").focus();
+				return;
+			}
+
+			if($("#pwdConfirm").val() == "" || $("#pwdConfirm").val() == null ) {
+				alert("비밀번호 확인을 입력하세요.");
+				$("#pwdConfirm").focus();
+				return;
+			}
+
+			if($("#pwdConfirm").val() != $("#pwdConfirm").val()  ) {
+				alert("비밀번호가 일치 하지 않습니다.");
+				$("#pwdConfirm").focus();
+				return;
+			}
+
+ 			if($("#chk_pwd").val() != "1") {
+ 				alert("비밀번호가 일치 하지 않습니다.");
+ 				$("#pwdConfirm").focus();
+ 				return;
+ 			}
+ 			
+ 			if ( confirm( "비밀번호를 변경하시겠습니까?" ) == false ) return;
+ 			
+			ajaxCallJsonPost("/shop/seller/oper/changePwd", "fmList", function(result){
+				if(result) {
+					$("#pwd").val('');
+					$("#pwdConfirm").val('');
+					$("#msg").html('');
+					alert("비밀번호가 변경 되었습니다.");
+				} else {
+					alert("오류가 발생하였습니다.");
+				}
+		 		
+			});
+ 			
+
+		});
+		
+		// 비밀번호 초기화 클릭시
+		$("#btn_reset_pwd").on("click", function() {
+			if (!confirm('비밀번호를 초기화 하시겠습니다?\n초기화시 비밀번호는 아이디로 변경 됩니다.')) return;
+			
+			ajaxCallJsonPost("/shop/seller/oper/resetPwd", "fmList", function(result){
+				if(result) {
+					$("#pwd").val('');
+					$("#pwdConfirm").val('');
+					$("#msg").html('');
+					alert("비밀번호가 초기화 되었습니다.");	
+				} else {
+					alert("오류가 발생하였습니다.");
+				}
+		 		
+			});
+		});
+		
+		
+	});
+	
+</script>
+
+<style type="text/css">
+	.test {
+		background-color : aliceblue;
+		color : maroon;
+		font-family: arial;  
+		font-weight: bold;
+		border: 1px solid silver;
+	}
+	.aster {
+		color : red;
+		padding-left : 2px;
+	}
+	.btn {
+	  display: inline-block;
+	  padding: 6px 12px;
+	  margin-bottom: 0;
+	  font-size: 14px;
+	  font-weight: normal;
+	  line-height: 1.42857143;
+	  text-align: center;
+	  white-space: nowrap;
+	  vertical-align: middle;
+	  -ms-touch-action: manipulation;
+	      touch-action: manipulation;
+	  cursor: pointer;
+	  -webkit-user-select: none;
+	     -moz-user-select: none;
+	      -ms-user-select: none;
+	          user-select: none;
+	  background-image: none;
+	  border: 1px solid transparent;
+	  border-radius: 4px;
+	}
+	.btn:hover {
+	  -webkit-transition: 0.2s;
+	  -moz-transition: 0.2s;
+	  -o-transition: 0.2s;
+	  -ms-transition: 0.2s;
+	  transition: 0.2s;
+	}
+	.btn > .fa,
+	.btn > .im {
+	  margin: 0 5px;
+	}
+	.btn-xs {
+	  font-size: 11px;
+	  letter-spacing: 0;
+	}
+	.btn-primary {
+	  color: #fff !important;
+	  background: #486d97;
+	  border-color: #416288;
+	}
+	.btn-primary:hover {
+	  background: #416288;
+	  border-color: #3a5779;
+	}
+	.btn-primary:focus {
+	  background: #416288;
+	  border-color: #3a5779;
+	}
+	.btn-primary-invert {
+	  background: #b79268;
+	  border-color: #ae8455;
+	  color: #fff;
+	}
+	.form-control {
+	  display: block;
+	  width: 100%;
+	  height: 34px;
+	  padding: 6px 12px;
+	  font-size: 14px;
+	  line-height: 1.42857143;
+	  color: #555;
+	  background-color: #fff;
+	  background-image: none;
+	  border: 1px solid #ccc;
+	  border-radius: 4px;
+	  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+	          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+	  -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+	       -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+	          transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+	}
+	.form-control:focus {
+	  border-color: #66afe9;
+	  outline: 0;
+	  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+	          box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+	}
+	.form-control::-moz-placeholder {
+	  color: #999;
+	  opacity: 1;
+	}
+	.form-control:-ms-input-placeholder {
+	  color: #999;
+	}
+	.form-control::-webkit-input-placeholder {
+	  color: #999;
+	}
+	.form-control[disabled],
+	.form-control[readonly],
+	fieldset[disabled] .form-control {
+	  background-color: #eee;
+	  opacity: 1;
+	}
+	.form-control[disabled],
+	fieldset[disabled] .form-control {
+	  cursor: not-allowed;
+	}
+	textarea.form-control {
+	  height: auto;
+	}
+</style>
+
+<%-- ================================================================================
+* HTML
+================================================================================ --%>
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="white" border="0">
+<tr>
+	<td valign="top" style="padding-left:12px">
+
+<div class="title title_top">판매사정보<span></span></div>
+
+<form name=fmList id="fmList" method=post action="reqApprov" enctype="multipart/form-data" onsubmit="return chkForm(this)" >
+
+		<div>
+			<table class=tb border="1" bordercolor="#e6e6e6" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+				<colgroup>
+					<col class="cellC">
+					<col class="cellL">
+					<col class="cellL">
+					<col class="cellC">
+					<col class="cellL">
+					<col class="cellL">
+				</colgroup>
+				<tbody>
+				<tr>
+					<th>판매사명</th>
+					<td colspan=2 style="width : 30%">
+						${managementFM.managementVO.sellerNm}
+						<input type="hidden" style="width : 100%;" name="sellerNm" required value="${managementFM.managementVO.sellerNm}" maxlength="25"/>
+					</td>
+					<th>상태</th>
+					<td>
+						<span style="marigin-right:10px"></span>
+						<c:if test="${managementFM.managementVO.status eq 'S'}">
+							승인
+						</c:if>
+						<c:if test="${managementFM.managementVO.status eq 'R'}">
+							승인요청
+						</c:if>
+						<c:if test="${managementFM.managementVO.status eq 'W'}">
+							대기
+						</c:if>
+						<c:if test="${managementFM.managementVO.status eq 'X'}">
+							탈퇴
+						</c:if>
+						<input type="hidden" name="status" id="status" value ="${managementFM.managementVO.status}"/>
+					</td>
+				</tr>
+				<tr>
+					<th>판매사코드</th>
+					<td colspan=2>
+						${managementFM.managementVO.sellerCd}
+						<input type="hidden" style="width : 30%;" name="sellerCd" required value="${managementFM.managementVO.sellerCd}" maxlength="18"/>
+					</td>
+					<th>비밀번호</th>
+					<td>
+						<input type="password" name="pwd"     id="pwd" title="비밀번호" onkeyup="javascript:regPassword();"/>
+						<input type="hidden"   name="chk_pwd" id="chk_pwd" label="비밀번호중복체크"/>
+					</td>
+				</tr>
+				<tr>
+					<th>판매사 아이디</th>
+					<td style="border-right : 0px;">
+						${managementFM.managementVO.id}
+						<input type="hidden" align="left" style="width : 70%;" name="id" required value="${managementFM.managementVO.id}"/>
+					</td>
+					<td style="border-left : 0px; text-align:right;">
+					</td>
+					<th>비밀번호확인</span></th>
+					<td>
+						<input type="password" name="pwdConfirm" id="pwdConfirm" title="비밀번호확인" onkeyup="javascript:regPassword();"/>
+						<span id="msg" style="color:red;font-weight:bold;"></span>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		
+		</div>
+	
+		<div style="padding-top:10px"></div>
+		
+		<div style="text-align : right;">
+			<input type="button" class="btn btn-primary" id="btn_reset_pwd" value="비밀번호 초기화" />
+			<input type="button" class="btn btn-primary" id="btn_change_pwd" value="비밀번호 변경"/>
+		</div>
+		
+		<div style="padding-top:15px"></div>
+		
+		<div class="title title_top">판매사 기본정보<span></span></div>
+		
+		<div>
+			<table class=tb border="1" bordercolor="#e6e6e6" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+				<colgroup>
+					<col class="cellC">
+					<col class="cellL">
+					<col class="cellC">
+					<col class="cellL">
+				</colgroup>
+				<tbody>
+				<tr>
+					<th>대표자명<span class="aster">*</span></th>
+					<td><input type="text" style="width : 70%;" name="agentNm" label="대표자명" required value="${managementFM.managementVO.agentNm}" maxlength="50"/></td>
+					<th></th>
+					<td></td>
+				</tr>
+				<tr>
+					<th>사업자등록번호<span class="aster">*</span></th>
+					<td colspan=3>
+						<input type="text" style="width : 10%;" name="companyRegNo" label="사업자등록번호" required value="${managementFM.managementVO.companyRegNo}" maxlength="12"/> (예: 119-02-29983)
+					</td>
+				</tr>
+				<tr>
+					<th>업태<span class="aster">*</span></th>
+					<td>
+						<input type="text" style="width : 20%;" name="businessConditions" label="업태" required value="${managementFM.managementVO.businessConditions}" maxlength="50"/>
+					</td>
+					<th>품목<span class="aster">*</span></th>
+					<td>
+						<input type="text" style="width : 20%;" name="event" required label="품목" value="${managementFM.managementVO.event}" maxlength="50"/>
+					</td>		
+				</tr>
+				<tr>
+					<th>결제계좌명의<span class="aster">*</span></th>
+					<td colspan=3><input type="text" style="width : 10%;" name="accNm" label="결제계좌명의" required value="${managementFM.managementVO.accNm}" maxlength="10"/> </td>
+				</tr>
+				<tr>
+					<th>결제은행<span class="aster">*</span></th>
+					<td colspan=3>
+						<select name="bankCd" style="width : 10%;" value="${managementFM.managementVO.bankCd}">
+							<!-- KB:국민은행 WR:우리은행 SB:신한은행 HN:KEB하나은행 IB:기업은행 NH:농협 SH:수협 -->
+							<c:if test="${managementFM.managementVO.bankCd == null || managementFM.managementVO.bankCd == ''}">
+								<option value="KB" selected="selected">KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'KB'}">
+								<option value="KB" selected="selected">KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'WR'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" selected="selected">우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'SB'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" selected="selected">신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'HN'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" selected="selected">KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'IB'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" selected="selected">기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'NH'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" selected="selected">NH농협</option>
+								<option value="SH" >수협</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.bankCd eq 'SH'}">
+								<option value="KB" >KB국민은행</option>
+								<option value="WR" >우리은행</option>
+								<option value="SB" >신한은행</option>
+								<option value="HN" >KEB하나은행</option>
+								<option value="IB" >기업은행</option>
+								<option value="NH" >NH농협</option>
+								<option value="SH" selected="selected">수협</option>
+							</c:if>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>은행계좌번호<span class="aster">*</span></th>
+					<td colspan=3>
+						<input type="text" style="width : 14%;" name="accNo" label="은행계좌번호" required value="${managementFM.managementVO.accNo}" maxlength="15"/> "-" 없이 입력해주세요 (100010010000)
+					</td>
+				</tr>
+				<tr>
+					<th>담당자명<span class="aster">*</span></th>
+					<td>
+						<input type="text" style="width : 20%;" name="managerNm" label="담당자명" required value="${managementFM.managementVO.managerNm}" maxlength="50"/>
+					</td>
+					<th>담당자 직위<span class="aster">*</span></th>
+					<td>
+						<input type="text" style="width : 20%;" name="managerPosition" label="담당자 직위" required value="${managementFM.managementVO.managerPosition}" maxlength="10"/>
+					</td>		
+				</tr>
+				<tr>
+					<th>전화번호<span class="aster">*</span></th>
+					<td colspan=3>
+						<input type="text" style="width : 12%;" name="managerTel" label="전화번호" required value="${managementFM.managementVO.managerTel}" maxlength="15"/> (예: 02-1234-5678)
+					</td>
+				</tr>
+				<tr>
+					<th>휴대폰번호</th>
+					<td>
+						<input type="text" style="width : 22%;" name="managerHp" label="휴대폰번호" value="${managementFM.managementVO.managerHp}" maxlength="15"/> (예: 010-1234-5678)
+					</td>
+					<th>팩스번호</th>
+					<td>
+						<input type="text" style="width : 22%;" name="managerFax" label="팩스번호" value="${managementFM.managementVO.managerFax}" maxlength="15"/> (예: 02-1234-5678)
+					</td>
+				</tr>
+				<tr>
+					<th>이메일<span class="aster">*</span></th>
+					<td colspan=3>
+						<input type="text" style="width : 10%;" name="managerEmail" label="이메일" required value="${managementFM.managementVO.managerEmail}" maxlength="30"/> (예: abc@aaa.com)
+					</td>
+				</tr>
+				<tr>
+					<th>홈페이지</th>
+					<td colspan=3>
+						http://<input type="text" style="width : 10%;" name="homepage" value="${managementFM.managementVO.homepage}" maxlength="50"/> (예: www.stename.co.kr)
+					</td>
+				</tr>
+				<tr>
+					<th>주소<span class="aster">*</span></th>
+					<td colspan=3>
+			        	<div class="row">
+			            	<p>
+			                	<div class="col-md-3" style="padding-left:0px;">
+							    	<input type="text" class="form-control" id="postcode" name="zipcode" readonly="readonly" placeholder="우편번호"  
+							    	       title="우편번호" label="우편번호"  value="${managementFM.managementVO.zipcode}" required/>
+							    	<a class="btn btn-primary" href="javascript:postcode();" role="button">우편번호 검색</a>
+						    	</div>
+			                </p>
+			      			<p>
+					      		<div class="col-md-6" style="padding-left:0px;">
+					      			<input type="text" id="address" name="sellerAddr" readonly="readonly" class="form-control" placeholder="상세주소" 
+					      			title="상세주소" label="주소" value="${managementFM.managementVO.sellerAddr}" required />
+					      		</div>
+					      		<div class="col-md-6" style="padding-left:0px;">
+					      			<input type="text" id="address_sub" name="sellerAddrSub" class="form-control" placeholder="나머지주소" 
+					      			title="나머지 주소" label="세부주소" value="${managementFM.managementVO.sellerAddrSub}" required maxlength="100"/>
+					      		</div>
+			      			</p>
+			        	</div>
+					</td>
+				</tr>
+				<tr>
+					<th>기타사항</th>
+					<td colspan=3>
+			        	<textarea style="width : 90%; height : 120%;" name="etc" type="editor" maxlength="50">${managementFM.managementVO.etc}</textarea>
+					</td>
+				</tr>
+				<tr>
+					<th>관리자메모</th>
+					<td colspan=3>
+			        	<textarea style="width : 90%; height : 120%;" name="adminMemo" type="editor" maxlength="100">${managementFM.managementVO.adminMemo}</textarea>
+					</td>
+				</tr>
+				<tr>
+					<th>정산주기<span class="aster">*</span></th>
+					<td colspan=3>
+						<select style="width : 10%;" name="settlementCycle">
+							<c:if test="${managementFM.managementVO.settlementCycle == null || managementFM.managementVO.settlementCycle == ''}">
+								<!-- option value="D" selected="selected">일정산</option  -->
+								<option value="W">주정산</option>
+								<option value="H">15일정산</option>
+								<option value="M">월정산</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.settlementCycle eq 'D'}">
+								<!-- option value="D" selected="selected">일정산</option  -->
+								<option value="W">주정산</option>
+								<option value="H">15일정산</option>
+								<option value="M">월정산</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.settlementCycle eq 'W'}">
+								<!--  option value="D">일정산</option  -->
+								<option value="W" selected="selected">주정산</option>
+								<option value="H">15일정산</option>
+								<option value="M">월정산</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.settlementCycle eq 'H'}">
+								<!-- option value="D">일정산</option  -->
+								<option value="W">주정산</option>
+								<option value="H" selected="selected">15일정산</option>
+								<option value="M">월정산</option>
+							</c:if>
+							<c:if test="${managementFM.managementVO.settlementCycle eq 'M'}">
+								<!-- option value="D">일정산</option  -->
+								<option value="W">주정산</option>
+								<option value="H">15일정산</option>
+								<option value="M" selected="selected">월정산</option>
+							</c:if>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>수수료<span class="aster">*</span></th>
+					<td colspan=3>
+						<div class="row">
+							<p>
+							<%--
+								<c:if test="${managementFM.managementVO.feeDiv == null || managementFM.managementVO.feeDiv == '' }">
+									<label for="feeG"><input type="radio" name="feeDiv" id="feeG" value="C" checked="checked" />카테고리당 수수료</label>
+									<label for="feeC"><input type="radio" name="feeDiv" id="feeC" value="S"/>판매사당 수수료</label>								
+								</c:if>
+								<c:if test="${managementFM.managementVO.feeDiv eq 'C'}">
+									<label for="feeG"><input type="radio" name="feeDiv" id="feeG" value="C" checked="checked" />카테고리당 수수료</label>
+									<label for="feeC"><input type="radio" name="feeDiv" id="feeC" value="S"/>판매사당 수수료</label>
+								</c:if>
+								<c:if test="${managementFM.managementVO.feeDiv eq 'S'}">
+									<label for="feeG"><input type="radio" name="feeDiv" id="feeG" value="C" />카테고리당 수수료</label>
+									<label for="feeC"><input type="radio" name="feeDiv" id="feeC" value="S" checked="checked" />판매사당 수수료</label>								
+								</c:if>
+							 --%>	
+								<label for="feeC"><input type="radio" name="feeDiv" id="feeC" value="S" checked="checked" />판매사당 수수료</label>
+								<input type="text" style="width : 5%; text-align : right;" name="fees" label="수수료" required value="${managementFM.managementVO.fees}" maxlength="7"/> %
+							</p>
+							<!-- 
+							<p>
+								<span class="aster">
+									※ 판매사당 수수료로 변경을 하거나 카테고리당 수수료로 변경을 하게되면 <br/>
+									그 변경시점부터 등록된 상품들부터 수수료정책이 새롭게 적용됩니다.
+								</span>
+							</p> -->
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+			
+		</div>
+		
+		<div style="padding-top:15px"></div>
+		
+		<div style="text-align : center;">
+<!-- 			<input type="button" class="btn btn-primary" id="btn_status" value="승인요청"/> -->
+			<c:if test="${managementFM.managementVO.status eq 'W'}">
+				<a href="javascript:goApprov();" class="btn btn-primary">승인요청</a>
+			</c:if>
+			<c:if test="${managementFM.managementVO.status eq 'R' || managementFM.managementVO.status eq 'S'}">
+				<a href="javascript:goModify();" class="btn btn-primary">수정</a>
+			</c:if>
+		
+		</div>
+	
+	<div style="padding-top:15px"></div>
+
+</form>
+
+<script>
+linecss();
+table_design_load();
+</script>
+
+<%-- ================================================================================
+* 업무 HTML CONTENT 종료
+================================================================================ --%>
+		</td>
+	</tr>
+</table>

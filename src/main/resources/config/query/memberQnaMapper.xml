@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.board.MemberQnaMapper">
+
+	<!-- 이메일문의관리 게시판 총 갯수 -->
+	<select id="getMemberQnaTotalCount" resultType="int">
+		SELECT	count(*) FROM gd_member_qna as a  LEFT OUTER JOIN gd_member as b ON a.m_no = b.m_no
+	</select>
+
+	<!-- 이메일문의관리 게시판 갯수 -->
+	<select id="getMemberQnaCount" resultType="int" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.MemberQnaVO">
+		SELECT	count(*) FROM gd_member_qna as a  LEFT OUTER JOIN gd_member as b ON a.m_no = b.m_no
+		WHERE 1=1
+		<!-- 조건문 -->
+		<if test="vo.skey == 'all'  and vo.sword !=null and vo.sword != '' ">
+			AND concat(subject,contents, ifnull('m_id','')) like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.skey != 'all'  and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sregdt_0 != null and vo.sregdt_1 != null  and vo.sregdt_0 != '' and vo.sregdt_1 != '' ">
+			AND a.regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="vo.sitemcd != 'all'  and vo.sitemcd != null and vo.sitemcd != '' ">
+			AND a.itemcd=#{vo.sitemcd}
+		</if>
+		
+		<if test="vo.sbtype != null and vo.sbtype != '' ">
+			AND a.itemcd=#{vo.sbtype}
+		</if>
+		<if test="vo.schSkin != null and vo.schSkin != '' ">
+			AND a.skin=#{vo.schSkin}
+		</if>
+		
+		<if test='vo.schReply == "Y" '>
+			AND (SELECT COUNT(*)-1 FROM gd_member_qna WHERE a.sno = parent) != 0
+		</if>
+		<if test='vo.schReply == "N" '>
+			AND (SELECT COUNT(*)-1 FROM gd_member_qna WHERE a.sno = parent) = 0
+		</if>
+	</select>
+	
+	<!-- 이메일문의관리 게시판 목록 반환 -->
+	<select id="getMemberQnaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberqna" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.board.MemberQnaVO">
+		SELECT * 
+			, (SELECT count(*) FROM gd_order WHERE ordno = a.ordno) as ordcnt
+			, (SELECT count(*)-1 FROM gd_member_qna WHERE a.sno = parent) as recnt
+		 FROM gd_member_qna as a
+		 LEFT OUTER JOIN gd_member as b ON a.m_no = b.m_no
+		WHERE 1=1
+		<!-- 조건문 -->
+		<if test="vo.skey == 'all'  and vo.sword !=null and vo.sword != '' ">
+			AND concat(subject,contents, ifnull('m_id','')) like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.skey != 'all'  and vo.skey != null and vo.sword != null and vo.sword != '' ">
+			AND ${vo.skey} like concat('%',#{vo.sword},'%')
+		</if>
+		<if test="vo.sregdt_0 != null and vo.sregdt_1 != null  and vo.sregdt_0 != '' and vo.sregdt_1 != '' ">
+			AND a.regdt between date_format(#{vo.sregdt_0},'%Y-%m-%d 00:00:00') and date_format(#{vo.sregdt_1},'%Y-%m-%d 23:59:59')
+		</if>
+		<if test="vo.sitemcd != 'all'  and vo.sitemcd != null and vo.sitemcd != '' ">
+			AND a.itemcd=#{vo.sitemcd}
+		</if>
+		
+		<if test="vo.sbtype != null and vo.sbtype != '' ">
+			AND a.itemcd=#{vo.sbtype}
+		</if>
+		<if test="vo.schSkin != null and vo.schSkin != '' ">
+			AND a.skin=#{vo.schSkin}
+		</if>
+		
+		<if test='vo.schReply == "Y" '>
+			AND (SELECT COUNT(*)-1 FROM gd_member_qna WHERE a.sno = parent) != 0
+		</if>
+		<if test='vo.schReply == "N" '>
+			AND (SELECT COUNT(*)-1 FROM gd_member_qna WHERE a.sno = parent) = 0
+		</if>
+		
+		<!-- 정렬 -->
+		<if test="vo.sort == 'ask desc'  || vo.sort == null || vo.sort == '' " >
+			ORDER BY a.parent desc, ( case when a.parent=a.sno then 0 else 1 end ) asc
+		</if>
+		<if test="vo.sort =='regdt desc' ||  vo.sort=='regdt asc' ">
+			ORDER BY a.${vo.sort}
+		</if>
+		<if test="vo.sort != 'ask desc'  and vo.sort != 'regdt desc' and vo.sort != 'regdt asc'  and vo.sort != null  and vo.sort != '' ">
+			ORDER BY ${vo.sort}
+		</if>
+		LIMIT #{vo.rowStart}, #{vo.pageSize}
+	</select>
+	
+	<!-- 이메일문의관리 글 반환 -->
+	<select id="getMemberQnaInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT * FROM gd_member_qna
+		WHERE sno=#{sno} LIMIT 1
+	</select>
+	
+	<!-- 이메일문의관리 답글 ID 반환 -->
+	<select id="getMemberQnaID" resultType="string">
+		SELECT m_id FROM gd_member 
+		WHERE m_no=#{mno}
+	</select>
+	
+	<!-- 이메일문의관리 관리자 정보 반환 -->
+	<select id="getMemberInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT m_no,m_id,name FROM gd_member
+		WHERE m_id!='godomall' and k_level > 79 order by m_id
+	</select>
+	
+	<!-- 이메일문의관리 원글 정보 반환 -->
+	<select id="getMemberQnaParentInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT itemcd,ordno,email,mailling,mobile,sms FROM gd_member_qna
+		WHERE sno=#{parent} LIMIT 1
+	</select>
+	
+	<!-- 이메일문의관리 글 삭제 -->
+	<delete id="deleteMemberQna">
+		DELETE FROM gd_member_qna 
+		WHERE sno= #{sno} 
+	</delete>
+	
+	<!-- 이메일문의관리 글 수정 -->
+	<update id="updateMemberQna">
+		UPDATE gd_member_qna
+		SET  
+			subject=#{subject}, 
+			contents=#{contents}, 
+			email=#{email},
+			name=#{name}
+		WHERE sno=#{sno}
+	</update>
+	
+	<!-- 이메일문의관리 답글 등록 -->
+	<insert id="insertMemberQnaReply">
+		INSERT INTO gd_member_qna(subject,contents,parent,m_no,regdt,ip,name)
+		VALUES ( #{subject}, #{contents}, #{sno}, #{mno}, SYSDATE(), #{ip},#{name})
+	</insert>
+	
+	<select id="getMemberQnaTitleAndContent" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberQna">
+		SELECT 
+			subject
+			, contents
+		FROM 
+			gd_member_qna
+		WHERE 
+			sno=#{sno}
+	</select>
+
+</mapper>

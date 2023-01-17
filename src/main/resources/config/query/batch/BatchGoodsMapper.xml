@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wepinit.wepinit_shop.batch.dao.BatchGoodsMapper">
+	
+	<delete id="deleteAllGoodsno">
+	
+		TRUNCATE TABLE gd_goodsno
+	
+	</delete>
+	
+	<insert id="insertBatchGoodsno">
+
+		INSERT INTO gd_goodsno
+		   SELECT g.goodsno, g.brandno, g.hot_yn, g.vip_yn, g.approvalStatus, g.scmRegdt, g.seasonNm, now()
+		   FROM gd_goods g INNER JOIN gd_goods_option o ON o.goodsno = g.goodsno
+		   WHERE     o.parent = 0
+		         AND g.open = 1
+		         AND g.approvalStatus = '2'
+		         AND g.runout = 0
+		         AND o.stock > 0
+		         
+	</insert>
+		
+	<update id="updateBatchCategoryGoodsCnt">
+
+		UPDATE gd_category gc
+		       INNER JOIN (SELECT c.sno, SUM(r.goodsCnt) goodsCnt
+		                   FROM gd_category c
+		                        INNER JOIN
+		                        (SELECT l.category, COUNT(l.goodsno) goodsCnt
+		                         FROM gd_goods_link l
+		                              INNER JOIN gd_category t
+		                                 ON t.category = l.category
+		                              INNER JOIN gd_goods g ON g.goodsno = l.goodsno
+		                              INNER JOIN gd_goods_option o
+		                                 ON o.goodsno = g.goodsno AND o.parent = 0
+		                         WHERE     l.hidden = '0'
+		                               AND g.open = 1
+		                               AND g.approvalStatus = '2'
+		                               AND g.runout = 0
+		                               AND o.stock > 0
+		                         GROUP BY l.category) r
+		                           ON r.category LIKE CONCAT(c.category, '%')
+		                   WHERE c.hidden = '0'
+		                   GROUP BY c.sno) sgc
+		          ON gc.sno = sgc.sno
+		SET gc.goodsCnt = sgc.goodsCnt
+		WHERE gc.sno = sgc.sno
+		         
+	</update>
+	
+</mapper>

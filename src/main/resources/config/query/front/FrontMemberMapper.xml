@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.member.FrontMemberMapper">
+	<!-- 아이디 찾기 -->
+	<select id="frontFindID" resultType="java.lang.String">
+		SELECT m_id 
+		FROM gd_member 
+		WHERE 1=1
+		AND name = #{name}
+		<if test="resno1 != null and resno1 != ''">
+			AND resno1 = md5(#{resno1})
+		</if>
+		<if test="resno2 != null and resno2 != ''">
+			AND resno2 = md5(#{resno2})
+		</if>
+		<if test="email != null and email != ''">
+			AND email = #{email}
+		</if>
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id="frontFindPassword" resultType="int">
+		SELECT count(*) AS cnt 
+		FROM gd_member
+	   WHERE m_id = #{email}
+	</select>
+	
+	<!-- 임시 비밀번호 저장 -->
+	<update id="frontNewPassword">
+		UPDATE gd_member 
+		SET password = PASSWORD(#{newPass}) 
+		WHERE m_id = #{m_id} 	
+	</update>
+	
+	<!-- 회원수정 > 회원정보 조회 -->
+	<select id="frontMemberInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * 
+		FROM gd_member 
+		WHERE m_id = #{m_id}
+	</select>
+    
+	<!-- 회원정보수정 > 닉네임중복체크 -->
+	<select id="frontMemberChkNickname" resultType="java.lang.String">
+		SELECT nickname 
+		FROM gd_member 
+		WHERE nickname = #{nickname} 
+		AND m_id != #{m_id}	
+	</select>
+	
+	<!-- 회원가입 > 닉네임중복체크 -->
+	<select id="frontMemberJoinChkNickname" resultType="java.lang.String">
+		SELECT nickname 
+		FROM gd_member 
+		WHERE nickname = #{nickname}
+	</select>
+	
+	<!-- 회원가입(수정) > 이메일중복체크 -->
+	<select id="frontMemberChkEmail" resultType="java.lang.String">
+		SELECT email 
+		FROM gd_member 
+		WHERE email = #{email} 
+		AND m_id != #{m_id}	
+	</select>
+	
+	<!-- 회원가입 > 회원정보 insert -->
+	<update id="frontMemberUpdate">
+		UPDATE gd_member 
+		   SET name 		= #{name}
+			 , name1		= #{name1}
+			 , name2		= #{name2}
+			 , birth_year	= #{birth_year}
+			 , birth		= #{birth}
+			 , mobilec		= #{mobilec}
+			 , mobile		= #{mobile}
+			 , mailling 	= #{mailling}
+			 , customs_num 	= #{customsnum}
+			 , sex 			= #{sex}
+			<if test="password != null and password != ''">
+			 , password 	= password(#{password}) 
+			</if>
+		 WHERE m_id = #{m_id}
+	</update>
+	
+	<!-- GDCODE Item 회원상세조회 -->
+	<select id="itemGdCode" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCode">
+		SELECT 
+			itemcd, 
+			itemnm 
+		FROM 
+			gd_code 
+		WHERE groupcd != '' and groupcd = #{groupcd} 
+		ORDER BY sort
+	</select>
+
+	<!-- 로그인 비밀번호체크 -->
+	<select id="frontLoginCheckPassword" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * 
+		FROM gd_member 
+		WHERE m_id = #{m_id} AND password = PASSWORD(#{password})
+	</select>
+
+	<!-- 로그인 아이디체크 -->
+	<select id="frontLoginCheckID" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT * 
+		FROM gd_member 
+		WHERE m_id = #{m_id} 
+<!-- eunjung : asis 에 $( and )admin_level 부분이 있으나
+			   admin_level 이라는 데이터가 세팅되는 곳이 없으므로 주석처리함.
+		<if test="admin_level != '' admin_level != null">
+			and admin_level
+		</if> -->
+	</select>
+
+	<!-- 탈퇴로그 저장 -->
+	<insert id="frontInsertHackLog">
+		INSERT INTO gd_log_hack (
+			m_id, 
+			name, 
+			actor, 
+			<!-- itemcd,  -->
+			reason, 
+			ip, 
+			regdt, 
+			adminMemo,
+			skin,
+			k_level,
+			customs_num
+		) VALUES (
+			#{m_id}, 
+			#{name}, 
+			'1', 
+			<!-- #{outComplain}, --> 
+			<choose>
+				<when test="outComplain_text != '' and outComplain_text != null">
+					#{outComplain_text},
+				</when>
+				<otherwise>
+					'',
+				</otherwise>
+			</choose>
+			#{ip}, 
+			now(), 
+			'',
+			#{skin},
+			#{klevel},
+			#{customsnum}
+			)
+	</insert>
+
+	<!-- 멤버 삭제 -->
+	<delete id="frontDeleteMember">
+		DELETE FROM gd_member WHERE m_no = #{m_no}
+	</delete>
+	
+	<!-- sns 멤버 삭제 -->
+	<delete id="frontDeleteSns">
+		DELETE FROM gd_member_sns WHERE m_no = #{m_no}
+	</delete>
+	
+	<!-- 적립금 삭제 -->
+	<delete id="frontDeleteEmoney">
+		DELETE FROM gd_log_emoney 
+		WHERE m_no = #{m_no}
+	</delete>
+
+	<!-- 회원가입 > 아이디중복체크 -->
+	<select id="frontMemberChkid" resultType="java.lang.String">
+		select m_id from gd_member where m_id= #{m_id}	
+	</select>
+	
+	<!-- 회원가입 > 주민번호 가입중복체크 -->
+	<select id="frontMemberJumindup" resultType="java.lang.String">
+		SELECT resno1 
+		FROM gd_member 
+		WHERE resno1= #{resno1} and resno2= #{resno2}
+	</select>
+
+	<!-- 회원가입 > 회원재가입기간 체크 -->
+	<select id="frontMemberRejoin" resultType="java.lang.String">
+		SELECT regdt 
+		FROM gd_log_hack 
+		WHERE resno1=#{resno1} 
+		AND resno2=#{resno2} 
+		AND date_format( regdt, '%Y%m%d' ) >= #{rejoindt} 
+		ORDER BY regdt desc limit 1
+	</select>
+
+	<!-- 회원가입 > 회원정보 insert -->
+	<insert id="frontMemberInsert">
+		INSERT 
+		  INTO gd_member 
+		   SET m_id		= #{m_id}
+			 , password	= password(#{password})
+			 , status	= #{status}
+			 , emoney	= #{emoney}
+			 , k_level	= #{level}
+			 , name		= #{name}
+			 , name1	= #{name1}
+			 , name2	= #{name2}
+			 , email	= #{email}
+			 , mailling = #{mailling}
+			 , skin 	= #{skin}
+			 , regdt	= now()
+		<selectKey resultType="int" keyProperty="mno" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	<!-- 회원가입 > 회원정보 insert -->
+	<insert id="frontMemberSnsInsert">
+		REPLACE
+		INTO gd_member_sns 
+		 SET m_no			= #{m_no}
+		   , sns_id			= #{sns_id}
+		   , sns_email		= #{sns_email}
+		   , sns_nickname	= #{sns_nickname}
+		   , sns_type 		= #{sns_type}
+	</insert>
+	
+	<select id="frontMemberInfoBySns" resultType="com.wepinit.wepinit_shop.xmall.front.vo.member.FrontMemberVO">
+		SELECT m_id, password
+		  FROM gd_member
+		 WHERE m_no = (SELECT m_no FROM gd_member_sns WHERE sns_id = #{sns_id} AND sns_type = #{sns_type})
+	</select>
+	
+	<select id="frontMemberSnsInfoSelect" resultType="com.wepinit.wepinit_shop.xmall.front.vo.member.FrontMemberSnsVO">
+		SELECT *
+		  FROM gd_member_sns
+		 WHERE m_no = #{m_no}
+		   AND sns_type = #{sns_type}
+	</select>
+	
+	<delete id="frontMemberSnsInfoDelete">
+		DELETE 
+		  FROM gd_member_sns 
+		 WHERE m_no = #{m_no}
+		   AND sns_type = #{sns_type}
+	</delete>
+
+	<!-- 테이블의 필드의 max -->
+	<select id="tableMaxFieldSelect" resultType="int">
+		SELECT max(${col_name}) as ${col_name} 
+		FROM ${tbl_name}
+	</select>
+	
+	<!-- 회원가입 > 적립금 내역 입력 -->
+	<insert id="frontMemberEmoneyInsert">
+		INSERT 
+		  INTO gd_log_emoney 
+		   SET m_no		= #{m_no}
+			 , gbn 		= #{gbn}
+			 , add_emoney = #{addEmoney}
+			 , emoney	= #{emoney}
+			 , memo		= #{memo}
+			 , regdt	= now()
+	</insert>
+	
+	<!-- 회원가입 > 추천인 검색 -->
+	<select id="frontMemberRecommidSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMember">
+		SELECT m_id, m_no 
+		FROM gd_member 
+		WHERE m_id= #{recommid}
+	</select>
+
+	<!-- 회원가입 > 적립금 적립 -->
+	<insert id="frontMemberRecommEmoneyInsert">
+		INSERT INTO gd_log_emoney 
+		SET
+			m_no	= #{recommid_m_no} ,
+			emoney	= #{recomm_emoney} ,
+			memo	= #{memo}  ,
+			regdt	= now()
+	</insert>
+
+	<!-- 회원가입 > 추천인에게 적립금 업데이트 -->
+	<update id="frontMemberRecommEmoneyUpdate">
+		UPDATE gd_member 
+		SET emoney = emoney + ${recomm_emoney} 
+		WHERE m_no = #{recommid_m_no}
+	</update>
+	
+	<!-- 회원가입 > 회원가입쿠폰 조회 -->
+	<select id="frontMemberJoinCouponSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCoupon">
+		<![CDATA[ 
+			SELECT * 
+			FROM gd_coupon 
+			WHERE coupontype = 2 
+			AND (( priodtype = 1 ) 
+			OR ( priodtype = 0 AND sdate <= now() AND edate >= now() ))
+			AND skin IN ('al', #{skin})
+		]]>
+	</select>
+	
+	<!-- 회원가입 > 회원가입쿠폰 조회 -->
+	<select id="frontMemberCouponApplySelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCouponApply">
+		SELECT count(a.sno) as count
+		FROM gd_coupon_apply a 
+		LEFT JOIN gd_coupon_applymember b ON a.sno=b.applysno 
+		WHERE a.couponcd=#{couponcd} AND b.m_no =#{m_no}
+	</select>
+	
+	<!-- 회원가입 > 쿠폰 발급(GD_COUPON_APPLY) -->
+	<insert id="frontMemberJoinCouponApplyInsert">
+		INSERT INTO gd_coupon_apply 
+		SET
+			sno				= #{newapplysno} ,
+			couponcd		= #{couponcd} ,
+			membertype		= '2',
+			member_grp_sno  = 0,
+			regdt			= now()
+	</insert>
+	
+	<!-- 회원가입 > 쿠폰 발급(GD_COUPON_APPLYmember) -->
+	<insert id="frontMemberJoinCouponApplymemberInsert"> 
+		INSERT INTO gd_coupon_applymember 
+		SET 
+			m_no=#{m_no} , 
+			applysno =#{newapplysno}
+	</insert>
+	
+	<!-- 회원가입 > 회원로그인 정보 조회 -->
+	<select id="frontMemberGrpSelect" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdMemberJoinGdMemberGrp">
+		SELECT * 
+		FROM gd_member a
+		LEFT JOIN gd_member_grp b ON a.k_level=b.k_level
+		WHERE
+			a.m_id= #{m_id}
+			AND password IN (password(#{password}),md5(#{password}))
+	</select>
+	
+	<!-- 회원가입 > member테이블 login정보 변경 -->
+	<update id="frontMemberLoginUpdate">
+		UPDATE gd_member 
+		SET 
+			last_login=now(), 
+			cnt_login=cnt_login+1 
+		WHERE m_no= #{m_no}
+	</update>
+	
+	<!-- 회원 등급 정보 조회 -->
+	<select id="frontMemberGrpByLevel" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+		SELECT * 
+		FROM gd_member_grp
+		WHERE k_level = #{level}
+	</select>
+	
+</mapper>
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.common.AdminSellerSearchMapper">
+	
+	<sql id="sellerSearchCondition">
+		WHERE 1=1
+		<choose>
+			<when test="schType == 'sellerName'">
+				AND sellerNm LIKE concat('%', #{schWord}, '%')
+			</when>
+			<when test="schType == 'sellerId'">
+				AND id LIKE concat('%', #{schWord}, '%')
+			</when>
+		</choose>
+	</sql>
+	
+	<!-- // 판매사검색 총건수 조회  -->
+	<select id="getSellerSearchCount" resultType="int">
+		/** com.wepinit.wepinit_shop.xmall.common.dao.SellerSearchMapper.getSellerSearchCount */
+		SELECT count(*) FROM gd_seller
+		<include refid="sellerSearchCondition" />
+		AND status = 'S'
+	</select>
+	
+	<!-- // 판매사검색  리스트 조회  -->
+	<select id="getSellerSearchList" resultType="com.wepinit.wepinit_shop.xmall.admin.vo.common.AdminSellerSearchListVO">
+		/** com.wepinit.wepinit_shop.xmall.common.dao.SellerSearchMapper.getSellerSearchList */
+		SELECT 
+			*
+		FROM gd_seller
+		<include refid="sellerSearchCondition" />
+		AND status = 'S'
+		ORDER BY regdt desc
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+</mapper>
+

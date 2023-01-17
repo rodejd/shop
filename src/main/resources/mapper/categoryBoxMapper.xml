@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.common.dao.CategoryBoxMapper">
+
+	<!-- 상품 카테코리 목록 selectBox 용 -->
+	<select id="getCategoryBoxList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdCategory">
+		SELECT 
+		* 
+		FROM gd_category 
+		WHERE 1=1
+			<if test=" null != andHidden and '' != andHidden ">
+				AND ${andHidden}
+			</if>
+			<if test=" null != category_like and '' != category_like ">
+				AND ${category_like}
+			</if>
+			<if test=" null != category_lendth and '' != category_lendth ">
+				AND ${category_lendth}
+			</if>
+			AND hidden = '0'
+			<if test=" null != order_by and '' != order_by ">
+				ORDER BY ${order_by}
+			</if>
+				
+	</select>
+</mapper>
+

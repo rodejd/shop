@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.front.dao.board.FrontBoardMapper">
+
+	<!-- 게시판 환경설정 확인 -->
+	<select id="getFrontBoardConfig" resultType="com.wepinit.wepinit_shop.xmall.common.vo.XmBoardSetup">
+		SELECT * FROM xm_board_setup WHERE id=#{id}	
+	</select>
+	
+	<!-- 게시판 존재 여부 확인 -->
+	<select id="getFrontBoardListCheckDesc" resultType="string">
+		SELECT id FROM gd_board WHERE id=#{id}
+	</select>
+	
+	<!-- 게시판 총 건수 가져오기 -->
+	<select id="getFrontBoardDataCount" resultType="int">
+		SELECT COUNT(T1.no)
+		FROM gd_bd_${id} T1
+		WHERE 1=1
+		AND T1.notice=#{notice}
+		<if test="subSpeech != null and subSpeech != 'all' ">
+			AND T1.category = #{subSpeech}
+		</if>
+		<if test="searchWord != null and searchMode =='subject' ">
+			AND T1.subject like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='contents' ">
+			AND T1.contents like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='all' ">
+			AND concat(T1.subject, T1.contents) like concat('%',#{searchWord},'%')
+		</if>
+	</select>
+	
+	<!-- 게시판 리스트 + 최신댓글 가져오기 -->
+	<select id="getFrontBoardListWithRecentReply" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.BdBoardmemo">
+		SELECT T1.*, T2.* FROM (
+			SELECT 
+			 a.no AS lno, a.idx, a.main, a.sub, a.name, a.email, a.homepage, a.titleStyle, a.subject,
+			 	a.`contents`, a.urlLink, a.old_file, a.new_file, a.password, a.m_no, a._pass,a._member,a.ip,
+			 	a.notice,a.secret,a.html, a.hit,a.`comment`,a.category, a.regdt
+			FROM gd_bd_${id} a
+			ORDER BY a.regdt DESC) T1
+		LEFT OUTER
+		JOIN gd_board_memo T2 ON T1.lno = T2.no 
+		AND T2.sno = (
+			SELECT MAX(sno)
+			FROM gd_board_memo
+			WHERE NO=T1.lno) 
+		WHERE 1=1
+		<if test="subSpeech != null and subSpeech != 'all' ">
+			AND T1.category = #{subSpeech}
+		</if>
+		<if test="searchWord != null and searchMode =='subject' ">
+			AND T1.subject like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='contents' ">
+			AND T1.contents like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='all' ">
+			AND concat(T1.subject, T1.contents) like concat('%',#{searchWord},'%')
+		</if>
+		<if test=" notice=='' ">
+			AND T1.notice=''
+		</if>
+		ORDER BY T1.regdt DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 게시판 리스트 조회 -->
+	<select id="getFrontBoardList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBdBoard">
+		SELECT * FROM gd_bd_${id}
+		WHERE 1=1
+		AND notice=#{notice}
+		AND skin=#{skin}
+		<if test="subSpeech != null and subSpeech != 'all' ">
+			AND category = #{subSpeech}
+		</if>
+		<if test="searchWord != null and searchMode =='subject' ">
+			AND subject like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='contents' ">
+			AND contents like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='all' ">
+			AND concat(subject, contents) like concat('%',#{searchWord},'%')
+		</if>
+		ORDER BY regdt desc
+		<if test='notice != "o" '>
+		LIMIT #{rowStart}, #{pageSize}
+		</if>
+	</select>
+	
+	<!-- 게시판 HIT값 증가 -->
+	<update id="updateAddHitCount">
+		UPDATE gd_bd_${id} SET hit=hit+1
+		WHERE no=#{no}
+	</update>
+	
+	<!-- 게시판 상세 정보 조회 -->
+	<select id="getFrontBoardInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBdBoard">
+		SELECT * 	FROM gd_bd_${id}
+		WHERE no=#{no}
+	</select>
+	
+	<!-- 게시물 댓글 총 건수 조회 -->
+	<select id="getFrontBoardReplyCount" resultType="int">
+		SELECT count(sno) FROM gd_board_memo
+		WHERE id=#{id} AND no=#{no}
+	</select>
+	
+	<!-- 게시물 댓글 조회 -->
+	<select id="getFrontBoardReplyList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBoardMemo">
+		SELECT m.sno, m.id, m.no, m.name, m.memo, m.password, m.m_no as mno, m.regdt, m.profile
+		FROM gd_board_memo m
+		WHERE id=#{id} AND no=#{no}
+		ORDER BY regdt DESC
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+	
+	<!-- 게시판 댓글 등록 -->
+	<insert id="insertFrontBoardReply">
+		INSERT INTO gd_board_memo (
+			id, no, name, memo, m_no, regdt, profile, password
+		) VALUES (
+			#{id}, #{no}, #{name}, #{memo}, #{mno}, SYSDATE(), #{profile}, MD5(#{password})
+		)
+	</insert>
+	
+	<!-- 게시물 댓글 갯수 증가 -->
+	<update id="updateFrontBoardReplyAddCount">
+		UPDATE gd_bd_${id} SET comment = comment+1
+		WHERE no =#{no}
+	</update>
+	
+	<!-- 게시물 댓글 삭제 -->
+	<delete id="deleteFrontBoardReply">
+		DELETE FROM gd_board_memo
+		WHERE sno = #{sno}
+	</delete>
+	
+	<!-- 게시물 댓글 갯수 감소 -->
+	<update id="updateFrontBoardReplySubCount">
+		UPDATE gd_bd_${id} SET comment = comment-1
+		WHERE no =#{no}
+	</update>
+	
+	<!-- 게시물 댓글 비밀번호 체크 -->
+	<select id="getFrontBoardReplyPassword" resultType="int">
+		SELECT count(*) as cnt from gd_board_memo
+		WHERE sno = #{sno} AND password = md5(#{password})
+	</select>
+	
+	<!-- INDEX 반환 -->
+	<select id="getFrontBoardIndex" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBdBoard">
+		SELECT * 	FROM gd_bd_${id}
+		WHERE 1=1
+		<if test=" mode == 'write' ">
+			AND idx LIKE 'a%'
+		</if>
+		<if test=' mode =="modify" and notice !="o" '>
+			AND idx LIKE 'a%'
+		</if>
+		<if test=' notice != null and notice != "o" '>
+			AND notice != 'o'
+		</if>
+		ORDER BY idx, main, HEX(sub)
+		LIMIT 1
+	</select>
+	
+	<!-- 게시판 조회 -->
+	<select id="getFrontBoardIndexCount" resultType="int">
+		SELECT COUNT(*) FROM gd_bd_${id}
+		WHERE idx=#{idx} AND main=#{main}
+	</select>
+	
+	<!-- 게시판 공지글 건수 조회 -->
+	<select id="getFrontBoardNotiCount" resultType="int">
+		SELECT COUNT(*) FROM gd_bd_${id}
+		<if test='notice != null and notice == "o" '>
+			WHERE notice='o'
+		</if>
+	</select>
+	
+	<!-- 게시판 INF 조회 -->
+	<select id="getFrontBoardInfCount" resultType="int">
+		SELECT count(*) FROM gd_board_inf
+		WHERE id=#{id} and idx=concat('a',#{idx})
+	</select>
+	
+	<!-- 게시판 INF 등록 -->
+	<insert id="insertFrontBoardInf">
+		INSERT INTO gd_board_inf (id, idx, num)
+		VALUES (#{id}, concat('a',#{idx}), 0)
+	</insert>
+	
+	<!-- 게시판 공지글 idx 수정-->
+	<update id="updateFrontBoardNotiIdx">
+		UPDATE 	gd_bd_${id} SET idx=concat('a',#{idx})
+		WHERE notice='o'
+	</update>
+	
+	<!-- 게시판 INF update -->
+	<update id="updateFrontBoardInfNum">
+		UPDATE gd_board_inf SET num=#{rtCnt}
+		WHERE id=#{id} AND idx=concat('a',#{idx})
+	</update>
+	
+	<!-- 게시판 INF UPDATE -->
+	<update id="updateFrontBoardInfNum2">
+		UPDATE gd_board_inf SET num=num-#{rtCnt}
+		WHERE id=#{id} AND idx=concat('a',#{idx})
+	</update>
+	
+	<select id="getFrontBoardSearchNo">
+		SELECT count(no) FROM gd_bd_${id}
+		WHERE no=#{no}
+	</select>
+	
+	<!-- 게시판 게시글 수정  -->
+	<update id="updateFrontBoardInfo">
+		UPDATE gd_bd_${id} SET 
+		idx= concat('a',#{idx}), main= #{main}, sub= #{sub}, name= #{name}, email= #{email}, homepage= #{homepage}, 
+		subject= #{subject}, contents=#{contents}, urlLink= #{urlLink}, old_file=#{oldfile}, 
+		<if test="newfile != null and newfile != '' ">
+		new_file=#{newfile},
+		</if>
+		notice= #{notice}, secret=#{secret}, category=#{category}
+		WHERE no=#{no}
+	</update>
+	
+	<!-- 게시판 INF NUM 수정 -->
+	<update id="updateFrontBoardInfAddNum">
+		UPDATE gd_board_inf SET num=num+1
+		WHERE id=#{id} AND idx=concat('a',#{idx})
+	</update>
+	
+	<!-- 게시판 글 등록 -->
+	<insert id="insertFrontBoardInfo">
+		INSERT INTO gd_bd_${id} 
+		(idx,main,sub,name,email,homepage,subject,contents,urlLink,old_file,new_file,password,ip,notice,secret,category,regdt)
+		VALUES (concat('a',#{idx}), #{main}, #{sub}, #{name}, #{email}, #{homepage}, #{subject}, #{contents}, #{urlLink}, #{oldfile}, #{newfile}, md5(#{password}), #{ip}, #{notice}, #{secret}, #{category}, now())
+	</insert>
+	
+	<!-- 게시판 글 패스워드 확인 -->
+	<select id="getFrontBoardPasswordChk" resultType="int">
+		SELECT count(*) as cnt FROM gd_bd_${id}
+		WHERE no=#{no} AND password=md5(#{password})
+	</select>
+	
+	<!-- 게시판 세부정보 조회 -->
+<!-- 	<select id="getFrontBoardDetailInfo" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdBdBoard">
+		SELECT * FROM gd_bd_${id}
+		WHERE idx=#{boardObj.idx} AND main=#{boardObj.main} AND binary sub like concat(#{boardObj.sub}, '%')
+	</select> -->
+	
+	<!-- 게시물 댓글 삭제 -->
+	<delete id="deleteBoardMemo">
+		DELETE FROM gd_board_memo
+		WHERE no=#{no}
+	</delete>
+	
+	<!-- 게시판 INF NUM 수정 -->
+	<update id="updateBoardInfSubNum">
+		UPDATE gd_board_inf SET num=num-1
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 게시물 삭제 -->
+	<delete id="deleteFrontBoardInfo">
+		DELETE FROM gd_bd_${id}
+		WHERE no=#{no}
+	</delete>
+	
+	<!-- 게시물 총 건수 조회 -->
+	<select id="getFrontBoardTotalCount" resultType="int">
+		SELECT COUNT(T1.no)
+		FROM gd_bd_${id} T1
+		WHERE 1=1
+		AND skin=#{skin}
+		<if test="subSpeech != null and subSpeech != 'all' ">
+			AND T1.category = #{subSpeech}
+		</if>
+		<if test="searchWord != null and searchMode =='subject' ">
+			AND T1.subject like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='contents' ">
+			AND T1.contents like concat('%',#{searchWord},'%')
+		</if>
+		<if test="searchWord != null and searchMode =='all' ">
+			AND concat(T1.subject, T1.contents) like concat('%',#{searchWord},'%')
+		</if>
+	</select>
+
+
+</mapper>

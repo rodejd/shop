@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper  namespace="com.wepinit.wepinit_shop.xmall.admin.dao.goods.LinkMapper">
+
+
+	<select id="goodsAllCount" resultType="int">
+		SELECT count(a.goodsno) as rowCount 
+		FROM gd_goods a 
+	</select>
+	
+	<select id="goodsCount" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.goods.LinkVO" resultType="int">
+		SELECT count(AA.goodsno) as rowCount
+		FROM (
+			SELECT DISTINCT a.goodsno, a.goodsnm, a.goodsnmKR, a.goodsnmCN
+			FROM (select * from gd_goods as a where 1=1
+			
+				<if test="open !=null and open !=''">
+					and open=#{open}
+				</if>
+			    <if test="schWord !=null and schWord !=''">
+			    	and ${schWord}
+			    </if>
+			    <if test="schPrice !=null and schPrice !=''">
+			    	and ${schPrice}
+			    </if>
+			    <if test="schRegdt !=null and schRegdt !=''">
+			    	and ${schRegdt}
+			    </if>
+			    <if test="schOpen !=null and schOpen !=''">
+			    	and ${schOpen}
+			    </if>
+			   
+			) a
+				left join gd_goods_option b 
+					on a.goodsno = b.goodsno
+				left outer join (select goodsno,group_concat(category,'') as category from gd_goods_link
+				where 1=1 
+				<if test="schCategory !=null and schCategory !=''">
+			    	and ${schCategory}
+			    </if>
+			     <if test="schEtc !=null and schEtc !=''">
+			    	and ${schEtc}
+			    </if>
+				group by goodsno) c on a.goodsno = c.goodsno
+		    WHERE 1=1
+		    	
+		    ) AA
+	</select>
+	
+	<!-- 상품 출력 순서 등록 -->
+	<insert id="setGoodsDisplayINSERT" >
+		INSERT INTO gd_goods_display ( 
+			goodsno, mode, sort 
+		) VALUES (
+			#{goodsno}, #{mode}, #{sort}
+		)
+	</insert>
+	
+<!-- 	<select id="getLinkList" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.goods.LinkVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+	SELECT DISTINCT
+		 c.category, a.goodsno,a.goodsnm,a.open,a.regdt as regdt,b.*  
+		 	<if test="addColumn !=null and addColumn !=''">
+				${addColumn}
+		 	</if>
+	FROM (select * from gd_goods as a where 1=1
+	<if test="open !=null and open !=''">
+	and open=#{open}
+	</if>
+	
+	    <if test="schWord !=null and schWord !=''">
+	    	and ${schWord}
+	    </if>
+	    <if test="schPrice !=null and schPrice !=''">
+	    	and ${schPrice}
+	    </if>
+	    <if test="schRegdt !=null and schRegdt !=''">
+	    	and ${schRegdt}
+	    </if>
+	    <if test="schOpen !=null and schOpen !=''">
+	    	and ${schOpen}
+	    </if>
+	) a
+		left join gd_goods_option b 
+			on a.goodsno = b.goodsno and b.parent = 0
+		left outer join (select goodsno,group_concat(category,'') as category from gd_goods_link
+		where 1=1
+		<if test="schCategory !=null and schCategory !=''">
+	    	and ${schCategory}
+	    </if>
+		<if test="schEtc !=null and schEtc !=''">
+	    	and ${schEtc}
+	    </if>
+		 group by goodsno) c on a.goodsno = c.goodsno
+    WHERE 1=1
+	<if test="orderBy !=null and orderBy !=''">
+    		order by ${orderBy}
+    	</if>
+	 	<if test="groupBy !=null and groupBy != ''">
+    		group by ${groupBy}
+    	</if>
+	LIMIT ${rowStart}, ${pageSize}
+	</select> -->
+	
+	<!-- 빠른이동/복사/삭제 리스트 총 건수 조회 -->
+	<select id="getLinkListTotalCount" resultType="int">
+		SELECT count(goodsno) FROM gd_goods
+	</select>
+	
+	<!-- 빠른이동/복사/삭제 리스트 검색 건수 조회 -->
+	<select id="geetLinkListSearchCount" resultType="int">
+		SELECT COUNT(*) FROM
+			( SELECT DISTINCT a.goodsno FROM gd_goods a
+			LEFT JOIN gd_goods_option b ON a.goodsno = b.goodsno AND b.parent = 0
+			LEFT OUTER JOIN ( SELECT goodsno,category
+									FROM gd_goods_link) c ON a.goodsno = c.goodsno
+			LEFT OUTER JOIN gd_seller d
+				on a.sellerCd = d.sellerCd
+		WHERE 1=1
+			<if test="strCategory != '' and strCategory != null">
+	    		AND c.category like concat(#{strCategory},'%')
+	    	</if>
+	    	<if test=" skey != '' and sword != '' ">
+	    		AND ${skey} like concat('%',#{sword},'%')
+	    	</if>
+	    	<if test=" open != '' and open != null">
+	    		AND a.open = #{open}
+	    	</if>
+	    	<if test="schSellerNm !=null and schSellerNm !=''">
+		    	and d.sellerNm like concat('%',#{schSellerNm},'%')
+		    </if>
+		GROUP BY a.goodsno) d
+	</select>
+	
+<!-- 	빠른이동/복사/삭제 리스트 검색 건수 조회 as-is 수정
+	<select id="geetLinkListSearchCount" resultType="int">
+		SELECT DISTINCT count(*)
+		FROM gd_goods a
+			left join gd_goods_option b 
+				on a.goodsno = b.goodsno and b.parent = 0
+			left outer join (select goodsno,group_concat(category,'') as category from gd_goods_link ) c on a.goodsno = c.goodsno
+	    WHERE 1=1
+	    	<if test="strCategory != '' and strCategory != null">
+	    		AND c.category like concat(#{strCategory},'%')
+	    	</if>
+	    	<if test=" skey != '' and sword != '' ">
+	    		AND ${skey} like concat('%',#{sword},'%')
+	    	</if>
+	    	<if test=" open != '' and open != null">
+	    		AND a.open = #{open}
+	    	</if>
+	    GROUP BY a.goodsno
+	</select> -->
+	
+	<!-- 빠른이동/복사/삭제 리스트 조회 -->
+	<select id="getLinkList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		SELECT DISTINCT a.goodsno, c.category, a.goodsnm, a.goodsnmKR, a.goodsnmCN, a.open, a.regdt, b.*
+			, d.sellerNm
+		FROM gd_goods a
+			LEFT JOIN gd_goods_option b ON a.goodsno = b.goodsno AND b.parent = 0
+			LEFT OUTER JOIN (SELECT goodsno, category FROM gd_goods_link) c 
+				ON a.goodsno = c.goodsno
+			left outer join gd_seller d
+				on a.sellerCd = d.sellerCd
+		WHERE 1=1 
+    	<if test="strCategory != '' and strCategory != null">
+    		AND c.category like concat(#{strCategory},'%')
+    	</if>
+    	<if test=" skey != '' and sword != '' ">
+    		AND ${skey} like concat('%',#{sword},'%')
+    	</if>
+    	<if test=" open != '' and open != null">
+    		AND a.open = #{open}
+    	</if>
+    	<if test="schSellerNm !=null and schSellerNm !=''">
+	    	and d.sellerNm like concat('%',#{schSellerNm},'%')
+	    </if>
+		GROUP BY a.goodsno
+			ORDER BY -a.goodsno
+		LIMIT #{rowStart}, #{pageSize}
+	</select>
+
+<!-- 	빠른이동/복사/삭제 리스트 조회 as-is 쿼리문 수정
+	<select id="getLinkList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdGoodsGoodsoptionGoodslink">
+		SELECT DISTINCT
+		c.category, a.goodsno, a.goodsnm, a.open, regdt, b.*
+		FROM gd_goods a
+			left join gd_goods_option b 
+				on a.goodsno = b.goodsno and b.parent = 0
+			left outer join (select goodsno,group_concat(category,'') as category from gd_goods_link group by goodsno) c on a.goodsno = c.goodsno
+	    WHERE 1=1
+	    	<if test="strCategory != '' and strCategory != null">
+	    		AND c.category like concat(#{strCategory},'%')
+	    	</if>
+	    	<if test=" skey != '' and sword != '' ">
+	    		AND ${skey} like concat('%',#{sword},'%')
+	    	</if>
+	    	<if test=" open != '' and open != null">
+	    		AND a.open = #{open}
+	    	</if>
+	    ORDER BY -a.goodsno
+		LIMIT #{rowStart}, #{pageSize}
+	</select> -->
+	
+	<!-- 상품연결 카테고리 UPDATE -->
+	<update id="updateGoodsLink">
+		UPDATE gd_goods_link set 
+			category = #{category}, hidden = #{hidden}
+		WHERE goodsno = #{goodsno} AND category = #{orgCategory}
+	</update>
+	
+	
+	
+	<select id="getGoodsCategoryHiddenState" resultType="int">
+		SELECT count(*) as hiddenCnt 
+		FROM gd_category 
+		WHERE category != '' and category in ( ${category} ) and hidden=1
+	</select>
+	
+	<select id="getGoodsLinkEventConnectLIST" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.GdEventGoodslinkGoodsdisplay">
+	 	SELECT b.goodsno
+	 		 , concat('e', b.sno) mode
+	 		 , b.sno 
+	    	 , count(a.mode) disCount
+	    	 , ifnull(max(a.sort), 0) sort
+		FROM ( SELECT ba.goodsno, ifnull(bb.sno, 0) sno, ifnull(concat('e', bb.sno), '') mode
+		            FROM gd_goods_link ba LEFT OUTER JOIN  gd_event bb
+		                ON ba.category = bb.category
+		            WHERE ba.goodsno IN (${goodsno})
+			) b LEFT OUTER JOIN gd_goods_display a 
+				ON b.mode = a.mode
+		WHERE 1=1
+	    GROUP BY b.goodsno
+	</select>
+	
+	<insert id="setGoodsCategoryINSERT01">
+		INSERT INTO gd_goods_link set goodsno=#{goodsno}, category=#{category}, hidden=#{hidden}, sort=-unix_timestamp()
+	</insert>
+	
+	<update id="setGoodsInfoUPDATE">
+		update gd_goods 
+			set regdt=now() 
+		where goodsno=#{goodsno}
+	</update>
+	
+<!-- 	<insert id="setGoodsDisplayINSERT" parameterType="com.wepinit.wepinit_shop.xmall.common.vo.GdGoodsDisplay">
+		INSERT INTO gd_goods_display ( 
+			goodsno, mode, sort 
+		) VALUES (
+			${goodsno}, ${mode}, ${sort}
+		)
+	</insert> -->
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.log.MemMapper">
+	
+	
+	<!-- #####################회원분석(신규회원분석)################################## -->
+	
+	<select id="getMemNewList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.MemNewOutVO">
+	SELECT 
+		substring(regdt,1,10) rdt,
+		count(*) as cnt, 
+		sum(cnt_login) login, 
+		sum(cnt_sale) sale_cnt,
+		sex 
+	FROM gd_member
+		WHERE 1=1
+  		AND regdt LIKE CONCAT(#{year},'-',#{month},'%')
+  		GROUP BY rdt,sex
+	</select>
+	
+	<select id="getMemAgeList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.MemAgeOutVO">
+	SELECT 
+		substring(regdt,1,10) rdt, 
+		sex,
+		birth_year,
+		count(*) as cnt ,
+		year(now())-birth_year age
+	FROM gd_member 
+		WHERE regdt LIKE CONCAT(#{year},'-',#{month},'%')
+		GROUP BY rdt, sex, birth_year 
+	</select>
+	
+	<select id="getMemAreaList" resultType="com.wepinit.wepinit_shop.xmall.common.vo.MemAreaOutVO">
+	SELECT 
+		substring(regdt,1,10) rdt, 
+		sex,
+		substring(zipcode,1,2) as zip, 
+		count(*) as cnt
+	FROM gd_member 
+		WHERE regdt LIKE CONCAT(#{year},'-',#{month},'%')
+			GROUP BY rdt, sex, zip
+	</select>
+</mapper>
+

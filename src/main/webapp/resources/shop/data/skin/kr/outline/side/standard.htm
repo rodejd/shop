@@ -1,0 +1,157 @@
+﻿{*** 측면기본파일 | outline/side/standard.php ***}
+
+<table cellpadding=0 cellspacing=0>
+<tr><td><img src="../../img/main/top_category.gif"></td></tr>
+</table>
+
+<!-- 카테고리 메뉴 시작 -->
+<!-- 관련 세부소스는 '기타/추가페이지(proc) > 카테고리메뉴- menuCategory.htm' 안에 있습니다 -->
+{ # menuCategory }
+<!-- 카테고리 메뉴 끝 -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 왼쪽 배너 01 : Start -->
+<table cellpadding=0 cellspacing=0 border=0 width=100%>
+<tr><td align=center><!-- 왼쪽 배너 01 (배너관리에서 수정가능) --><!--{ @ dataBanner( 5 ) }-->{.tag}<!--{ / }--></td></tr>
+</table>
+<!-- 왼쪽 배너 01 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 회원 로그인 : Start -->
+<div><img src="../../img/main/member_left_bar.gif"></div>
+<div style="padding-top:12px"></div>
+
+<div align=center>
+<!--{ ? !_sess // 로그인전 }-->
+<form action="../member/login_ok.php" method=post onsubmit="return chkForm(this)">
+<table cellpadding=0 cellspacing=0 border=0>
+<tr><td>
+<table cellpadding=0 cellspacing=0 border=0>
+<tr>
+<td align=right><img src="../../img/main/left_id.gif"></td>
+<td><input type=text name=m_id class=line required label="아이디" style="width:90px"></td>
+</tr>
+<tr><td colspan=2 height=4></td></tr>
+<tr>
+<td align=right><img src="../../img/main/left_pw.gif"></td>
+<td><input type=password name=password class=line required label="비밀번호" style="width:90px"></td>
+</tr>
+</td></tr></table>
+</td>
+<td><input type=image src="../../img/main/member_left_bu_login.gif"></td>
+</tr>
+</table>
+
+<table cellpadding=0 cellspacing=0 border=0>
+<tr><td height=10 colspan=2></td></tr>
+<tr>
+<td style="padding-left:23px"><a href="../member/join.php"><img src="../../img/main/member_left_bu_join.gif"></a></td>
+<td><a href="../member/find_id.php"><img src="../../img/main/member_left_bu_idpwsearch.gif"></a></td>
+</tr>
+</table>
+
+</form>
+<!--{ : // 로그인후 }-->
+<table border=0>
+<tr><td><font color=666666><b>{_member.name}</b>님 환영합니다.
+<div style="padding-top:3px">즐거운 쇼핑되세요.</font></div></td></tr>
+<tr><td height=4></td></tr>
+</table>
+
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td><a href="../member/myinfo.php"><img src="../../img/main/member_left_bu_mypage.gif"></a></td>
+<td><a href="../mypage/mypage_wishlist.php"><img src="../../img/main/member_left_bu_wishlist.gif"></a></td>
+<td width=8></td>
+<td><a href="../member/logout.php"><img src="../../img/main/member_left_bu_logout.gif"></a></td>
+</tr>
+</table>
+<!--{ / }-->
+</div>
+<!-- 회원 로그인 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 커뮤니티 : Start -->
+<table cellpadding=0 cellspacing=0>
+<tr><td><img src="../../img/main/community_left_bar.gif"></td></tr>
+<tr><td height=7></td></tr>
+<tr>
+<td style="padding-left:20">
+<div style="padding-top:5;">&#149; <a href="../goods/goods_review.php">이용후기</a></div>
+<div style="padding-top:5;">&#149; <a href="../goods/goods_qna.php">상품문의</a></div>
+<!--{ @dataBoard(20) }-->
+<div style="padding-top:5;">&#149; <a href="../board/list.php?id={.id}">{.name}</a></div>
+<!--{ / }-->
+</td>
+</tr>
+</table>
+<!-- 커뮤니티 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 브랜드샵 : Start -->
+<table cellpadding=0 cellspacing=0>
+<tr><td><img src="../../img/main/brand_left_bar.gif"></td></tr>
+<tr>
+<td align="center" style="background-color:#F3F3F3;padding:5px 0px 10px 0px;">
+<form>
+<select name="brandView" onChange="javascript:if ( this.options[this.options.selectedIndex].value ) location.replace( this.options[this.options.selectedIndex].value );" style="font:8pt 돋움;width:90%;">
+<option value=""> - 브랜드샵 보기</option>
+<!--{ @ dataBrand() }-->
+<option value="../goods/goods_brand.php?brand={.brand}" {?.brand==_brand}selected{/}> - {.name}</option>
+<!--{ / }-->
+</select>
+</form>
+</td>
+</tr>
+</table>
+<!-- 브랜드샵 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 고객센터 : Start -->
+<table cellpadding=0 cellspacing=0>
+<tr><td><img src="../../img/main/center_left_bar.gif"></td></tr>
+<tr>
+<td background="../../img/main/center_left_bg.gif" style="padding-left:30">
+<font size=4 face=verdana color=fe5400><b>{_cfg['compPhone']}</b></font>
+<div class=eng style="padding-bottom:10px"><font size=2 face=verdana><b>{_cfg['adminEmail']}</b></font></div>
+</td>
+</tr>
+<tr><td><img src="../../img/main/center_left_bottom.gif"></td></tr>
+</table>
+<!-- 고객센터 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 무통장입금 : Start -->
+<table cellpadding=0 cellspacing=0>
+<tr><td><img src="../../img/main/bank_left_bar.gif"></td></tr>
+<tr>
+<td background="../../img/main/center_left_bg.gif" style="padding-left:30">
+<!--{ @ dataBank() }-->
+<b>{.bank}</b> - {.name}
+<div class=eng style="color:#595959;padding-bottom:5">{.account}</div>
+<!--{ / }-->
+</td>
+</tr>
+<tr><td><img src="../../img/main/center_left_bottom.gif"></td></tr>
+</table>
+<!-- 무통장입금 : End -->
+
+<div style="padding-top:15px"></div>
+
+<!-- 측면 빈 배너 : Start -->
+<table cellpadding=0 cellspacing=0 border=0 width=100%>
+<tr><td align=center><!-- 측면 빈 배너 01 (배너관리에서 수정가능) --><!--{ @ dataBanner( 24 ) }-->{.tag}<!--{ / }--></td></tr>
+<tr><td height=15></td></tr>
+<tr><td align=center><!-- 측면 빈 배너 02 (배너관리에서 수정가능) --><!--{ @ dataBanner( 25 ) }-->{.tag}<!--{ / }--></td></tr>
+<tr><td height=15></td></tr>
+<tr><td align=center><!-- 측면 빈 배너 03 (배너관리에서 수정가능) --><!--{ @ dataBanner( 26 ) }-->{.tag}<!--{ / }--></td></tr>
+</table>
+<!-- 왼쪽 배너 : End -->
+
+<div style="padding-top:20px"></div>

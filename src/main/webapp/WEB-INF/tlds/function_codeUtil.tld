@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+<tlib-version>1.1</tlib-version>
+<uri>CodeUtil</uri>
+
+    <function>
+    	<description>Code 리스트 가져오기</description>
+        <name>codeitem</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.util.List codeitem(java.lang.String)
+        </function-signature>
+        <example>
+        	${codeUtil:codeitem('str')}
+        </example>
+    </function> 
+    
+    <function>
+    	<description>Code 리스트 가져오기(대메뉴)</description>
+        <name>codeitem2</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.util.List codeitem2()
+        </function-signature>
+        <example>
+        	${codeUtil:codeitem2()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>SMS그룹샘플 조회(건수 포함)</description>
+        <name>codeitem3</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.util.List codeitem3()
+        </function-signature>
+        <example>
+        	${codeUtil:codeitem3()}
+        </example>
+    </function>
+    
+    <function>
+    	<description>코드이름</description>
+        <name>getCodeName</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.lang.String getCodeName(java.lang.String, java.lang.String)
+        </function-signature>
+        <example>
+        	${codeUtil:getCodeName("1", "2")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>conf_set 정보</description>
+        <name>getConfValue</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.lang.String getConfValue(java.lang.String)
+        </function-signature>
+        <example>
+        	${codeUtil:getConfValue("smsPass")}
+        </example>
+    </function>
+    
+    <function>
+    	<description>회원그룹정보조회</description>
+        <name>getMemberGrp</name>
+        <function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+        <function-signature>
+          java.util.List getMemberGrp()
+        </function-signature>
+        <example>
+        	${codeUtil:getMemberGrp()}
+        </example>
+    </function>
+    
+	<function>
+		<description>ConfigClass의 value메서드 호출</description>
+		<name>getConfigClassValue</name>
+		<function-class>com.wepinit.wepinit_shop.xcube.util.CodeUtil</function-class>
+		<function-signature>
+			java.lang.String getConfigClassValue(java.lang.String)
+		</function-signature>
+		<example>
+			${codeUtil:getConfigClassValue('FILE_PATH')}
+		</example>
+	</function>
+</taglib>    

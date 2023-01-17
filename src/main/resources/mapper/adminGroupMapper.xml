@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wepinit.wepinit_shop.xmall.admin.dao.basic.AdminGroupMapper">
+
+
+<select id="getMemberGroupSelectboxLIST" resultType="com.wepinit.wepinit_shop.xmall.common.vo.GdMemberGrp">
+	SELECT distinct grpnm, k_level as klevel FROM gd_member_grp ORDER BY k_level DESC
+</select>
+
+<select id="getMemberAllCount"  resultType="int">
+select count(m_no) 
+	from gd_member
+</select>
+<select id="getAdminMemberSearchCount" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO" resultType="int">
+SELECT count(*) totCount
+	FROM gd_member_grp a, gd_member b
+	WHERE a.k_level = b.k_level
+	and a.k_level >= 80
+	<if test="skey != null and skey !=''">
+			and b.${skey} like '%${sword}%'
+		</if>
+		<if test="skey != null and skey ==''">
+			and (b.name like '%${sword}%'
+			or b.phone like '%${sword}%'
+				or b.m_id like '%${sword}%'
+					or b.email like '%${sword}%'
+						or b.mobile like '%${sword}%')
+						
+		</if>
+</select>
+<select id="getUserMemberSearchCount" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO"  resultType="int">
+SELECT count(*) totCount 
+	FROM gd_member_grp a, gd_member b 
+	WHERE a.k_level = b.k_level 
+	and a.k_level <![CDATA[<]]> 80
+		<if test="skey != null and skey !=''">
+			and b.${skey} like '%${sword}%'
+		</if>
+			<if test="skey != null and skey ==''">
+				and (b.name like '%${sword}%'
+			or b.phone like '%${sword}%'
+				or b.m_id like '%${sword}%'
+					or b.email like '%${sword}%'
+						or b.mobile like '%${sword}%' )
+						
+		</if>
+</select>
+<select id="getAdminMemberGroupMemberLIST1" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+
+SELECT b.name, b.m_id as mid, b.sex, b.m_no as mno, b.cnt_login as cntlogin, b.status, b.k_level as klevel, a.dc
+		, date_format(b.regdt, '%Y.%m.%d') as regdt2
+	    , b.last_login as lastlogin
+	FROM gd_member_grp a, gd_member b
+	WHERE a.k_level = b.k_level
+			and a.k_level >= 80
+			and ( b.name like '%${sword}%'
+			or b.phone like '%${sword}%'
+				or b.m_id like '%${sword}%'
+					or b.email like '%${sword}%'
+						or b.mobile like '%${sword}%' )
+		<if test="sort != null and sort !=''">
+			order by ${sort}
+		</if>
+	LIMIT ${rowStart}, ${pageSize}
+</select>
+<select id="getAdminMemberGroupMemberLIST2" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+
+SELECT b.name, b.m_id as mid, b.sex, b.m_no as mno, b.cnt_login as cntlogin, b.status, b.k_level as klevel, a.dc
+		, date_format(b.regdt, '%Y.%m.%d') as regdt2
+	    , b.last_login as lastlogin
+	FROM gd_member_grp a, gd_member b
+	WHERE a.k_level = b.k_level
+		and a.k_level >= 80
+		<if test="skey != null and skey !=''">
+			and b.${skey} like '%${sword}%'
+		</if>
+	
+	LIMIT ${rowStart}, ${pageSize}
+</select>
+
+<select id="getUserMemberGroupMemberLIST1" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+
+SELECT b.name, b.m_id as mid, b.sex, b.m_no as mno, b.cnt_login as cntlogin, b.status, b.k_level as klevel, a.dc
+		, date_format(b.regdt, '%Y.%m.%d') as regdt2
+	    , b.last_login as lastlogin
+	FROM gd_member_grp a, gd_member b
+	WHERE a.k_level = b.k_level
+		and a.k_level <![CDATA[<]]> 80
+		and ( b.name like '%${sword}%'
+			or b.phone like '%${sword}%'
+				or b.m_id like '%${sword}%'
+					or b.email like '%${sword}%'
+						or b.mobile like '%${sword}%' )
+		<if test="sort != null and sort !=''">
+			order by ${sort}
+		</if>
+	LIMIT ${rowStart}, ${pageSize}
+</select>
+
+<select id="getUserMemberGroupMemberLIST2" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO" resultType="com.wepinit.wepinit_shop.xmall.common.vo.join.MemberMemberGrp">
+
+SELECT b.name, b.m_id as mid, b.sex, b.m_no as mno, b.cnt_login as cntlogin, b.status, b.k_level as klevel, a.dc
+		, date_format(b.regdt, '%Y.%m.%d') as regdt2
+	    , b.last_login as lastlogin
+	FROM gd_member_grp a, gd_member b
+	WHERE a.k_level = b.k_level
+		and a.k_level <![CDATA[<]]> 80
+		<if test="skey != null and skey !=''">
+			and b.${skey} like '%${sword}%'
+		</if>
+		<if test="sort != null and sort !=''">
+			order by ${sort}
+		</if>
+	LIMIT ${rowStart}, ${pageSize}
+</select>
+
+<update id="setMemberLevelUPDATE" parameterType="com.wepinit.wepinit_shop.xmall.admin.vo.basic.AdminGroupVO">
+	UPDATE gd_member SET k_level=${level} WHERE m_no=${mno}
+</update>
+
+
+</mapper>
