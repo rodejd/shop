@@ -26,8 +26,8 @@ import java.util.List;
 public class AwsFileUtil {
 	// Amazon-s3-sdk
 	private AmazonS3 s3Client;
-	final private String accessKey = "AKIAR54DXEPGC275BLWF";
-	final private String secretKey = "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";
+	final private String accessKey = "TEST";
+	final private String secretKey = "TEST/TEST";
 	private Regions clientRegion = Regions.AP_NORTHEAST_2;
 	private String bucket = "wepinit-web";
 
